@@ -64,4 +64,4 @@ export interface CartProduct {
   image?: any | "";
 }
 
-export const ProductSizes = ["XL", "MEDIUM", "LARGE", " XXL", "SMALL", " XS"];
+export const ProductSizes = ["xl", "medium", "large", "xxl", "small", "xs"];

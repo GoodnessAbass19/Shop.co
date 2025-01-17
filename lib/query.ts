@@ -123,3 +123,41 @@ export const GET_RELATED_PRODUCTS = gql`
     }
   }
 `;
+
+export const GET_PRODUCT_BY_SIZES = gql`
+  query getProduct($size: [Sizes!], $tag: ProductTag!) {
+    products(
+      where: {
+        productSizes_contains_some: $size
+        productTag_contains_some: [$tag]
+      }
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        productName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      reviews
+    }
+  }
+`;

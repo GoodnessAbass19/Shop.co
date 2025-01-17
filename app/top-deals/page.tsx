@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import FilterProduct from "@/components/products/FilterProduct";
 
-const NewArrivalPage = () => {
+const TopDealsPage = () => {
   return (
     <div className="mt-5 max-w-screen-2xl mx-auto px-2">
       <Breadcrumb className="md:block hidden pb-5">
@@ -27,7 +27,7 @@ const NewArrivalPage = () => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="capitalize text-xs md:text-sm font-medium font-sans">
-              new arrivals
+              top deals
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -37,7 +37,7 @@ const NewArrivalPage = () => {
           <FilterModal />
         </div>
         <div className="col-span-4 w-full">
-          <FilterProduct title="new arrivals" tag={productTags.newArrivals} />
+          <FilterProduct title="top deals" tag={productTags.topDeals} />
         </div>
 
         {/* <FilterProduct /> */}
@@ -46,4 +46,4 @@ const NewArrivalPage = () => {
   );
 };
 
-export default NewArrivalPage;
+export default TopDealsPage;

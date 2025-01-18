@@ -2,6 +2,7 @@ import { Product } from "@/types";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Image from "next/image";
 import Link from "next/link";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const ProductCard = ({
   item,
@@ -22,13 +23,17 @@ const ProductCard = ({
     // Calculate percentage difference
     const percentage = (difference / average) * 100;
 
-    return percentage.toFixed(0); // Returns the result rounded to 2 decimal places
+    return Math.ceil(percentage); // Round up to the nearest whole number
+  }
+
+  if (loading) {
+    return <div>{loading && <SkeletonCard />}</div>;
   }
 
   return (
     <Link
       href={`/products/${item.slug}`}
-      className="w-full rounded-md h-full overflow-hidden"
+      className="w-full rounded-md h-full overflow-hidden relative"
     >
       {/* {item.images[0]?.url && ( */}
       <Image
@@ -44,7 +49,7 @@ const ProductCard = ({
         className="object-cover object-center rounded-md h-[260px]"
       />
       {/* )} */}
-      <h2 className="font-semibold text-base capitalize text-start font-sans">
+      <h2 className="font-semibold text-base capitalize text-start font-sans line-clamp-1">
         {item.productName}
       </h2>
       <div className="space-y-2">
@@ -57,16 +62,18 @@ const ProductCard = ({
             {formatCurrencyValue(item.price)}
           </span>
         )}
-      </div>
-      <span className="font-light text-sm text-center text-black bg-gray-400 rounded-lg p-1 absolute top-1 right-1">
-        -
-        {percentageDifference(
-          // @ts-ignore
-          item.price,
-          item.discountedPrice
+        {item.discountedPrice && (
+          <span className="font-light text-sm text-center text-[#FF3333] bg-[#FF3333]/10 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
+            -
+            {percentageDifference(
+              // @ts-ignore
+              item.price,
+              item.discountedPrice
+            )}
+            %
+          </span>
         )}
-        %
-      </span>
+      </div>
     </Link>
   );
 };

@@ -13,7 +13,7 @@ const Product = () => {
   });
 
   return (
-    <div className="max-w-screen-2xl mx-auto py-5 px-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 justify-between items-stretch">
+    <div className="max-w-screen-xl mx-auto py-5 px-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 justify-between items-stretch">
       {data?.products.map((product) => (
         <ProductCard item={product} key={product.id} loading={loading} />
       ))}

@@ -13,7 +13,7 @@ import FilterProduct from "@/components/products/FilterProduct";
 
 const TopDealsPage = () => {
   return (
-    <div className="mt-5 max-w-screen-2xl mx-auto px-2">
+    <div className="mt-5 max-w-screen-xl mx-auto px-2">
       <Breadcrumb className="md:block hidden pb-5">
         <BreadcrumbList className="dark:text-white text-black">
           <BreadcrumbItem>

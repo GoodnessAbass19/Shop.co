@@ -14,7 +14,7 @@ const images = [
 const Banner = () => {
   return (
     <div className="">
-      <div className="max-w-screen-2xl mx-auto pt-5">
+      <div className="max-w-screen-xl mx-auto pt-5">
         <div className="grid grid-cols-1 md:grid-cols-2 justify-between items-center gap-10">
           <div className="flex flex-col items-stretch justify-start gap-7 px-5">
             <h2 className="lg:text-7xl text-4xl font-extrabold uppercase">
@@ -66,7 +66,7 @@ const Banner = () => {
         </div>
       </div>
       <div className="bg-black w-full py-3">
-        <Marquee speed={70} className="max-w-screen-2xl mx-auto">
+        <Marquee speed={70} className="max-w-screen-xl mx-auto">
           <div className="flex justify-between items-center gap-10">
             {images.map((item) => (
               <Image

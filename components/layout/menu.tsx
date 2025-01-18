@@ -43,7 +43,7 @@ const Menu = () => {
           <span className="uppercase underline inline-flex">sign up now</span>
         </p>
       </div>
-      <div className="flex justify-between items-center p-2 py-4 max-w-screen-2xl mx-auto gap-5">
+      <div className="flex justify-between items-center p-2 py-4 max-w-screen-xl mx-auto gap-5">
         <div className="flex justify-between items-center md:gap-x-5 gap-x-3">
           <div className="md:hidden">
             <MenuButton isOpen={isOpen} onClick={setIsOpen.toggle} />
@@ -61,11 +61,26 @@ const Menu = () => {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                  Aperiam nam dolores reprehenderit quibusdam facere ratione
-                  voluptatibus necessitatibus iste? Officia deleniti quod,
-                  aliquam iste velit quae aliquid delectus soluta adipisci
-                  explicabo.
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    <li>
+                      <NavigationMenuLink
+                        href=""
+                        className="text-sm font-medium leading-none"
+                      >
+                        women fashion
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="">
+                        women fashion
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink href="">
+                        women fashion
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -79,13 +94,6 @@ const Menu = () => {
                 <Link href="/new-arrivals" legacyBehavior passHref>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                     New Arrivals
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href="#" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Brands
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>

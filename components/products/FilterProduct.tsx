@@ -26,16 +26,17 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
         ? { size: sizes, tag: tag }
         : { tag: tag, first: 15 }, // Default to "newArrivals" tag if no sizes
       skip: false, // Ensure the query always runs
+      notifyOnNetworkStatusChange: true,
     }
   );
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div>
       <h1 className="text-2xl font-semibold mb-4 capitalize">{title}</h1>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 justify-between items-stretch">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-between items-stretch">
         {data?.products.map((product) => (
           <ProductCard key={product.id} item={product} loading={loading} />
         ))}

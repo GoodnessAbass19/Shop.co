@@ -57,7 +57,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
-        "hero-pattern": "url('/Rectangle 2.png')",
+        "style-formal": "url('/images/image 13.png')",
       },
     },
   },

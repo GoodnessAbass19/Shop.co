@@ -3,7 +3,7 @@ import React from "react";
 
 const Styles = () => {
   return (
-    <div className="mt-10 max-w-screen-xl mx-auto rounded-3xl bg-[#F0F0F0] space-y-10">
+    <div className="mt-10 max-w-screen-xl mx-auto rounded-3xl bg-[#F0F0F0] space-y-10 py-5">
       <h2 className="uppercase text-3xl md:text-4xl font-extrabold text-center">
         browse by dress style
       </h2>

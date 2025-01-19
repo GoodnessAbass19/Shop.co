@@ -32,6 +32,7 @@ export type Product = {
   }[];
   productTag: string[];
   productSizes: string[];
+  review: string[];
 };
 
 export type images = {

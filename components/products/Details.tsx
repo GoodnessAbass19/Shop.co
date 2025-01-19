@@ -143,18 +143,22 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               <span className="font-bold text-2xl lg:text-3xl text-start">
                 {formatCurrencyValue(data?.product.price)}
               </span>
-              <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
-                {formatCurrencyValue(data?.product.discountedPrice)}
-              </span>
-              <span className="font-light text-base text-center text-white dark:text-black dark:bg-white bg-black rounded-lg p-1">
-                -
-                {percentageDifference(
-                  // @ts-ignore
-                  data?.product.price,
-                  data?.product.discountedPrice
-                )}
-                %
-              </span>
+              {data?.product.discountedPrice && (
+                <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
+                  {formatCurrencyValue(data?.product.discountedPrice)}
+                </span>
+              )}
+              {data?.product.discountedPrice && (
+                <span className="font-light text-base text-center text-white dark:text-black dark:bg-white bg-black rounded-lg p-1">
+                  -
+                  {percentageDifference(
+                    // @ts-ignore
+                    data?.product.price,
+                    data?.product.discountedPrice
+                  )}
+                  %
+                </span>
+              )}
             </div>
 
             <p className="hidden md:line-clamp-3 lg:line-clamp-none">
@@ -195,6 +199,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <div className="flex gap-3 items-center justify-start">
             {data?.product.productSizes.map((size) => (
               <div
+                key={size}
                 onClick={() => handleSelectSize(size)} // Handles click for the div
                 className={`px-4 py-2 rounded-lg cursor-pointer border text-center ${
                   selectedSize === size
@@ -270,29 +275,33 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             {data?.product.productDetails.text}
           </TabsContent>
           <TabsContent value="reviews">
-            Change your password here. Lorem ipsum dolor sit amet consectetur
-            adipisicing elit. Facere, nemo aut? Asperiores a commodi, quia dolor
-            animi cum nihil sequi, soluta aspernatur nobis velit, magni dicta.
-            Eius voluptatum cum ipsa aspernatur perspiciatis, adipisci accusamus
-            earum sequi cumque harum distinctio laborum praesentium quam tempora
-            ratione provident fugiat ab necessitatibus. Maiores perspiciatis
-            illo laudantium deleniti earum dolor odio soluta enim delectus hic
-            iure neque saepe repudiandae expedita est, eos quaerat vitae
-            distinctio amet vel laborum odit at voluptatum ut! Excepturi
-            voluptatum maiores eum ea, provident aliquam? Iste, enim quisquam ut
-            voluptas labore consequuntur impedit magnam unde quas molestiae
-            iusto modi, amet ipsa provident temporibus asperiores doloribus
-            explicabo qui sint possimus, sunt optio autem atque aliquid. Hic
-            autem cumque dicta vel aperiam, architecto magni ea rem asperiores
-            reiciendis maiores numquam quo animi quidem repellendus sit eaque
-            alias minima corrupti, voluptatum saepe illo repudiandae adipisci
-            error! Sint architecto quasi alias suscipit ipsam fugit officia
-            laudantium pariatur iure quia recusandae eos quos, aliquam ipsa
-            eligendi a ducimus fuga aliquid et veritatis dolor modi distinctio.
-            Nostrum temporibus pariatur eos excepturi facere, iste odio quod
-            harum distinctio nobis veniam blanditiis consectetur cupiditate
-            soluta maxime fugiat deserunt in nesciunt nemo quibusdam! Aperiam
-            sint voluptatem asperiores, necessitatibus maxime nam!
+            {/* {data?.product.review?.map((item, idx) => (
+              <p key={idx}>{item}</p>
+            ))} */}
+            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Doloremque
+            deserunt quis iusto? Assumenda fugit ea ipsum ipsa voluptatibus
+            cupiditate quisquam nobis sed vitae, eius at et, praesentium
+            aspernatur quod! Et, corrupti temporibus beatae maiores obcaecati
+            sunt ipsum optio maxime alias laborum dignissimos, ut suscipit culpa
+            illum quis velit cumque hic, soluta vero laudantium! Magni ex porro
+            delectus quasi vel inventore fugit distinctio cupiditate veritatis
+            aspernatur ea amet libero, earum similique. Cumque officiis
+            voluptate, aliquam molestiae quis possimus mollitia dolore quod
+            consequuntur facilis nesciunt dicta qui amet atque eveniet? Ipsum,
+            voluptatem, consequatur, magnam earum quos consectetur
+            exercitationem illo eaque numquam dicta dignissimos vero accusamus.
+            Officia quod quis assumenda officiis nam veniam itaque fuga dicta
+            possimus aspernatur, quas voluptatum asperiores? Illum, ducimus
+            pariatur. Ipsam, natus tempore iusto, dolorem soluta debitis tenetur
+            deleniti perspiciatis explicabo autem nisi architecto ad corrupti
+            tempora possimus, quae et ratione molestiae sunt laborum! Cum
+            possimus, recusandae, magnam dolor, exercitationem obcaecati velit
+            aspernatur vero porro repellendus sapiente accusamus natus
+            praesentium earum. Cumque recusandae reiciendis nesciunt itaque et
+            placeat ab fugit iure. Dolores rerum reiciendis dignissimos id nam
+            harum magnam atque voluptatibus earum quo sapiente veniam ex magni
+            soluta quos recusandae, commodi tempore accusamus ducimus
+            consectetur praesentium qui ab aliquam!
           </TabsContent>
         </Tabs>
       </div>

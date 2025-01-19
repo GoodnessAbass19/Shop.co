@@ -6,9 +6,6 @@ import { useQuery } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
 
-// GraphQL Enum Mapping
-const VALID_SIZES = ["XL", "MEDIUM", "LARGE", "XXL"];
-
 const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   const param = useSearchParams();
   const rawSizes = param.get("size")?.split(",") || [];
@@ -30,8 +27,8 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
     }
   );
 
-  // if (loading) return <p>Loading...</p>;
-  // if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div>

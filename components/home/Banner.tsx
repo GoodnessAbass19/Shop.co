@@ -17,7 +17,7 @@ const Banner = () => {
       <div className="max-w-screen-xl mx-auto pt-5">
         <div className="grid grid-cols-1 md:grid-cols-2 justify-between items-center gap-10">
           <div className="flex flex-col items-stretch justify-start gap-7 px-5">
-            <h2 className="lg:text-7xl text-4xl font-extrabold uppercase">
+            <h2 className="lg:text-6xl text-4xl font-extrabold uppercase">
               find clothes that matches your style
             </h2>
 

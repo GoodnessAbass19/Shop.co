@@ -83,6 +83,7 @@ export const GET_SINGLE_PRODUCT = gql`
       colours {
         hex
       }
+      review
     }
   }
 `;
@@ -157,7 +158,7 @@ export const GET_PRODUCT_BY_SIZES = gql`
       colours {
         hex
       }
-      reviews
+      review
     }
   }
 `;

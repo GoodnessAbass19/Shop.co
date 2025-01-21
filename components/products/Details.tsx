@@ -136,7 +136,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
         <ThumbnailGallery images={image} />
         <div className="flex flex-col space-y-5 items-start justify-start">
           <div className="grid gap-3 justify-start items-start">
-            <h2 className="font-extrabold text-2xl md:text-3xl lg:text-4xl uppercase">
+            <h2 className="font-semibold text-2xl uppercase">
               {data?.product.productName}
             </h2>
             <div className="flex justify-start items-center gap-2">
@@ -252,7 +252,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       </div>
 
       {/* PRODUCT FULL DETAILS AND REVIEWS */}
-      <div className="mt-5 mx-auto max-w-screen-2xl px-5">
+      <div className="mt-20 mx-auto max-w-screen-2xl px-5">
         <Tabs
           defaultValue="details"
           className="max-w-screen-2xl mx-auto w-full space-y-5"

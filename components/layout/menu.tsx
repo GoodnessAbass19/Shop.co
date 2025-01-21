@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import SearchIcon from "../Icons/searchIcon";
+import { Shoplist } from "@/types";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -61,26 +62,30 @@ const Menu = () => {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    <li>
-                      <NavigationMenuLink
-                        href=""
-                        className="text-sm font-medium leading-none"
-                      >
-                        women fashion
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink href="">
-                        women fashion
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink href="">
-                        women fashion
-                      </NavigationMenuLink>
-                    </li>
-                  </ul>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-2 w-[400px] lg:w-[600px] p-4 gap-5">
+                    {Shoplist.map((list) => (
+                      <div key={list.title} className="flex flex-col space-y-1">
+                        <NavigationMenuLink
+                          href={`${list.link}`}
+                          className="text-base font-semibold uppercase text-[#313133] text-ellipsis hover:text-gray-400"
+                        >
+                          {list.title}
+                        </NavigationMenuLink>
+                        <hr className="bg-gray-900" />
+                        <div className="space-y-1 flex flex-col justify-start items-start">
+                          {list.list.map((item) => (
+                            <NavigationMenuLink
+                              href={`${list.link}/${item}`}
+                              key={item}
+                              className="text-sm capitalize text-[#75757a] text-ellipsis hover:text-black"
+                            >
+                              {item}
+                            </NavigationMenuLink>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>

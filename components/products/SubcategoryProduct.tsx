@@ -1,13 +1,23 @@
 "use client";
 
-import { GET_PRODUCT_BY_SIZES, GET_PRODUCTS_BY_TAGS } from "@/lib/query";
-import { ProductData, productTags } from "@/types";
+import {
+  GET_PRODUCT_BY_SUBCATEGORY,
+  GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES,
+} from "@/lib/query";
+import { ProductData } from "@/types";
 import { useQuery } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
-import { SkeletonCard } from "../ui/SkeletonCard";
 
-const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
+const SubcategoryProduct = ({
+  title,
+  category,
+  subcategory,
+}: {
+  title: string;
+  category: string;
+  subcategory: string;
+}) => {
   const param = useSearchParams();
   const rawSizes = param.get("size")?.split(",") || [];
 
@@ -18,15 +28,25 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   const isSizeFilterActive = sizes.length > 0;
 
   const { data, loading, error } = useQuery<ProductData>(
-    isSizeFilterActive ? GET_PRODUCT_BY_SIZES : GET_PRODUCTS_BY_TAGS,
+    isSizeFilterActive
+      ? GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES
+      : GET_PRODUCT_BY_SUBCATEGORY,
     {
       variables: isSizeFilterActive
-        ? { size: sizes, tag: tag }
-        : { tag: tag, first: 15 }, // Default to "newArrivals" tag if no sizes
+        ? {
+            size: sizes,
+            category: category,
+            first: 24,
+            subCategory: subcategory,
+          }
+        : { category: category, subCategory: subcategory, first: 24 },
       skip: false, // Ensure the query always runs
       notifyOnNetworkStatusChange: true,
     }
   );
+  if (error) {
+    return <p>No result</p>;
+  }
 
   return (
     <div>
@@ -42,4 +62,4 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   );
 };
 
-export default FilterProduct;
+export default SubcategoryProduct;

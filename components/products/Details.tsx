@@ -275,33 +275,10 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             {data?.product.productDetails.text}
           </TabsContent>
           <TabsContent value="reviews">
-            {/* {data?.product.review?.map((item, idx) => (
-              <p key={idx}>{item}</p>
-            ))} */}
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Doloremque
-            deserunt quis iusto? Assumenda fugit ea ipsum ipsa voluptatibus
-            cupiditate quisquam nobis sed vitae, eius at et, praesentium
-            aspernatur quod! Et, corrupti temporibus beatae maiores obcaecati
-            sunt ipsum optio maxime alias laborum dignissimos, ut suscipit culpa
-            illum quis velit cumque hic, soluta vero laudantium! Magni ex porro
-            delectus quasi vel inventore fugit distinctio cupiditate veritatis
-            aspernatur ea amet libero, earum similique. Cumque officiis
-            voluptate, aliquam molestiae quis possimus mollitia dolore quod
-            consequuntur facilis nesciunt dicta qui amet atque eveniet? Ipsum,
-            voluptatem, consequatur, magnam earum quos consectetur
-            exercitationem illo eaque numquam dicta dignissimos vero accusamus.
-            Officia quod quis assumenda officiis nam veniam itaque fuga dicta
-            possimus aspernatur, quas voluptatum asperiores? Illum, ducimus
-            pariatur. Ipsam, natus tempore iusto, dolorem soluta debitis tenetur
-            deleniti perspiciatis explicabo autem nisi architecto ad corrupti
-            tempora possimus, quae et ratione molestiae sunt laborum! Cum
-            possimus, recusandae, magnam dolor, exercitationem obcaecati velit
-            aspernatur vero porro repellendus sapiente accusamus natus
-            praesentium earum. Cumque recusandae reiciendis nesciunt itaque et
-            placeat ab fugit iure. Dolores rerum reiciendis dignissimos id nam
-            harum magnam atque voluptatibus earum quo sapiente veniam ex magni
-            soluta quos recusandae, commodi tempore accusamus ducimus
-            consectetur praesentium qui ab aliquam!
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur
+            eius facilis adipisci nostrum. Voluptatum doloremque itaque autem
+            distinctio omnis natus suscipit ea. Iusto vitae sed beatae facilis!
+            Laboriosam, quod eos?
           </TabsContent>
         </Tabs>
       </div>

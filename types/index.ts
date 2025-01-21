@@ -1,3 +1,5 @@
+import { link } from "fs";
+
 export type ProductData = {
   products: Product[];
 };
@@ -66,3 +68,21 @@ export interface CartProduct {
 }
 
 export const ProductSizes = ["xl", "medium", "large", "xxl", "small", "xs"];
+
+export const Shoplist = [
+  {
+    title: "women's fashion",
+    link: "/womens-fashion",
+    list: ["clothing", "shoes", "T-shirt"],
+  },
+  {
+    title: "men's fashion",
+    link: "/mens-fashion",
+    list: ["clothing", "shoes", "T-shirt"],
+  },
+  {
+    title: "kid's fashion",
+    link: "/kids-fashion",
+    list: ["Boys", "Girls"],
+  },
+];

@@ -31,7 +31,7 @@ const FilterModal = () => {
   const router = useRouter();
   const FormSchema = z.object({
     sizes: z.array(z.string()).refine((value) => value.some((item) => item), {
-      message: "You have to select at least one genre.",
+      message: "",
     }),
   });
 
@@ -62,60 +62,73 @@ const FilterModal = () => {
 
       <Separator className="bg-black" />
 
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger className="flex items-center justify-between space-x-2 w-full">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+        <div className="flex items-center justify-between space-x-4">
           <h4 className="text-lg font-semibold capitalize">sizes</h4>
-          {/* <Button variant="ghost" size="lg" className="inline-flex"> */}
-          <ChevronsUpDown className="h-4 w-4" onClick={() => !isOpen} />
-          {/* </Button> */}
-        </CollapsibleTrigger>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-            <FormField
-              control={form.control}
-              name="sizes"
-              render={() => (
-                <FormItem className="grid grid-cols-1 gpa-y-5">
-                  {ProductSizes.map((item) => (
-                    <FormField
-                      key={item}
-                      control={form.control}
-                      name="sizes"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item}
-                            className="flex flex-row space-x-3 space-y-0 justify-between items-center"
-                          >
-                            <FormLabel className="text-base font-normal">
-                              {item}
-                            </FormLabel>
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Submit</Button>
-          </form>
-        </Form>
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <ChevronsUpDown className="h-4 w-4" />
+              <span className="sr-only">Toggle</span>
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <FormField
+                control={form.control}
+                name="sizes"
+                render={() => (
+                  <FormItem className="grid grid-cols-1 gpa-y-5">
+                    {ProductSizes.map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name="sizes"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item}
+                              className="flex flex-row space-x-3 space-y-0 justify-between items-center"
+                            >
+                              <FormLabel className="text-sm uppercase font-normal">
+                                {item}
+                              </FormLabel>
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, item])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={form.formState.isLoading}
+                className="w-full rounded-full p-1"
+              >
+                Apply filter
+              </Button>
+            </form>
+          </Form>
+        </CollapsibleContent>
       </Collapsible>
     </div>
   );

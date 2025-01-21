@@ -74,7 +74,7 @@ export const GET_SINGLE_PRODUCT = gql`
       }
       category {
         id
-        productName
+        categoryName
       }
       slug
       stock
@@ -150,6 +150,162 @@ export const GET_PRODUCT_BY_SIZES = gql`
       category {
         id
         productName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_CATEGORY_AND_SIZES = gql`
+  query getProduct($category: String, $first: Int, $size: [Sizes!]) {
+    products(
+      where: {
+        category_some: { slug: $category }
+        productSizes_contains_some: $size
+      }
+      first: $first
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_CATEGORY = gql`
+  query getProduct($category: String, $first: Int) {
+    products(where: { category_some: { slug: $category } }, first: $first) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES = gql`
+  query getProduct(
+    $category: String
+    $first: Int
+    $subCategory: String
+    $size: [Sizes!]
+  ) {
+    products(
+      where: {
+        category_some: { slug: $category }
+        subCategory: { slug: $subCategory }
+        productSizes_contains_some: $size
+      }
+      first: $first
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_SUBCATEGORY = gql`
+  query getProduct($category: String, $first: Int, $subCategory: String) {
+    products(
+      where: {
+        category_some: { slug: $category }
+        subCategory: { slug: $subCategory }
+      }
+      first: $first
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
       }
       slug
       stock

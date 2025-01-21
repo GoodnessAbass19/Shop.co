@@ -6,6 +6,7 @@ import { useQuery } from "@apollo/client";
 import ProductCard from "../products/productCard";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const Sections = ({
   title,
@@ -22,7 +23,14 @@ const Sections = ({
     variables: { tag: tag, first: first },
     notifyOnNetworkStatusChange: true,
   });
-  // if (loading) return null;
+  if (loading)
+    return (
+      <div>
+        {Array(5).map((item, idx) => (
+          <SkeletonCard key={idx} />
+        ))}
+      </div>
+    );
   // if (error) return <p>Error: {error.message}</p>;
 
   return (

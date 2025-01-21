@@ -58,7 +58,7 @@ const ProductCard = ({
         </span>
 
         {item.discountedPrice && (
-          <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2">
+          <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
             {formatCurrencyValue(item.price)}
           </span>
         )}

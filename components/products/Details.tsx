@@ -96,35 +96,35 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       : fallbackImages;
 
   return (
-    <div>
-      <Breadcrumb className="md:block hidden pb-5">
+    <div className="space-y-10">
+      <Breadcrumb className="md:block hidden px-5">
         <BreadcrumbList className="dark:text-white text-black">
           <BreadcrumbItem>
             <BreadcrumbLink
               href="/"
-              className="text-xs md:text-sm font-medium font-sans"
+              className="text-xs md:text-sm font-normal font-sans"
             >
               Home
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/products"
-              className=" text-xs md:text-sm font-medium font-sans"
-            >
+            <BreadcrumbPage className=" text-xs md:text-sm font-normal font-sans">
               Shop
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-medium font-sans line-clamp-1">
-              {data?.product.category[0].productName}
             </BreadcrumbPage>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-medium font-sans line-clamp-1">
+            <BreadcrumbLink
+              href={`/${data?.product.category[0].slug}`}
+              className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
+            >
+              {data?.product.category[0].categoryName}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1">
               {data?.product.productName}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -136,7 +136,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
         <ThumbnailGallery images={image} />
         <div className="flex flex-col space-y-5 items-start justify-start">
           <div className="grid gap-3 justify-start items-start">
-            <h2 className="font-semibold text-2xl uppercase">
+            <h2 className="font-semibold text-lg md:text-xl lg:text-2xl uppercase">
               {data?.product.productName}
             </h2>
             <div className="flex justify-start items-center gap-2">
@@ -252,7 +252,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       </div>
 
       {/* PRODUCT FULL DETAILS AND REVIEWS */}
-      <div className="mt-20 mx-auto max-w-screen-2xl px-5">
+      <div className="mx-auto max-w-screen-2xl px-5">
         <Tabs
           defaultValue="details"
           className="max-w-screen-2xl mx-auto w-full space-y-5"

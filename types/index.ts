@@ -25,7 +25,8 @@ export type Product = {
   };
   category: {
     id: string; // Adjust if `id` is a number in your schema
-    productName: string;
+    categoryName: string;
+    slug: string;
   }[];
   slug: string;
   stock: boolean;
@@ -83,6 +84,6 @@ export const Shoplist = [
   {
     title: "kid's fashion",
     link: "/kids-fashion",
-    list: ["Boys", "Girls"],
+    list: ["boys-fashion", "girls-fashion"],
   },
 ];

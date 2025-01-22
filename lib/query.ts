@@ -75,6 +75,7 @@ export const GET_SINGLE_PRODUCT = gql`
       category {
         id
         categoryName
+        slug
       }
       slug
       stock
@@ -149,7 +150,7 @@ export const GET_PRODUCT_BY_SIZES = gql`
       }
       category {
         id
-        productName
+        categoryName
       }
       slug
       stock

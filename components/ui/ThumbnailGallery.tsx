@@ -42,12 +42,12 @@ const ThumbnailGallery = ({ images }: { images: images }) => {
         </div>
       </div>
 
-      <div className="w-full md:max-w-[480px] max-h-[400px] flex-grow order-1 md:order-2 aspect-square">
+      <div className="w-full md:max-w-[480px] flex-grow order-1 md:order-2 aspect-square">
         {images.length > 0 && (
           <div>
             <Image
-              width={450}
-              height={450}
+              width={1000}
+              height={1000}
               priority
               src={images[selectedImageIndex].url}
               alt={`Selected Image ${selectedImageIndex}`}

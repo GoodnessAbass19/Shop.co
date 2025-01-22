@@ -28,8 +28,12 @@ export const GET_PRODUCT = gql`
 `;
 
 export const GET_PRODUCTS_BY_TAGS = gql`
-  query getProducts($tag: ProductTag!, $first: Int) {
-    products(where: { productTag_contains_some: [$tag] }, first: $first) {
+  query getProducts($tag: ProductTag!, $first: Int, $skip: Int) {
+    products(
+      where: { productTag_contains_some: [$tag] }
+      first: $first
+      skip: $skip
+    ) {
       description
       productName
       id
@@ -127,12 +131,19 @@ export const GET_RELATED_PRODUCTS = gql`
 `;
 
 export const GET_PRODUCT_BY_SIZES = gql`
-  query getProduct($size: [Sizes!], $tag: ProductTag!) {
+  query getProduct(
+    $size: [Sizes!]
+    $tag: ProductTag!
+    $first: Int
+    $skip: Int
+  ) {
     products(
       where: {
         productSizes_contains_some: $size
         productTag_contains_some: [$tag]
       }
+      first: $first
+      skip: $skip
     ) {
       description
       productName

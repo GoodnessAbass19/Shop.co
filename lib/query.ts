@@ -462,3 +462,22 @@ export const GET_PRODUCT_BY_FASHIONSTYLE = gql`
     }
   }
 `;
+
+export const GET_SEARCH = gql`
+  query getSearch($search: String!, $first: Int) {
+    productsConnection(where: { _search: $search }, first: $first) {
+      edges {
+        node {
+          id
+          productName
+          slug
+          images {
+            url
+          }
+          price
+          discountedPrice
+        }
+      }
+    }
+  }
+`;

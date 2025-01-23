@@ -91,3 +91,28 @@ export const Shoplist = [
     list: ["boys-fashion", "girls-fashion"],
   },
 ];
+
+type Image = {
+  url: string;
+};
+
+export type ProductNode = {
+  id: string;
+  productName: string;
+  slug: string;
+  images: Image[];
+  price: number;
+  discountedPrice: number;
+};
+
+export type ProductEdge = {
+  node: ProductNode;
+};
+
+export type ProductsConnection = {
+  edges: ProductEdge[];
+};
+
+export type Data = {
+  productsConnection: ProductsConnection;
+};

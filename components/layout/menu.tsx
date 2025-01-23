@@ -38,7 +38,7 @@ const Menu = () => {
 
   return (
     <div
-      className={`relative top-0 right-0 left-0 z-[60] bg-white shadow ${
+      className={`relative top-0 right-0 left-0 z-[20] bg-white shadow ${
         isOpen ? "h-full" : "h-fit"
       } md:h-fit`}
     >

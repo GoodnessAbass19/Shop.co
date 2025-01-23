@@ -89,6 +89,10 @@ export const GET_SINGLE_PRODUCT = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;
@@ -171,18 +175,28 @@ export const GET_PRODUCT_BY_SIZES = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;
 
 export const GET_PRODUCT_BY_CATEGORY_AND_SIZES = gql`
-  query getProduct($category: String, $first: Int, $size: [Sizes!]) {
+  query getProduct(
+    $category: String
+    $first: Int
+    $skip: Int
+    $size: [Sizes!]
+  ) {
     products(
       where: {
         category_some: { slug: $category }
         productSizes_contains_some: $size
       }
       first: $first
+      skip: $skip
     ) {
       description
       productName
@@ -210,13 +224,21 @@ export const GET_PRODUCT_BY_CATEGORY_AND_SIZES = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;
 
 export const GET_PRODUCT_BY_CATEGORY = gql`
-  query getProduct($category: String, $first: Int) {
-    products(where: { category_some: { slug: $category } }, first: $first) {
+  query getProduct($category: String, $first: Int, $skip: Int) {
+    products(
+      where: { category_some: { slug: $category } }
+      first: $first
+      skip: $skip
+    ) {
       description
       productName
       id
@@ -243,6 +265,10 @@ export const GET_PRODUCT_BY_CATEGORY = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;
@@ -251,6 +277,7 @@ export const GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES = gql`
   query getProduct(
     $category: String
     $first: Int
+    $skip: Int
     $subCategory: String
     $size: [Sizes!]
   ) {
@@ -261,6 +288,7 @@ export const GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES = gql`
         productSizes_contains_some: $size
       }
       first: $first
+      skip: $skip
     ) {
       description
       productName
@@ -288,18 +316,28 @@ export const GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;
 
 export const GET_PRODUCT_BY_SUBCATEGORY = gql`
-  query getProduct($category: String, $first: Int, $subCategory: String) {
+  query getProduct(
+    $category: String
+    $first: Int
+    $subCategory: String
+    $skip: Int
+  ) {
     products(
       where: {
         category_some: { slug: $category }
         subCategory: { slug: $subCategory }
       }
       first: $first
+      skip: $skip
     ) {
       description
       productName
@@ -327,6 +365,10 @@ export const GET_PRODUCT_BY_SUBCATEGORY = gql`
         hex
       }
       review
+      subCategory {
+        title
+        slug
+      }
     }
   }
 `;

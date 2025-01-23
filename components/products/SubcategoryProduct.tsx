@@ -8,6 +8,8 @@ import { ProductData } from "@/types";
 import { useQuery } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
+import { ITEM_PER_PAGE } from "@/lib/settings";
+import Pagination from "../ui/Pagination";
 
 const SubcategoryProduct = ({
   title,
@@ -20,6 +22,8 @@ const SubcategoryProduct = ({
 }) => {
   const param = useSearchParams();
   const rawSizes = param.get("size")?.split(",") || [];
+  const page = param.get("page");
+  const p = page ? parseInt(page) : 1;
 
   // Transform URL parameters into valid GraphQL enums
   const sizes = rawSizes.map((size) => size.toLowerCase()); // Convert to uppercase
@@ -36,17 +40,20 @@ const SubcategoryProduct = ({
         ? {
             size: sizes,
             category: category,
-            first: 24,
+            first: ITEM_PER_PAGE,
+            skip: ITEM_PER_PAGE * (p - 1),
             subCategory: subcategory,
           }
-        : { category: category, subCategory: subcategory, first: 24 },
+        : {
+            category: category,
+            subCategory: subcategory,
+            first: ITEM_PER_PAGE,
+            skip: ITEM_PER_PAGE * (p - 1),
+          },
       skip: false, // Ensure the query always runs
       notifyOnNetworkStatusChange: true,
     }
   );
-  if (error) {
-    return <p>No result</p>;
-  }
 
   return (
     <div>
@@ -57,6 +64,10 @@ const SubcategoryProduct = ({
         {data?.products.map((product) => (
           <ProductCard key={product.id} item={product} loading={loading} />
         ))}
+      </div>
+
+      <div className="mt-10">
+        <Pagination count={data?.products.length as number} page={p} />
       </div>
     </div>
   );

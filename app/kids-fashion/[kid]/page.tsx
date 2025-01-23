@@ -16,9 +16,9 @@ type Props = {
 };
 
 const KidsSubcategoryPage = async ({ params }: Props) => {
-  const slug = await params.kid;
+  const { kid } = await params;
 
-  const textWithHyphen = slug;
+  const textWithHyphen = kid;
   const textWithoutHyphen = textWithHyphen.replace(/-/g, " ");
 
   return (
@@ -46,7 +46,7 @@ const KidsSubcategoryPage = async ({ params }: Props) => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="capitalize text-xs md:text-sm font-normal font-sans">
-                {slug}
+                {kid}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -59,7 +59,7 @@ const KidsSubcategoryPage = async ({ params }: Props) => {
             <SubcategoryProduct
               title={`${textWithoutHyphen}`}
               category="kids-fashion"
-              subcategory={slug}
+              subcategory={kid}
             />
           </div>
         </div>

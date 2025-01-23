@@ -31,6 +31,10 @@ import { Shoplist } from "@/types";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
+  function removeHyphens(slug: string) {
+    const textWithoutHyphen = slug.replace(/-/g, " ");
+    return textWithoutHyphen;
+  }
 
   return (
     <div
@@ -79,7 +83,7 @@ const Menu = () => {
                               key={item}
                               className="text-sm capitalize text-[#75757a] text-ellipsis hover:text-black"
                             >
-                              {item}
+                              {removeHyphens(item)}
                             </NavigationMenuLink>
                           ))}
                         </div>

@@ -11,15 +11,12 @@ import {
 
 type Props = {
   params: {
-    women: string;
+    shop: string;
   };
 };
 
-const SubCategoryPage = async ({ params }: Props) => {
-  const { women } = await params;
-
-  const textWithHyphen = women;
-  const textWithoutHyphen = textWithHyphen.replace(/-/g, " ");
+const page = async ({ params }: Props) => {
+  const { shop } = await params;
 
   return (
     <div className="mt-5 max-w-screen-xl mx-auto px-2">
@@ -35,17 +32,14 @@ const SubCategoryPage = async ({ params }: Props) => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/womens-fashion"
-              className="dark:text-white text-black capitalize text-sm font-sans line-clamp-1"
-            >
-              women's fashion
-            </BreadcrumbLink>
+            <BreadcrumbPage className="capitalize text-xs md:text-sm font-normal font-sans">
+              shop
+            </BreadcrumbPage>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="capitalize text-xs md:text-sm font-normal font-sans">
-              womens {women}
+              {shop}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -56,9 +50,9 @@ const SubCategoryPage = async ({ params }: Props) => {
         </div>
         <div className="col-span-4 w-full">
           <SubcategoryProduct
-            title={`women's ${textWithoutHyphen}`}
-            category="womens-fashion"
-            subcategory={women}
+            title={shop}
+            category="mens-fashion"
+            subcategory={shop}
           />
         </div>
       </div>
@@ -66,4 +60,4 @@ const SubCategoryPage = async ({ params }: Props) => {
   );
 };
 
-export default SubCategoryPage;
+export default page;

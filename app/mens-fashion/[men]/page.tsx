@@ -16,7 +16,10 @@ type Props = {
 };
 
 const SubCategoryPage = async ({ params }: Props) => {
-  const slug = await params.men;
+  const { men } = await params;
+
+  const textWithHyphen = men;
+  const textWithoutHyphen = textWithHyphen.replace(/-/g, " ");
 
   return (
     <div className="mt-5 max-w-screen-xl mx-auto px-2">
@@ -42,7 +45,7 @@ const SubCategoryPage = async ({ params }: Props) => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="capitalize text-xs md:text-sm font-normal font-sans">
-              mens {params.men}
+              mens {men}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -53,9 +56,9 @@ const SubCategoryPage = async ({ params }: Props) => {
         </div>
         <div className="col-span-4 w-full">
           <SubcategoryProduct
-            title={`men's ${slug}`}
+            title={`men's ${textWithoutHyphen}`}
             category="mens-fashion"
-            subcategory={slug}
+            subcategory={men}
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Styles = () => {
@@ -10,7 +11,10 @@ const Styles = () => {
 
       <div className="grid justify-center items-start w-full space-y-5 px-5">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 justify-between items-stretch">
-          <div className="col-span-2 relative overflow-hidden h-[290px] w-full">
+          <Link
+            href={`/shop/casual`}
+            className="col-span-2 relative overflow-hidden h-[290px] w-full"
+          >
             <Image
               src={"/images/casual.png"}
               alt="casual"
@@ -22,7 +26,7 @@ const Styles = () => {
             <span className="absolute top-2 left-2 capitalize text-3xl font-bold">
               casual
             </span>
-          </div>
+          </Link>
           <div className="col-span-3 relative overflow-hidden h-[290px] w-full">
             <Image
               src={"/images/image 13.png"}

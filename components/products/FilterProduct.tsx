@@ -37,8 +37,19 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
     }
   );
 
+  // if (loading) {
+  //   return (
+  //     <div className="product-list">
+  //       {Array.from({ length: 10 }).map((_, index) => (
+  //         <SkeletonCard key={index} />
+  //       ))}
+  //     </div>
+  //   );
+  // }
+
   return (
     <div>
+      {/* <div className="min-h-screen"> */}
       <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
         {title}
       </h1>
@@ -47,7 +58,7 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
           <ProductCard key={product.id} item={product} loading={loading} />
         ))}
       </div>
-
+      {/* </div> */}
       <div className="mt-10">
         <Pagination count={data?.products.length as number} page={p} />
       </div>

@@ -36,6 +36,10 @@ export type Product = {
   productTag: string[];
   productSizes: string[];
   review: string[];
+  subCategory: {
+    title: string;
+    slug: string;
+  };
 };
 
 export type images = {
@@ -74,7 +78,7 @@ export const Shoplist = [
   {
     title: "women's fashion",
     link: "/womens-fashion",
-    list: ["clothing", "shoes", "T-shirt"],
+    list: ["clothing", "shoes", "skirt-and-shorts"],
   },
   {
     title: "men's fashion",

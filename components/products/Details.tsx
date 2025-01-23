@@ -124,6 +124,15 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
+            <BreadcrumbLink
+              href={`/${data?.product.category[0].slug}/${data?.product.subCategory.slug}`}
+              className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
+            >
+              {data?.product.subCategory.title}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
             <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1">
               {data?.product.productName}
             </BreadcrumbPage>

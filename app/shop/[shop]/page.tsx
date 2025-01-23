@@ -1,4 +1,4 @@
-import SubcategoryProduct from "@/components/products/SubcategoryProduct";
+import FashionStyle from "@/components/products/FashionStyle";
 import FilterModal from "@/components/ui/FilterModal";
 import {
   Breadcrumb,
@@ -8,12 +8,22 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Metadata } from "next";
 
 type Props = {
   params: {
     shop: string;
   };
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { shop } = params;
+  return {
+    title: `${shop}`,
+    // description: project.description,
+    metadataBase: new URL("https://media.graphassets.com"),
+  };
+}
 
 const page = async ({ params }: Props) => {
   const { shop } = await params;
@@ -49,11 +59,7 @@ const page = async ({ params }: Props) => {
           <FilterModal />
         </div>
         <div className="col-span-4 w-full">
-          <SubcategoryProduct
-            title={shop}
-            category="mens-fashion"
-            subcategory={shop}
-          />
+          <FashionStyle title={shop} subcategory={shop} />
         </div>
       </div>
     </div>

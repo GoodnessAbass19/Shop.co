@@ -8,12 +8,22 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Metadata } from "next";
 
 type Props = {
   params: {
     kid: string;
   };
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { kid } = params;
+  return {
+    title: `${kid}`,
+    // description: project.description,
+    metadataBase: new URL("https://media.graphassets.com"),
+  };
+}
 
 const KidsSubcategoryPage = async ({ params }: Props) => {
   const { kid } = await params;

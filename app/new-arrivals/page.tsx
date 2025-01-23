@@ -10,6 +10,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import FilterProduct from "@/components/products/FilterProduct";
+import { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: `New arrivals`,
+    description: "",
+  };
+}
 
 const NewArrivalPage = () => {
   return (

@@ -110,11 +110,11 @@ const Menu = () => {
           </NavigationMenu>
         </div>
 
-        <div className="lg:flex-1 hidden lg:block">
+        {/* <div className="lg:flex-1 hidden lg:block">
           <Search />
-        </div>
+        </div> */}
         <div className="flex justify-between items-center gap-2 md:gap-4">
-          <div className="lg:hidden">
+          {/* <div className="lg:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <SearchIcon className="w-6 h-6 text-gray-500" />
@@ -123,7 +123,8 @@ const Menu = () => {
                 <Search />
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          </div> */}
+          <Search />
           <Link href={"#"}>
             <CartIcon className="w-6 h-6 text-black" />
           </Link>

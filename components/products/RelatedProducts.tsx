@@ -23,7 +23,7 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   return (
-    <div className="max-w-screen-2xl mx-auto py-5 px-5 space-y-5">
+    <div className="max-w-screen-2xl mx-auto py-5 px-3 space-y-5">
       <h2 className="text-start text-2xl font-medium">You may also like</h2>
       <Swiper
         breakpoints={{

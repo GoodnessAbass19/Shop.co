@@ -284,7 +284,7 @@ export const GET_PRODUCT_BY_SUBCATEGORY_AND_SIZES = gql`
     products(
       where: {
         category_some: { slug: $category }
-        subCategory: { slug: $subCategory }
+        subCategory_some: { slug: $subCategory }
         productSizes_contains_some: $size
       }
       first: $first
@@ -334,8 +334,98 @@ export const GET_PRODUCT_BY_SUBCATEGORY = gql`
     products(
       where: {
         category_some: { slug: $category }
-        subCategory: { slug: $subCategory }
+        subCategory_some: { slug: $subCategory }
       }
+      first: $first
+      skip: $skip
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+      subCategory {
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_FASHIONSTYLE_AND_SIZES = gql`
+  query getProduct(
+    $first: Int
+    $skip: Int
+    $subCategory: String
+    $size: [Sizes!]
+  ) {
+    products(
+      where: {
+        subCategory_some: { slug: $subCategory }
+        productSizes_contains_some: $size
+      }
+      first: $first
+      skip: $skip
+    ) {
+      description
+      productName
+      id
+      images {
+        url
+        width
+        height
+        id
+      }
+      price
+      discountedPrice
+      productDetails {
+        text
+      }
+      category {
+        id
+        categoryName
+      }
+      slug
+      stock
+      productTag
+      productSizes
+      colours {
+        hex
+      }
+      review
+      subCategory {
+        title
+        slug
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCT_BY_FASHIONSTYLE = gql`
+  query getProduct($first: Int, $subCategory: String, $skip: Int) {
+    products(
+      where: { subCategory_some: { slug: $subCategory } }
       first: $first
       skip: $skip
     ) {

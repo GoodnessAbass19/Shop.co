@@ -1,3 +1,4 @@
+import { FashionStyles } from "@/lib/settings";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -27,7 +28,10 @@ const Styles = () => {
               casual
             </span>
           </Link>
-          <div className="col-span-3 relative overflow-hidden h-[290px] w-full">
+          <Link
+            href={"/shop/formal"}
+            className="col-span-3 relative overflow-hidden h-[290px] w-full"
+          >
             <Image
               src={"/images/image 13.png"}
               alt="formal"
@@ -39,10 +43,13 @@ const Styles = () => {
             <span className="absolute top-2 left-2 capitalize text-3xl font-bold">
               formal
             </span>
-          </div>
+          </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 justify-between items-center">
-          <div className="col-span-3 relative overflow-hidden h-[290px] w-full">
+          <Link
+            href={"/shop/party"}
+            className="col-span-3 relative overflow-hidden h-[290px] w-full"
+          >
             <Image
               src={"/images/image 12.png"}
               alt="formal"
@@ -54,9 +61,12 @@ const Styles = () => {
             <span className="absolute top-2 left-2 capitalize text-3xl font-bold">
               party
             </span>
-          </div>
+          </Link>
 
-          <div className="col-span-2 relative overflow-hidden h-[290px] w-full">
+          <Link
+            href={"/shop/gym"}
+            className="col-span-2 relative overflow-hidden h-[290px] w-full"
+          >
             <Image
               src={"/images/image 14.png"}
               alt="casual"
@@ -68,8 +78,30 @@ const Styles = () => {
             <span className="absolute top-2 left-2 capitalize text-3xl font-bold">
               gym
             </span>
-          </div>
+          </Link>
         </div>
+
+        {/* <div className="grid grid-cols-1 md:grid-cols- gap-2 justify-between items-stretch nth-2:col-span-3 first:grid-cols-2 last:grid-cols-2 nth-3:grid-cols-3">
+          {FashionStyles.map((item, idx) => (
+            <Link
+              key={idx}
+              href={`/shop/${item.title}`}
+              className="relative overflow-hidden h-[290px] w-full"
+            >
+              <Image
+                src={item.img}
+                alt={item.title}
+                width={500}
+                height={500}
+                className="object-cover object-center w-full h-[290px] rounded-xl"
+              />
+
+              <span className="absolute top-2 left-2 capitalize text-3xl font-bold">
+                {item.title}
+              </span>
+            </Link>
+          ))}
+        </div> */}
       </div>
     </div>
   );

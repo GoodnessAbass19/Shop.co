@@ -39,7 +39,7 @@ export type Product = {
   subCategory: {
     title: string;
     slug: string;
-  };
+  }[];
 };
 
 export type images = {

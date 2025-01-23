@@ -125,10 +125,10 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              href={`/${data?.product.category[0].slug}/${data?.product.subCategory.slug}`}
+              href={`/${data?.product.category[0].slug}/${data?.product.subCategory[0].slug}`}
               className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
             >
-              {data?.product.subCategory.title}
+              {data?.product.subCategory[0].title}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -145,7 +145,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
         <ThumbnailGallery images={image} />
         <div className="flex flex-col space-y-5 items-start justify-start">
           <div className="grid gap-3 justify-start items-start">
-            <h2 className="font-semibold text-lg md:text-xl lg:text-2xl uppercase">
+            <h2 className="font-semibold text-lg md:text-xl lg:text-2xl uppercase text-wrap">
               {data?.product.productName}
             </h2>
             <div className="flex justify-start items-center gap-2">
@@ -205,7 +205,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <Separator />
 
           {/* SIZES */}
-          <div className="flex gap-3 items-center justify-start">
+          <div className="flex gap-3 items-center justify-start flex-wrap">
             {data?.product.productSizes.map((size) => (
               <div
                 key={size}

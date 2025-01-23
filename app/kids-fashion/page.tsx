@@ -8,6 +8,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import CategoryProducts from "@/components/products/CategoryProducts";
+import { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: `Kid's fashion`,
+    description: "shop for your kid's clothing",
+  };
+}
 
 const KidsFashionPage = () => {
   return (

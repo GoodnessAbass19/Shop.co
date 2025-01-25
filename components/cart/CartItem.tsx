@@ -52,16 +52,13 @@ const CartItem = ({
           </button>
         </div>
         <div className="flex flex-col justify-start items-start gap-1">
-          {size && (
-            <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
-              size: <span className="font-normal">{size}</span>
-            </p>
-          )}
-          {color && (
-            <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
-              color: <span className="font-normal">{size}</span>
-            </p>
-          )}
+          <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
+            size: <span className="font-normal">{size || ""}</span>
+          </p>
+
+          <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
+            color: <span className="font-normal">{color || null}</span>
+          </p>
         </div>
 
         <div className="flex justify-between items-center">

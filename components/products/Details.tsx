@@ -300,9 +300,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           name={data?.product.productName as string}
         />
       </div>
-      {/* <div className="mt-5">
+      <div className="mt-5">
         <RecentlyViewed />
-      </div> */}
+      </div>
     </div>
   );
 };

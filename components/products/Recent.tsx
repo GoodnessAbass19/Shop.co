@@ -1,101 +1,124 @@
-// @ts-nocheck
 "use client";
+
 import React, { useEffect, useState } from "react";
-// Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
 import "swiper/css";
-import "swiper/css/scrollbar";
-
-// import required modules
-import { Scrollbar, FreeMode } from "swiper/modules";
+import "swiper/css/navigation";
+import { Navigation, FreeMode } from "swiper/modules";
+import useSwiperRef from "@/Hooks/useSwiperRef";
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import RecentProduct from "./RecentProductCard";
 
 const RecentlyViewed = () => {
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
 
   useEffect(() => {
     updateRecentlyViewed();
-    const viewed = getRecentlyViewed();
-    setRecentlyViewed(viewed);
+    setRecentlyViewed(getRecentlyViewed());
   }, []);
 
   const updateRecentlyViewed = () => {
-    const currentPage = window.location.href; // Get the current page URL
-    const maxPages = 20; // Maximum number of pages to track
+    try {
+      const currentPage = window.location.href; // Get the current page URL
+      const maxPages = 20; // Maximum number of pages to track
 
-    // Retrieve the existing list of recently viewed pages from localStorage
-    let recentlyViewed =
-      JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+      let recentlyViewed = JSON.parse(
+        localStorage.getItem("rvc_product") || "[]"
+      );
 
-    // Remove the current page if it already exists in the list to avoid duplicates
-    recentlyViewed = recentlyViewed.filter((page) => page !== currentPage);
+      // Remove the current page if it already exists
+      recentlyViewed = recentlyViewed.filter(
+        (page: string) => page !== currentPage
+      );
 
-    // Add the current page to the beginning of the list
-    recentlyViewed.unshift(currentPage);
+      // Add the current page to the beginning
+      recentlyViewed.unshift(currentPage);
 
-    // Trim the list to the maximum number of pages
-    if (recentlyViewed.length > maxPages) {
-      recentlyViewed = recentlyViewed.slice(0, maxPages);
+      // Trim the list to the max limit
+      if (recentlyViewed.length > maxPages) {
+        recentlyViewed = recentlyViewed.slice(0, maxPages);
+      }
+
+      // Save back to localStorage
+      localStorage.setItem("rvc_product", JSON.stringify(recentlyViewed));
+    } catch (error) {
+      console.error("Failed to update recently viewed:", error);
     }
-
-    // Save the updated list back to localStorage
-    localStorage.setItem("recentlyViewed", JSON.stringify(recentlyViewed));
   };
 
   const getRecentlyViewed = () => {
-    const currentPage = window.location.href; // Get the current page URL
-    let recentlyViewed =
-      JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+    try {
+      const currentPage = window.location.href; // Get the current page URL
+      let recentlyViewed = JSON.parse(
+        localStorage.getItem("rvc_product") || "[]"
+      );
 
-    // Remove the current page from the list
-    recentlyViewed = recentlyViewed.filter((page) => page !== currentPage);
-
-    return recentlyViewed;
+      // Exclude the current page
+      return recentlyViewed.filter((page: string) => page !== currentPage);
+    } catch (error) {
+      console.error("Failed to retrieve recently viewed:", error);
+      return [];
+    }
   };
 
+  const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
+  const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
+
   return (
-    <div className="space-y-5">
-      <div className="bg-white text-start w-full p-1.5 shadow-sm shadow-black/10 rounded-sm">
-        <h3 className="font-medium text-base text-black md:text-lg capitalize">
-          Recently Viewed
-        </h3>
-      </div>
-      <div className="hidden lg:grid grid-cols-5 justify-between items-start gap-x-5">
-        {recentlyViewed.slice(0, 5).map((page, index) => (
-          <div className="col-span-1">
-            <RecentProduct url={page} key={index} />
-          </div>
-        ))}
-      </div>
-      <div className="lg:hidden block space-y-7 pl-2">
+    <div className="max-w-screen-2xl mx-auto py-5 px-3 space-y-5">
+      <h3 className="font-medium text-base text-black md:text-lg capitalize">
+        Recently Viewed
+      </h3>
+      <div className="relative flex items-center">
+        {/* Previous Button */}
+        <button
+          ref={prevElRef}
+          className="absolute left-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform -translate-x-1/2"
+        >
+          <ArrowLeftIcon className="h-4 w-4 dark:text-gray-600 text-white" />
+        </button>
+
         <Swiper
+          className="w-full h-full"
           breakpoints={{
             0: {
               slidesPerView: 1.5,
               spaceBetween: 5,
             },
             540: {
-              slidesPerView: 2.1,
+              slidesPerView: 3,
+              spaceBetween: 5,
+            },
+            1024: {
+              slidesPerView: 4,
+              spaceBetween: 5,
+            },
+            1280: {
+              slidesPerView: 5,
               spaceBetween: 5,
             },
           }}
-          // slidesPerView={1.2}
-          // slidesPerGroup={2}
-          // spaceBetween={10}
-          modules={[FreeMode, Scrollbar]}
+          modules={[FreeMode, Navigation]}
           freeMode={true}
-          scrollbar={{
-            hide: false,
+          navigation={{
+            prevEl,
+            nextEl,
           }}
         >
-          {recentlyViewed.slice(0, 5).map((page, index) => (
-            <SwiperSlide key={index}>
+          {recentlyViewed.slice(0, 10).map((page, index) => (
+            <SwiperSlide>
               <RecentProduct url={page} />
             </SwiperSlide>
           ))}
         </Swiper>
+
+        {/* Next Button */}
+        <button
+          ref={nextElRef}
+          className="absolute right-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
+        >
+          <ArrowRightIcon className="h-4 w-4 dark:text-gray-600 text-white" />
+        </button>
       </div>
     </div>
   );

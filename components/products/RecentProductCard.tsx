@@ -1,66 +1,73 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useQuery } from "@apollo/client";
-import { SingleProduct } from "@/types";
+import { Product, SingleProduct } from "@/types";
 import { GET_SINGLE_PRODUCT } from "@/lib/query";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
+import ProductCard from "./productCard";
 
 const RecentProduct = ({ url }: { url: string }) => {
-  function getLastPartOfUrl(url: string) {
-    // Split the URL by '/'
-    const parts = url.split("/");
-    // Return the last part of the array
-    return parts[parts.length - 1];
-  }
-  const slug = getLastPartOfUrl(url);
+  // Extract the slug from the URL
+  const getSlugFromUrl = (url: string) => url.split("/").filter(Boolean).pop();
+  const slug = getSlugFromUrl(url);
 
-  const { loading, data } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
-    variables: { slug: slug },
+  const { loading, error, data } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
+    variables: { slug },
     notifyOnNetworkStatusChange: true,
+    skip: !slug, // Skip the query if slug is not valid
   });
 
+  // if (!slug || error) {
+  //   console.error(`Failed to fetch product for slug: ${slug}`, error);
+  //   return null; // Return nothing if there's an error or invalid slug
+  // }
+
+  // Fallback for loading state
+  // const product = data?.product || {
+  //   slug: "",
+  //   productName: "Loading...",
+  //   price: 0,
+  //   images: [{ url: "https://via.placeholder.com/500" }],
+  // };
+
   return (
-    <Link
-      href={data?.product.slug || ""}
-      className="grid text-[rgb(30,30,30)] w-auto max-h-[300px] hover:shadow-md shadow-gray-200 dark:hover:shadow-gray-800 rounded-md p-1.5 dark:bg-black bg-white transition-transform duration-150"
-    >
-      <div className="w-full grid grid-rows-3">
-        <div className="rounded-md overflow-hidden shadow row-span-2 sm:max-w-full max-h-[240px]">
-          <div className="w-full h-full">
-            <Image
-              src={
-                data?.product.images[0]?.url || "https://example.com/image1.jpg"
-              }
-              width={500}
-              height={500}
-              alt="item"
-              className="w-full  object-cover"
-              placeholder="blur"
-              blurDataURL={
-                data?.product.images[0]?.url || "https://example.com/image1.jpg"
-              }
-              priority
-            />
-          </div>
-        </div>
+    // <Link
+    //   href={product.slug || "#"}
+    //   className="w-full rounded-md h-full overflow-hidden relative"
+    // >
+    //   <div className="w-full grid grid-rows-3">
+    //     {/* Product Image */}
+    //     <div className="rounded-md overflow-hidden shadow row-span-2 sm:max-w-full max-h-[240px]">
+    //       <div className="w-full h-full">
+    //         <Image
+    //           src={product.images[0]?.url}
+    //           width={500}
+    //           height={500}
+    //           alt={product.productName || "Product Image"}
+    //           className="w-full object-cover"
+    //           placeholder="blur"
+    //           blurDataURL={product.images[0]?.url}
+    //           priority
+    //         />
+    //       </div>
+    //     </div>
 
-        <div className="flex flex-col mt-2 text-sm dark:text-white text-black">
-          <h4 className=" font-medium text-base">
-            <Link
-              href={data?.product.slug || "#"}
-              className=" capitalize line-clamp-1"
-            >
-              {data?.product.productName}
-            </Link>
-          </h4>
-
-          <span className="capitalize font-bold text-sm">
-            {formatCurrencyValue(data?.product.price)}
-          </span>
-        </div>
-      </div>
-    </Link>
+    //     {/* Product Details */}
+    //     <div className="flex flex-col mt-2 text-sm dark:text-white text-black">
+    //       <h4 className="font-medium text-base">
+    //         <span className="capitalize line-clamp-1">
+    //           {product.productName}
+    //         </span>
+    //       </h4>
+    //       <span className="capitalize font-bold text-sm">
+    //         {formatCurrencyValue(product.price)}
+    //       </span>
+    //     </div>
+    //   </div>
+    // </Link>
+    <ProductCard item={data?.product as Product} loading={loading} />
   );
 };
 

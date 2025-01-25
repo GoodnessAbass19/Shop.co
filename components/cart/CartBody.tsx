@@ -7,6 +7,7 @@ import CheckoutList from "./CheckoutList";
 import CartItem from "./CartItem";
 import CartEmpty from "./CartEmpty";
 import { useCartStore } from "@/store/cart-store";
+import { ArrowRightIcon } from "@heroicons/react/24/solid";
 
 const CartBody = () => {
   const totalPrice = useCartStore((state) => state.totalPrice);
@@ -40,7 +41,9 @@ const CartBody = () => {
         {/* ----Checkout---- */}
         <div className="lg:sticky md:top-[100px] rounded h-fit min-w-full sm:min-w-[400px] max-w-[500px] overflow-hidden border border-primary-gray/20 ">
           <div className="bg-primary-gray/10 px-4 py-3 ">
-            <h3 className="text-lg md:text-xl font-semibold">Cart Total</h3>
+            <h3 className="text-lg md:text-xl font-semibold capitalize">
+              order summary
+            </h3>
           </div>
 
           <div className="p-4 mt-6">
@@ -64,7 +67,7 @@ const CartBody = () => {
 
           <div className="mt-4 mb-6 px-4 space-y-4">
             <button
-              className="flex items-center justify-center w-full h-10 text-sm text-white bg-black border border-black rounded trans-150"
+              className="flex items-center justify-center gap-4 w-full h-10 text-base font-medium capitalize text-white bg-black border border-black rounded-full trans-150"
               onClick={
                 // share via whatsapp
                 () => {
@@ -77,10 +80,10 @@ const CartBody = () => {
                 }
               }
             >
-              Order now
+              go to checkout <ArrowRightIcon className="w-5 h-5" />
             </button>
 
-            <button
+            {/* <button
               className="flex items-center justify-center w-full h-10 text-sm text-black hover:text-white hover:bg-black border border-black rounded trans-150"
               onClick={() =>
                 useCartStore.setState({
@@ -91,19 +94,19 @@ const CartBody = () => {
               }
             >
               Clear Cart
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 ml-5">
+      {/* <div className="mt-6 ml-5">
         <Link
           className="flex items-center justify-center w-full max-w-[170px] md:min-w-[157px] h-10 text-sm text-black hover:text-white hover:bg-black border border-black rounded trans-150"
           href={"/"}
         >
           Continue Shopping
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };

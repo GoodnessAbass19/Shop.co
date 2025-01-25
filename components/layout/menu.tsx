@@ -114,7 +114,7 @@ const Menu = () => {
             </DropdownMenu>
           </div> */}
           <Search />
-          <Link href={"#"}>
+          <Link href={"/cart"}>
             <CartIcon className="w-6 h-6 text-black" />
           </Link>
           <Link href={"#"}>

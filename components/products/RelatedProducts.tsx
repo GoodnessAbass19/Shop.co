@@ -25,6 +25,10 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
 
+  if (!data) {
+    return null;
+  }
+
   return (
     <div className="max-w-screen-2xl mx-auto py-5 px-3 space-y-5">
       <h2 className="text-start text-2xl font-medium">You may also like</h2>
@@ -32,7 +36,7 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
         {/* Previous Button */}
         <button
           ref={prevElRef}
-          className="absolute left-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
+          className="absolute left-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
         >
           <ArrowLeftIcon className="h-4 w-4 dark:text-gray-600 text-white" />
         </button>
@@ -71,9 +75,10 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
         </Swiper>
 
         {/* Next Button */}
+
         <button
           ref={nextElRef}
-          className="absolute right-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
+          className="absolute right-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
         >
           <ArrowRightIcon className="h-4 w-4 dark:text-gray-600 text-white" />
         </button>

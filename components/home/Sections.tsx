@@ -35,12 +35,12 @@ const Sections = ({
       <h2 className="uppercase text-center text-4xl font-extrabold">{title}</h2>
       <div className="relative flex items-center">
         {/* Previous Button */}
-        <Button
+        <button
           ref={prevElRef}
-          className="absolute left-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
+          className="absolute left-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
         >
           <ArrowLeftIcon className="h-4 w-4 dark:text-gray-600 text-white" />
-        </Button>
+        </button>
 
         <Swiper
           breakpoints={{
@@ -76,12 +76,13 @@ const Sections = ({
         </Swiper>
 
         {/* Next Button */}
-        <Button
+
+        <button
           ref={nextElRef}
-          className="absolute right-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
+          className="absolute right-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
         >
           <ArrowRightIcon className="h-4 w-4 dark:text-gray-600 text-white" />
-        </Button>
+        </button>
       </div>
 
       {!loading && (

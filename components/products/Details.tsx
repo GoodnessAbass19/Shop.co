@@ -73,7 +73,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       name: data?.product.productName as string,
       image: data?.product.images[0].url as string,
       slug: data?.product.slug as string,
-      price: data?.product.price as number,
+      price:
+        (data?.product.discountedPrice as number) ||
+        (data?.product.price as number),
       quantity: quantity as number,
       size: selectedSize as string,
       color: selectedColor as string,

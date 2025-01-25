@@ -1,6 +1,6 @@
-import { CartProduct } from "@/types";
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
+import { CartProduct } from "./Cart-structure";
 
 // define zustand state and actions
 type State = {
@@ -110,7 +110,7 @@ export const useCartStore = create<State & Actions>()(
           }));
         },
       }),
-      { name: "shop.co" }
+      { name: "shopping.co" }
     )
   )
 );

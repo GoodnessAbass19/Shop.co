@@ -13,13 +13,13 @@ export default function Home() {
       <Sections
         title={"new arrivals"}
         tag={productTags.newArrivals}
-        first={5}
+        first={15}
         href="new-arrivals"
       />
       <Sections
         title={"top deals"}
         tag={productTags.topDeals}
-        first={5}
+        first={15}
         href="top-deals"
       />
 

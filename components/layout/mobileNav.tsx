@@ -2,8 +2,22 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Shoplist } from "@/types";
 
 const MobileNav = ({ onClose }: { onClose: () => void }) => {
+  function removeHyphens(slug: string) {
+    const textWithoutHyphen = slug.replace(/-/g, " ");
+    return textWithoutHyphen;
+  }
   // const { socialMedia } = footerData;
   return (
     <div
@@ -18,25 +32,72 @@ const MobileNav = ({ onClose }: { onClose: () => void }) => {
         exit="exit"
       >
         <motion.ul
-          className="container flex flex-col gap-6  px-6 pt-10 border-t text-lg font-medium capitalize tracking-widest text-gray-500"
+          className="container flex flex-col gap-6  px-6 pt-16 border-t text-lg font-medium capitalize tracking-widest text-gray-500"
           variants={ulVariants}
         >
-          {navItems.map((item, index) => (
-            <motion.li
-              key={index}
-              className="list-none text-start text-black"
-              variants={listVariants}
-              initial="hidden"
-              whileInView="visible"
-              exit="exit"
-              custom={index}
+          <motion.li
+            className="list-none text-start text-black"
+            variants={listVariants}
+            initial="hidden"
+            whileInView="visible"
+            exit="exit"
+            custom={"sales"}
+          >
+            <Link href="/top-deals" onClick={onClose} legacyBehavior passHref>
+              On Sale
+            </Link>
+          </motion.li>
+          <motion.li
+            className="list-none text-start text-black"
+            variants={listVariants}
+            initial="hidden"
+            whileInView="visible"
+            exit="exit"
+            custom={"new"}
+          >
+            <Link
+              href="/new-arrivals"
               onClick={onClose}
+              legacyBehavior
+              passHref
             >
-              <Link href={`/${item.path}`} className="inline-block text-base">
-                {item.name}
-              </Link>
-            </motion.li>
-          ))}
+              New Arrivals
+            </Link>
+          </motion.li>
+          <motion.li
+            className="list-none text-start text-black"
+            variants={listVariants}
+            initial="hidden"
+            whileInView="visible"
+            exit="exit"
+            custom={"shop"}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger>Shop</DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {Shoplist.map((list) => (
+                  <div key={list.title} className="flex flex-col space-y-1">
+                    <DropdownMenuLabel className="text-base font-semibold uppercase text-[#313133] text-ellipsis hover:text-gray-400">
+                      <Link href={`${list.link}`}>{list.title}</Link>
+                    </DropdownMenuLabel>
+                    <hr className="bg-gray-900" />
+                    <div className="space-y-1 flex flex-col justify-start items-start">
+                      {list.list.map((item) => (
+                        <DropdownMenuItem
+                          key={item}
+                          className="text-sm capitalize text-[#75757a] text-ellipsis hover:text-black"
+                        >
+                          <Link href={`${list.link}/${item}`}>
+                            {removeHyphens(item)}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </motion.li>
         </motion.ul>
 
         <motion.div

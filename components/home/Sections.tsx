@@ -6,7 +6,10 @@ import { useQuery } from "@apollo/client";
 import ProductCard from "../products/productCard";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { SkeletonCard } from "../ui/SkeletonCard";
+import { Navigation, FreeMode } from "swiper/modules";
+import useSwiperRef from "@/Hooks/useSwiperRef";
+import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 const Sections = ({
   title,
@@ -23,23 +26,62 @@ const Sections = ({
     variables: { tag: tag, first: first },
     notifyOnNetworkStatusChange: true,
   });
-  if (loading)
-    return (
-      <div>
-        {Array(5).map((item, idx) => (
-          <SkeletonCard key={idx} />
-        ))}
-      </div>
-    );
-  // if (error) return <p>Error: {error.message}</p>;
+
+  const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
+  const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
 
   return (
     <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
       <h2 className="uppercase text-center text-4xl font-extrabold">{title}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 justify-between items-stretch">
-        {data?.products.map((item) => (
-          <ProductCard key={item.id} item={item} loading={loading} />
-        ))}
+      <div className="relative flex items-center">
+        {/* Previous Button */}
+        <Button
+          ref={prevElRef}
+          className="absolute left-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
+        >
+          <ArrowLeftIcon className="h-4 w-4 dark:text-gray-600 text-white" />
+        </Button>
+
+        <Swiper
+          breakpoints={{
+            0: {
+              slidesPerView: 1.5,
+              spaceBetween: 5,
+            },
+            540: {
+              slidesPerView: 3,
+              spaceBetween: 5,
+            },
+            1024: {
+              slidesPerView: 4,
+              spaceBetween: 5,
+            },
+            1280: {
+              slidesPerView: 5,
+              spaceBetween: 5,
+            },
+          }}
+          modules={[FreeMode, Navigation]}
+          freeMode={true}
+          navigation={{
+            prevEl,
+            nextEl,
+          }}
+        >
+          {data?.products.map((item) => (
+            <SwiperSlide key={item.id}>
+              <ProductCard item={item} loading={loading} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+        {/* Next Button */}
+        <Button
+          ref={nextElRef}
+          className="absolute right-0 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
+        >
+          <ArrowRightIcon className="h-4 w-4 dark:text-gray-600 text-white" />
+        </Button>
       </div>
 
       {!loading && (

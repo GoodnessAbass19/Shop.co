@@ -1,9 +1,5 @@
 "use client";
-import { useState } from "react";
-import MenuIcon from "../Icons/menuIcon";
 import { ThemeButton } from "./theme-button";
-import CloseIcon from "../Icons/closeIcon";
-import Image from "next/image";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,13 +16,6 @@ import UserIcon from "../Icons/userIcon";
 import { useBoolean } from "@/Hooks/useBoolean";
 import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import SearchIcon from "../Icons/searchIcon";
 import { Shoplist } from "@/types";
 
 const Menu = () => {

@@ -54,11 +54,11 @@ const page = async ({ params }: Props) => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="grid grid-cols-5 justify-between items-start gap-5">
-        <div className="col-span-1 py-5 hidden md:block">
+      <div className="grid md:grid-cols-5 justify-between items-start gap-5">
+        <div className="md:col-span-1 py-5 hidden md:block">
           <FilterModal />
         </div>
-        <div className="col-span-4 w-full">
+        <div className="md:col-span-4 w-full">
           <FashionStyle title={shop} subcategory={shop} />
         </div>
       </div>

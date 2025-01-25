@@ -60,11 +60,11 @@ const SubCategoryPage = async ({ params }: Props) => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="grid grid-cols-5 justify-between items-start gap-5">
-        <div className="col-span-1 py-5 md:block hidden">
+      <div className="grid md:grid-cols-5 justify-between items-start gap-5">
+        <div className="md:col-span-1 py-5 md:block hidden">
           <FilterModal />
         </div>
-        <div className="col-span-4 w-full">
+        <div className="md:col-span-4 w-full">
           <SubcategoryProduct
             title={`women's ${textWithoutHyphen}`}
             category="womens-fashion"

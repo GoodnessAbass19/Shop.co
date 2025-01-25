@@ -5,9 +5,20 @@ import { ProductData, productTags } from "@/types";
 import { useQuery } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
-import { SkeletonCard } from "../ui/SkeletonCard";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import Pagination from "../ui/Pagination";
+import { AdjustmentsVerticalIcon } from "@heroicons/react/24/solid";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import FilterModal from "../ui/FilterModal";
 
 const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   const param = useSearchParams();
@@ -50,10 +61,15 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   return (
     <div>
       {/* <div className="min-h-screen"> */}
-      <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
-        {title}
-      </h1>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-between items-stretch">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
+          {title}
+        </h1>
+        <div className="md:hidden block">
+          <FilterModal />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-between items-stretch pt-5">
         {data?.products.map((product) => (
           <ProductCard key={product.id} item={product} loading={loading} />
         ))}

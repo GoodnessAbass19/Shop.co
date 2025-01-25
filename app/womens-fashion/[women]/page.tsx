@@ -17,7 +17,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { women } = params;
+  const { women } = await params;
   return {
     title: `${women}`,
     // description: project.description,
@@ -61,7 +61,7 @@ const SubCategoryPage = async ({ params }: Props) => {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="grid grid-cols-5 justify-between items-start gap-5">
-        <div className="col-span-1 py-5">
+        <div className="col-span-1 py-5 md:block hidden">
           <FilterModal />
         </div>
         <div className="col-span-4 w-full">

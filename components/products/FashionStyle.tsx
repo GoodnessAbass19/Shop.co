@@ -12,6 +12,7 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import Pagination from "../ui/Pagination";
+import FilterModal from "../ui/FilterModal";
 
 const FashionStyle = ({
   title,
@@ -55,9 +56,14 @@ const FashionStyle = ({
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
-        {title}
-      </h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
+          {title}
+        </h1>
+        <div className="md:hidden block">
+          <FilterModal />
+        </div>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-between items-stretch">
         {data?.products.map((product) => (
           <ProductCard key={product.id} item={product} loading={loading} />

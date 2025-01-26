@@ -87,6 +87,7 @@ export const GET_SINGLE_PRODUCT = gql`
       productSizes
       colours {
         hex
+        css
       }
       review
       subCategory {

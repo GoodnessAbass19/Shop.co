@@ -1,5 +1,6 @@
 "use client";
 
+import { getColorCategory, getColorCategoryFromHex } from "@/lib/settings";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
@@ -57,7 +58,10 @@ const CartItem = ({
           </p>
 
           <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
-            color: <span className="font-normal">{color || null}</span>
+            {/* color:{" "}
+            <span className="font-normal">
+              {getColorCategoryFromHex(color || "")}
+            </span> */}
           </p>
         </div>
 

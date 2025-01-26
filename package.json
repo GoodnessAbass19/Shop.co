@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.4",
+    "@clerk/nextjs": "^6.10.2",
     "@graphcms/rich-text-react-renderer": "^0.6.2",
     "@graphcms/rich-text-types": "^0.5.1",
     "@heroicons/react": "^2.2.0",

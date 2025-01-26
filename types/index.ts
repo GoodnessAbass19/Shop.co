@@ -32,6 +32,7 @@ export type Product = {
   stock: boolean;
   colours: {
     hex: string;
+    css: string;
   }[];
   productTag: string[];
   productSizes: string[];

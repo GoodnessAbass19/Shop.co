@@ -43,6 +43,7 @@ const Sections = ({
         </button>
 
         <Swiper
+          className="w-full h-full"
           breakpoints={{
             0: {
               slidesPerView: 1.5,

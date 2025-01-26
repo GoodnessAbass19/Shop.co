@@ -17,6 +17,24 @@ import { useBoolean } from "@/Hooks/useBoolean";
 import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
 import { Shoplist } from "@/types";
+import { useCartStore } from "@/store/cart-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+  UserButton,
+} from "@clerk/nextjs";
+import { Button } from "../ui/button";
+import { useUser } from "@clerk/nextjs";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -24,6 +42,9 @@ const Menu = () => {
     const textWithoutHyphen = slug.replace(/-/g, " ");
     return textWithoutHyphen;
   }
+
+  const items = useCartStore((state) => state.items);
+  const { user } = useUser();
 
   return (
     <div
@@ -114,12 +135,41 @@ const Menu = () => {
             </DropdownMenu>
           </div> */}
           <Search />
-          <Link href={"/cart"}>
+          <Link href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
+            {items.length > 0 && (
+              <div className="rounded-full bg-red-500 animate-bounce absolute top-0 right-0 size-2"></div>
+            )}
           </Link>
-          <Link href={"#"}>
-            <UserIcon className="w-6 h-6 text-black" />
-          </Link>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <UserIcon className="w-6 h-6 text-black" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="p-1 space-y-1">
+              {user && (
+                <h2 className="text-base font-semibold font-sans text-start capitalize">
+                  hi, {user?.username}
+                </h2>
+              )}
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Orders</DropdownMenuItem>
+              <DropdownMenuItem>Team</DropdownMenuItem>
+              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
+                <SignedIn>
+                  <SignOutButton />
+                </SignedIn>
+                <SignedOut>
+                  <SignInButton mode="modal"></SignInButton>
+                </SignedOut>
+              </Button>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <ThemeButton />
         </div>
       </div>

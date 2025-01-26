@@ -144,16 +144,24 @@ const Menu = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <UserIcon className="w-6 h-6 text-black" />
+              <SignedIn>
+                <div className="flex justify-center items-center gap-2">
+                  <UserIcon className="w-6 h-6 text-black" />
+                  <h2 className="text-base font-semibold font-sans text-start capitalize">
+                    hi, {user?.username}
+                  </h2>
+                </div>
+              </SignedIn>
+              <SignedOut>
+                <div className="flex justify-center items-center gap-1">
+                  <UserIcon className="w-6 h-6 text-black" />
+                  <h2 className="text-base font-semibold font-sans text-start capitalize">
+                    my account
+                  </h2>
+                </div>
+              </SignedOut>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-1 space-y-1">
-              {user && (
-                <h2 className="text-base font-semibold font-sans text-start capitalize">
-                  hi, {user?.username}
-                </h2>
-              )}
-
-              <DropdownMenuSeparator />
               <DropdownMenuItem>Profile</DropdownMenuItem>
               <DropdownMenuItem>Orders</DropdownMenuItem>
               <DropdownMenuItem>Team</DropdownMenuItem>

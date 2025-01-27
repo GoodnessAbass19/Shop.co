@@ -36,7 +36,7 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
         {/* Previous Button */}
         <button
           ref={prevElRef}
-          className="absolute left-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none  transform -translate-x-1/2"
+          className="absolute left-5 z-10 rounded-full border-none dark:bg-white bg-black shadow-lg p-2 outline-none  transform -translate-x-1/2"
         >
           <ArrowLeftIcon className="h-4 w-4 dark:text-gray-600 text-white" />
         </button>
@@ -78,7 +78,7 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
 
         <button
           ref={nextElRef}
-          className="absolute right-5 z-10 rounded-full border-none dark:bg-white bg-black/50 shadow-lg p-2 outline-none transform translate-x-1/2"
+          className="absolute right-5 z-10 rounded-full border-none dark:bg-white bg-black shadow-lg p-2 outline-none transform translate-x-1/2"
         >
           <ArrowRightIcon className="h-4 w-4 dark:text-gray-600 text-white" />
         </button>

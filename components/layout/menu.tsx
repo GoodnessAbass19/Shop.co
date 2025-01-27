@@ -35,6 +35,12 @@ import {
 } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { useUser } from "@clerk/nextjs";
+import {
+  ShoppingBagIcon,
+  User2Icon,
+  UserCheck2Icon,
+  UserRound,
+} from "lucide-react";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -146,35 +152,53 @@ const Menu = () => {
             <DropdownMenuTrigger>
               <SignedIn>
                 <div className="flex justify-center items-center gap-2">
-                  <UserIcon className="w-6 h-6 text-black" />
-                  <h2 className="text-base font-semibold font-sans text-start capitalize">
+                  <UserCheck2Icon className="w-6 h-6 text-black md:hidden block" />
+                  <UserRound className="w-6 h-6 text-black hidden md:block" />
+                  <h2 className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block">
                     hi, {user?.username}
                   </h2>
                 </div>
               </SignedIn>
               <SignedOut>
                 <div className="flex justify-center items-center gap-1">
-                  <UserIcon className="w-6 h-6 text-black" />
-                  <h2 className="text-base font-semibold font-sans text-start capitalize">
-                    my account
+                  <UserRound className="w-6 h-6 text-black" />
+                  <h2 className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block">
+                    account
                   </h2>
                 </div>
               </SignedOut>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-1 space-y-1">
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Orders</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
-                <SignedIn>
-                  <SignOutButton />
-                </SignedIn>
-                <SignedOut>
+              <SignedOut>
+                <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
                   <SignInButton mode="modal"></SignInButton>
-                </SignedOut>
-              </Button>
+                </Button>
+              </SignedOut>
+
+              <DropdownMenuItem>
+                <Link
+                  href={""}
+                  className="flex justify-start items-center gap-2 capitalize"
+                >
+                  <UserRound className="w-6 h-6 text-black" />
+                  my account
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link
+                  href={"/orders"}
+                  className="flex justify-start items-center gap-2 capitalize"
+                >
+                  <ShoppingBagIcon className="w-6 h-6 text-black" />
+                  orders
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <SignedIn>
+                <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
+                  <SignOutButton />
+                </Button>
+              </SignedIn>
             </DropdownMenuContent>
           </DropdownMenu>
 

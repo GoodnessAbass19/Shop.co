@@ -71,7 +71,8 @@ const CartItem = ({
           </span>
           <div className="flex items-center gap-2 border border-primary h-8 rounded-full bg-[#F0F0F0] w-fit">
             <button
-              className="h-full w-fit flex justify-center items-center px-3 bg-primary-gray/10"
+              disabled={quantity === 1}
+              className="h-full w-fit flex justify-center items-center px-3 bg-primary-gray/10 disabled:cursor-not-allowed"
               onClick={() => updateItemQuantity(id, "decrease")}
             >
               <MinusIcon className="w-4 h-4 " />

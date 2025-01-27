@@ -66,7 +66,7 @@ const RecentlyViewed = () => {
 
   return (
     <div className="max-w-screen-2xl mx-auto py-5 px-3 space-y-5">
-      <h3 className="font-medium text-base text-black md:text-lg capitalize">
+      <h3 className="font-medium text-lg text-black md:text-lg capitalize">
         Recently Viewed
       </h3>
       <div className="relative flex items-center">
@@ -106,7 +106,7 @@ const RecentlyViewed = () => {
           }}
         >
           {recentlyViewed.slice(0, 10).map((page, index) => (
-            <SwiperSlide>
+            <SwiperSlide key={index}>
               <RecentProduct url={page} />
             </SwiperSlide>
           ))}

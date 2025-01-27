@@ -32,7 +32,7 @@ const ProductCard = ({
 
   return (
     <Link
-      href={`/products/${item.slug}`}
+      href={`/products/${item?.slug}`}
       className="w-full rounded-md h-full overflow-hidden relative"
     >
       {/* {item.images[0]?.url && ( */}
@@ -42,7 +42,7 @@ const ProductCard = ({
             ? "https://via.placeholder.com/200"
             : `${item?.images[0]?.url}`
         }
-        alt={item.productName}
+        alt={item?.productName}
         blurDataURL="https://via.placeholder.com/200"
         width={500}
         height={500}
@@ -50,25 +50,25 @@ const ProductCard = ({
       />
       {/* )} */}
       <h2 className="font-semibold text-base capitalize text-start font-sans line-clamp-1">
-        {item.productName}
+        {item?.productName}
       </h2>
       <div className="space-y-2">
         <span className="text-lg font-semibold">
-          {formatCurrencyValue(item.discountedPrice || item.price)}
+          {formatCurrencyValue(item?.discountedPrice || item?.price)}
         </span>
 
-        {item.discountedPrice && (
+        {item?.discountedPrice && (
           <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
-            {formatCurrencyValue(item.price)}
+            {formatCurrencyValue(item?.price)}
           </span>
         )}
-        {item.discountedPrice && (
+        {item?.discountedPrice && (
           <span className="font-light text-sm text-center text-[#FF3333] bg-[#FF3333]/10 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
             -
             {percentageDifference(
               // @ts-ignore
-              item.price,
-              item.discountedPrice
+              item?.price,
+              item?.discountedPrice
             )}
             %
           </span>

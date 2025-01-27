@@ -1,3 +1,4 @@
+import RecentlyViewed from "../products/Recent";
 import CartBody from "./CartBody";
 
 const Cart = () => {
@@ -12,6 +13,10 @@ const Cart = () => {
 
         <div className="mt-4">
           <CartBody />
+        </div>
+
+        <div className="mt-5">
+          <RecentlyViewed />
         </div>
       </div>
     </div>

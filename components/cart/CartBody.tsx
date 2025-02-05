@@ -31,7 +31,7 @@ const CartBody = () => {
                 price={item.price}
                 quantity={item.quantity}
                 image={item.image}
-                color={item.color}
+                slug={item.slug}
                 size={item.size}
               />
             </div>

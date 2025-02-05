@@ -105,7 +105,7 @@ const RecentlyViewed = () => {
             nextEl,
           }}
         >
-          {recentlyViewed.slice(0, 10).map((page, index) => (
+          {recentlyViewed.map((page, index) => (
             <SwiperSlide key={index}>
               <RecentProduct url={page} />
             </SwiperSlide>

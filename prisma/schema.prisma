@@ -41,15 +41,21 @@ enum OrderStatus {
 
 model Cart {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId    Int        @unique
+  userId    String     @unique
   items     CartItem[]
   updatedAt DateTime   @updatedAt
 }
 
 model CartItem {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  cartId    String @db.ObjectId
-  cart      Cart   @relation(fields: [cartId], references: [id])
-  productId Int
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  cartId    String  @db.ObjectId
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId String  @db.ObjectId
+  name      String
+  slug      String  @unique
+  image     String
+  price     Float
   quantity  Int
+  size      String? // Nullable, since size might not be selected
+  color     String? // Nullable, if color is not selected
 }

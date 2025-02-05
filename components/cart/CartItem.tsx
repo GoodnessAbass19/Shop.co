@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart-store";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
+import Link from "next/link";
 
 const CartItem = ({
   id,
@@ -13,14 +14,14 @@ const CartItem = ({
   quantity,
   image,
   size,
-  color,
+  slug,
 }: {
   id: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
-  color?: string;
+  slug: string;
   size?: string;
 }) => {
   // Use separate selectors to avoid unnecessary re-renders
@@ -41,7 +42,10 @@ const CartItem = ({
         />
       </div>
       <div className="flex-1 space-y-4">
-        <div className="flex justify-between items-center">
+        <Link
+          href={`/products/${slug}`}
+          className="flex justify-between items-center"
+        >
           <h3 className="md:text-xl text-lg font-semibold capitalize leading-tight">
             {name}
           </h3>
@@ -51,7 +55,7 @@ const CartItem = ({
           >
             <TrashIcon className="w-6 h-6 text-red-500" />
           </button>
-        </div>
+        </Link>
         <div className="flex flex-col justify-start items-start gap-1">
           <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
             size: <span className="font-normal">{size || ""}</span>

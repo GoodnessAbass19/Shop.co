@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/Hooks/use-toast";
 import { getColorCategory, getColorCategoryFromHex } from "@/lib/settings";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
@@ -15,6 +16,7 @@ const CartItem = ({
   image,
   size,
   slug,
+  color,
 }: {
   id: string;
   name: string;
@@ -23,10 +25,12 @@ const CartItem = ({
   image: string;
   slug: string;
   size?: string;
+  color?: string;
 }) => {
   // Use separate selectors to avoid unnecessary re-renders
   const removeItem = useCartStore((state) => state.removeFromCart);
   const updateItemQuantity = useCartStore((state) => state.updateQuantity);
+  const { toast } = useToast();
 
   return (
     <div className="flex items-start justify-start gap-4">
@@ -42,30 +46,37 @@ const CartItem = ({
         />
       </div>
       <div className="flex-1 space-y-4">
-        <Link
-          href={`/products/${slug}`}
-          className="flex justify-between items-center"
-        >
-          <h3 className="md:text-xl text-lg font-semibold capitalize leading-tight">
+        <div className="flex justify-between items-center">
+          <Link
+            href={`/products/${slug}`}
+            className="md:text-xl text-lg font-semibold capitalize leading-tight"
+          >
             {name}
-          </h3>
+          </Link>
           <button
-            onClick={() => removeItem(id)}
+            onClick={() => {
+              removeItem(id);
+              toast({
+                title: "Remove From Cart",
+                // description: `${name} added to cart`,
+              });
+            }}
             className="flex gap-2 items-center"
           >
             <TrashIcon className="w-6 h-6 text-red-500" />
           </button>
-        </Link>
+        </div>
         <div className="flex flex-col justify-start items-start gap-1">
           <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
-            size: <span className="font-normal">{size || ""}</span>
+            size: <span className="font-normal">{size || "No size"}</span>
           </p>
 
-          <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
-            {/* color:{" "}
-            <span className="font-normal">
-              {getColorCategoryFromHex(color || "")}
-            </span> */}
+          <p className="font-medium text-base text-start flex items-center gap-2 capitalize">
+            color:
+            <span
+              style={{ backgroundColor: `${color}` }}
+              className="w-5 h-5 rounded-full cursor-pointer border flex flex-col justify-center items-center"
+            />
           </p>
         </div>
 

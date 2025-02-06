@@ -42,7 +42,7 @@ const ProductCard = ({
             ? "https://via.placeholder.com/200"
             : `${item?.images[0]?.url}`
         }
-        alt={item?.productName}
+        alt={item?.productName || "product"}
         blurDataURL="https://via.placeholder.com/200"
         width={500}
         height={500}

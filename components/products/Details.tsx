@@ -21,6 +21,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { AddToCartButton } from "../layout/Toast";
+import { createCartItem } from "@/lib/actions";
+import { useUser } from "@clerk/nextjs";
 
 const ProductDetails = ({ slug }: { slug: string }) => {
   const { data, loading, error } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
@@ -96,6 +99,8 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     data?.product.images && data.product.images.length > 0
       ? data.product.images
       : fallbackImages;
+
+  const { user } = useUser();
 
   return (
     <div className="space-y-10">
@@ -250,14 +255,19 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               </button>
             </div>
 
-            <button
+            {/* <button
               className="flex items-center justify-center w-full h-10 text-lg border border-black text-white text-center bg-black dark:bg-white dark:text-black hover:bg-white hover:text-black rounded-full flex-grow transition-transform delay-150 duration-200 ease-in-out"
               onClick={() => {
-                addToCart(cartData);
+                createCartItem({ success: false, error: false }, {...cartData, userId: user?.id as string })
+               
               }}
             >
               Add To Cart
-            </button>
+            </button> */}
+            <AddToCartButton
+              name={data?.product.productName as string}
+              data={cartData}
+            />
           </div>
         </div>
       </div>

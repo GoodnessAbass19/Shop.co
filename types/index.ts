@@ -106,3 +106,15 @@ export type ProductsConnection = {
 export type Data = {
   productsConnection: ProductsConnection;
 };
+
+export interface CartProduct {
+  id: string; // Optional since Prisma will auto-generate it
+  userId: string;
+  name: string;
+  slug: string;
+  image?: string | null;
+  price: number;
+  quantity: number;
+  size?: string | null; // Nullable
+  color?: string | null; // Nullable
+}

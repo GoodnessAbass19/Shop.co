@@ -34,7 +34,6 @@ const Search = () => {
   const [getSearchedProducts, { loading, data: searchData }] =
     useLazyQuery<Data>(GET_SEARCH);
 
-  console.log(searchData);
   const handleChange = useMemo(
     () => (e: any) => {
       setSearch(e.target.value);

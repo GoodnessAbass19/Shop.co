@@ -1,7 +1,6 @@
 "use client";
 
 import { useToast } from "@/Hooks/use-toast";
-import { getColorCategory, getColorCategoryFromHex } from "@/lib/settings";
 import { useCartStore } from "@/store/cart-store";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
@@ -57,7 +56,7 @@ const CartItem = ({
             onClick={() => {
               removeItem(id);
               toast({
-                title: "Remove From Cart",
+                title: "Removed From Cart",
                 // description: `${name} added to cart`,
               });
             }}

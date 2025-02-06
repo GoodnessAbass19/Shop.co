@@ -6,22 +6,13 @@ import { useToast } from "@/Hooks/use-toast";
 import { createCartItem } from "@/lib/actions";
 import { useCartStore } from "@/store/cart-store";
 import { CartProduct } from "@/types";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
 export function AddToCartButton({ name, data }: { name: string; data: any }) {
   const { toast } = useToast();
   const addToCart = useCartStore((state) => state.addToCart);
-  const newCartItem: CartProduct = {
-    userId: "user_2scGZgG0ofZESojTMceW3jMhhfm",
-    id: "cm5ntv7kld3uj07mk0ysdm8zn",
-    name: "Courage Graphic T-shirt",
-    slug: "courage-graphic-t-shirt",
-    image: "https://eu-west-2.graphassets.com/cm5uu5t11iflk07mf80qp3pws",
-    price: 22000,
-    quantity: 1,
-    size: null,
-    color: null,
-  };
+  const { user } = useUser();
 
   return (
     <Button
@@ -29,7 +20,10 @@ export function AddToCartButton({ name, data }: { name: string; data: any }) {
       variant="outline"
       onClick={() => {
         addToCart(data);
-        createCartItem({ success: false, error: false }, newCartItem);
+        createCartItem(
+          { success: false, error: false },
+          { userId: user?.id, ...data }
+        );
         toast({
           title: "Added To Cart",
           description: `${name} added to cart`,

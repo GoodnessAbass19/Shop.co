@@ -62,7 +62,13 @@ const ProductDetails = ({ slug }: { slug: string }) => {
   }
 
   const [quantity, setQuantity] = useState(1);
-  const addToCart = useCartStore((state) => state.addToCart);
+  const items = useCartStore((state) => state.items)
+    .filter((item) => item.id === data?.product.id)
+    .map((item) => {
+      return item;
+    });
+  const updateItemQuantity = useCartStore((state) => state.updateQuantity);
+
   const {
     price = 0,
     productName = "",
@@ -99,8 +105,6 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     data?.product.images && data.product.images.length > 0
       ? data.product.images
       : fallbackImages;
-
-  const { user } = useUser();
 
   return (
     <div className="space-y-10">
@@ -230,7 +234,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
 
           <Separator />
 
-          <div className="flex gap-4 mt-4 items-center justify-between w-full">
+          <div className="flex gap-4 mt-4 items-center justify-start w-full">
             <div className="flex items-center gap-3 border h-10 rounded-full">
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-l-full"
@@ -242,11 +246,25 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               >
                 <MinusIcon className="w-4 h-4 " />
               </button>
-              <span className="w-fit px-2">{quantity}</span>
+              {items.length > 0 ? (
+                <div>
+                  {items.map((item) => (
+                    <span className="w-fit px-2">{item.quantity}</span>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  {items.map((item) => (
+                    <span className="w-fit px-2">{item.quantity}</span>
+                  ))}
+                </div>
+              )}
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-r-full"
-                onClick={
-                  quantity < 10
+                onClick={() =>
+                  items.length > 0
+                    ? updateItemQuantity(data?.product.id as string, "increase")
+                    : quantity < 10
                     ? () => setQuantity(quantity + 1)
                     : () => setQuantity(10)
                 }
@@ -264,10 +282,18 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             >
               Add To Cart
             </button> */}
-            <AddToCartButton
-              name={data?.product.productName as string}
-              data={cartData}
-            />
+            {items.length > 0 ? (
+              <div>
+                {items.map((item) => (
+                  <span>{item.quantity} item(s) added</span>
+                ))}
+              </div>
+            ) : (
+              <AddToCartButton
+                name={data?.product.productName as string}
+                data={cartData}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -48,9 +48,10 @@ enum OrderStatus {
 
 model CartItem {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
   productId String
   name      String
-  slug      String  @unique
+  slug      String
   image     String
   price     Float
   quantity  Int

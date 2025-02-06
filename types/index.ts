@@ -108,7 +108,7 @@ export type Data = {
 };
 
 export interface CartProduct {
-  id: string; // Optional since Prisma will auto-generate it
+  id?: string; // Optional since Prisma will auto-generate it
   userId: string;
   name: string;
   slug: string;

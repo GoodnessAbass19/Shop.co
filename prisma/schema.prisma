@@ -13,17 +13,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model OrderItem {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  orderId  String @db.ObjectId
-  order    Order  @relation(fields: [orderId], references: [id])
-  quantity Int
-  price    Float
+model User {
+  id        String    @id @map("_id")
+  email     String    @unique
+  password  String
+  username  String
+  role      UserRole  @default(CUSTOMER)
+  addresses Address[]
+  orders    Order[]
+  cart      Cart?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
 }
 
 model Order {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String      @db.ObjectId
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id])
   items       OrderItem[]
   totalAmount Float
   status      OrderStatus @default(PENDING)
@@ -39,30 +50,46 @@ enum OrderStatus {
   CANCELED
 }
 
-//  model Cart {
-//    id        String     @id @default(auto()) @map("_id") @db.ObjectId
-//    userId    String     @unique
-//    items     CartItem[]
-//    updatedAt DateTime   @updatedAt
-// }
+model OrderItem {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String @db.ObjectId
+  order     Order  @relation(fields: [orderId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float
+}
+
+model Address {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  street    String
+  city      String
+  state     String
+  zip       String
+  country   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cart {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String     @unique
+  user      User?      @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
 
 model CartItem {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String
-  productId String
+  cartId    String  @db.ObjectId
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId String  @db.ObjectId
   name      String
   slug      String
   image     String
   price     Float
   quantity  Int
-  size      String? // Nullable, since size might not be selected
-  color     String? // Nullable, if color is not selected
+  size      String? // Nullable for optional size
+  color     String? // Nullable for optional color
 }
-
-// enum Day {
-//   MONDAY
-//   TUESDAY
-//   WEDNESDAY
-//   THURSDAY
-//   FRIDAY
-// }

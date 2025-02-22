@@ -66,7 +66,7 @@ const CartItem = ({
           </button>
         </div>
         <div className="flex flex-col justify-start items-start gap-1">
-          <p className="font-medium text-base text-start inline-flex gap-2 capitalize">
+          <p className="font-medium text-base text-start inline-flex gap-2 uppercase">
             size: <span className="font-normal">{size || "No size"}</span>
           </p>
 

@@ -171,7 +171,7 @@ const Menu = () => {
             <DropdownMenuContent className="p-1 space-y-1 lg:min-w-[200px]">
               <SignedOut>
                 <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
-                  <SignInButton mode="modal"></SignInButton>
+                  <SignInButton></SignInButton>
                 </Button>
 
                 <DropdownMenuSeparator />

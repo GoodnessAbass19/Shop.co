@@ -23,7 +23,7 @@ export default function Home() {
         href="top-deals"
       />
 
-      <Styles />
+      {/* <Styles /> */}
     </div>
   );
 }

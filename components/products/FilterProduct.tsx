@@ -62,14 +62,14 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
     <div>
       {/* <div className="min-h-screen"> */}
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
+        {/* <h1 className="text-xl font-medium mb-4 capitalize text-ellipsis">
           {title}
         </h1>
         <div className="md:hidden block">
           <FilterModal />
-        </div>
+        </div> */}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 justify-between items-stretch pt-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
         {data?.products.map((product) => (
           <ProductCard key={product.id} item={product} loading={loading} />
         ))}

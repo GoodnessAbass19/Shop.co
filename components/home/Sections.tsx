@@ -22,13 +22,31 @@ const Sections = ({
   first: number;
   href: string;
 }) => {
-  const { data, loading, error } = useQuery<ProductData>(GET_PRODUCTS_BY_TAGS, {
+  const { data, loading } = useQuery<ProductData>(GET_PRODUCTS_BY_TAGS, {
     variables: { tag: tag, first: first },
     notifyOnNetworkStatusChange: true,
   });
 
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
+
+  if (loading) {
+    return (
+      <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
+        <h2 className="uppercase text-center text-4xl font-extrabold">
+          {title}
+        </h2>
+        <div className="grid grid-cols-5 justify-center items-center w-full h-full mx-auto gap-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="animate-pulse bg-gray-200 rounded-md w-full h-[250px]"
+            ></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
@@ -69,8 +87,8 @@ const Sections = ({
             nextEl,
           }}
         >
-          {data?.products.map((item) => (
-            <SwiperSlide key={item.id}>
+          {data?.products.map((item, index) => (
+            <SwiperSlide key={index}>
               <ProductCard item={item} loading={loading} />
             </SwiperSlide>
           ))}

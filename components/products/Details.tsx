@@ -247,11 +247,11 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                 <MinusIcon className="w-4 h-4 " />
               </button>
               {items.length > 0 ? (
-                <div>
+                <>
                   {items.map((item) => (
                     <span className="w-fit px-2">{item.quantity}</span>
                   ))}
-                </div>
+                </>
               ) : (
                 <div>
                   {items.map((item) => (

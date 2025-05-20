@@ -39,10 +39,10 @@ const MensFahionPage = () => {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="grid md:grid-cols-5 justify-between items-start gap-5">
-        <div className="md:col-span-1 py-5 hidden md:block">
+        {/* <div className="md:col-span-1 py-5 hidden md:block">
           <FilterModal />
-        </div>
-        <div className="md:col-span-4 w-full">
+        </div> */}
+        <div className="md:col-span-5 w-full">
           <CategoryProducts title="men's fashion" category="mens-fashion" />
         </div>
       </div>

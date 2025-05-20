@@ -66,17 +66,17 @@ export const ProductSizes = ["xl", "medium", "large", "xxl", "small", "xs"];
 
 export const Shoplist = [
   {
-    title: "women's fashion",
+    title: "women",
     link: "/womens-fashion",
     list: ["clothing", "shoes", "skirt-and-shorts"],
   },
   {
-    title: "men's fashion",
+    title: "men",
     link: "/mens-fashion",
     list: ["clothing", "shoes", "T-shirt"],
   },
   {
-    title: "kid's fashion",
+    title: "kid",
     link: "/kids-fashion",
     list: ["boys-fashion", "girls-fashion"],
   },

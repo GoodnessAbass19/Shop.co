@@ -33,7 +33,7 @@ const ProductCard = ({
   return (
     <Link
       href={`/products/${item?.slug}`}
-      className="w-full rounded-md h-full overflow-hidden relative"
+      className="w-full rounded-lg h-full overflow-hidden relative"
     >
       {/* {item.images[0]?.url && ( */}
       <Image
@@ -63,7 +63,7 @@ const ProductCard = ({
           </span>
         )}
         {item?.discountedPrice && (
-          <span className="font-light text-sm text-center text-[#FF3333] bg-[#FF3333]/10 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
+          <span className="font-light text-sm text-center text-[#F4F4F4] bg-black/40 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
             -
             {percentageDifference(
               // @ts-ignore

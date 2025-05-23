@@ -56,7 +56,7 @@ const Banner = () => {
 
           <div>
             <Image
-              src={"/Rectangle 2.png"}
+              src={"/images/hero.png"}
               alt="banner"
               width={500}
               height={500}

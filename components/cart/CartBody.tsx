@@ -24,7 +24,7 @@ const CartBody = () => {
         {/* ----Cart---- */}
         <div className="grow h-full border">
           {items?.map((item) => (
-            <div key={item.slug} className="border-b p-4 md:p-6">
+            <div key={item.size} className="border-b p-4 md:p-6">
               <CartItem
                 id={item.id}
                 name={item.name}

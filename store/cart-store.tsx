@@ -12,7 +12,12 @@ type State = {
 type Actions = {
   addToCart: (product: CartProduct) => void;
   removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, action: "increase" | "decrease") => void;
+  updateQuantity: (
+    productId: string,
+    action: "increase" | "decrease",
+    size: string,
+    color: string
+  ) => void;
   emptyCart: VoidFunction;
 };
 
@@ -30,11 +35,18 @@ export const useCartStore = create<State & Actions>()(
         totalItems: 0,
         totalPrice: 0,
         addToCart: (product: CartProduct) => {
-          const index = get().items.findIndex((item) => item.id === product.id);
-          if (index !== -1) {
+          const existingIndex = get().items.findIndex(
+            (item) =>
+              item.id === product.id &&
+              item.size === product.size &&
+              item.color === product.color
+          );
+
+          if (existingIndex !== -1) {
+            // Same product, size, and color → increase quantity
             set((state) => {
               const items = [...state.items];
-              items[index].quantity += product.quantity;
+              items[existingIndex].quantity += product.quantity;
               return {
                 ...state,
                 items,
@@ -43,6 +55,7 @@ export const useCartStore = create<State & Actions>()(
               };
             });
           } else {
+            // Different size or color → treat as new item
             set((state) => ({
               ...state,
               items: [...state.items, product],
@@ -69,18 +82,27 @@ export const useCartStore = create<State & Actions>()(
         },
         updateQuantity: (
           productId: string,
-          action: "increase" | "decrease"
+          action: "increase" | "decrease",
+          size: string,
+          color: string
         ) => {
           set((state) => {
             const index = state.items.findIndex(
-              (item) => item.id === productId
+              (item) =>
+                item.id === productId &&
+                item.size === size &&
+                item.color === color
             );
+
             if (index === -1) return state;
+
             const items = [...state.items];
             const item = items[index];
-            const quantity =
+
+            const newQuantity =
               action === "increase" ? item.quantity + 1 : item.quantity - 1;
-            if (quantity <= 0) {
+
+            if (newQuantity <= 0) {
               const removed = items.splice(index, 1)[0];
               return {
                 ...state,
@@ -89,7 +111,7 @@ export const useCartStore = create<State & Actions>()(
                 totalPrice: state.totalPrice - removed.price * removed.quantity,
               };
             } else {
-              item.quantity = quantity;
+              item.quantity = newQuantity;
               return {
                 ...state,
                 items,
@@ -101,6 +123,7 @@ export const useCartStore = create<State & Actions>()(
             }
           });
         },
+
         emptyCart: () => {
           set((state) => ({
             ...state,

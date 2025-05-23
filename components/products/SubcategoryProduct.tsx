@@ -11,6 +11,7 @@ import ProductCard from "./productCard";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import Pagination from "../ui/Pagination";
 import FilterModal from "../ui/FilterModal";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const SubcategoryProduct = ({
   title,
@@ -55,6 +56,16 @@ const SubcategoryProduct = ({
       notifyOnNetworkStatusChange: true,
     }
   );
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div>

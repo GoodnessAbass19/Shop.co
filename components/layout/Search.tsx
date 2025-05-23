@@ -24,6 +24,7 @@ const Search = () => {
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useBoolean(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (isOpen) inputRef.current?.focus();
@@ -84,7 +85,11 @@ const Search = () => {
                       setSearch("");
                     }}
                   >
-                    <DialogClose>
+                    <DialogClose
+                      onClick={() =>
+                        router.push(`/products/${item.node?.slug}`)
+                      }
+                    >
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           <Link href={`/products/${item.node?.slug}`}>

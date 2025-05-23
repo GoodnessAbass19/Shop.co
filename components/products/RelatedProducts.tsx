@@ -15,6 +15,7 @@ import "swiper/css/navigation";
 import { Navigation, FreeMode } from "swiper/modules";
 import useSwiperRef from "@/Hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
   const { data, loading, error } = useQuery<ProductData>(GET_RELATED_PRODUCTS, {
@@ -25,8 +26,14 @@ const RelatedProducts = ({ name, tag }: { name: string; tag: any }) => {
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
 
-  if (!data) {
-    return null;
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+      </div>
+    );
   }
 
   return (

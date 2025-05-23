@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import FilterModal from "../ui/FilterModal";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   const param = useSearchParams();
@@ -48,15 +49,15 @@ const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
     }
   );
 
-  // if (loading) {
-  //   return (
-  //     <div className="product-list">
-  //       {Array.from({ length: 10 }).map((_, index) => (
-  //         <SkeletonCard key={index} />
-  //       ))}
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div>

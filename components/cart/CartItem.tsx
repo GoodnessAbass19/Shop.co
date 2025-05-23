@@ -87,14 +87,18 @@ const CartItem = ({
             <button
               disabled={quantity === 1}
               className="h-full w-fit flex justify-center items-center px-3 bg-primary-gray/10 disabled:cursor-not-allowed"
-              onClick={() => updateItemQuantity(id, "decrease")}
+              onClick={() =>
+                updateItemQuantity(id, "decrease", size || "", color || "")
+              }
             >
               <MinusIcon className="w-4 h-4 " />
             </button>
             <span className="w-fit px-2">{quantity}</span>
             <button
               className="h-full w-fit flex justify-center items-center px-3 bg-primary-gray/10"
-              onClick={() => updateItemQuantity(id, "increase")}
+              onClick={() =>
+                updateItemQuantity(id, "increase", size || "", color || "")
+              }
             >
               <PlusIcon className="w-4 h-4 " />
             </button>

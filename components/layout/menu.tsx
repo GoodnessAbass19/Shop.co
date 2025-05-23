@@ -16,7 +16,7 @@ import UserIcon from "../Icons/userIcon";
 import { useBoolean } from "@/Hooks/useBoolean";
 import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
-import { Shoplist } from "@/types";
+import { Data, ProductsConnection, Shoplist } from "@/types";
 import { useCartStore } from "@/store/cart-store";
 import {
   DropdownMenu,
@@ -36,11 +36,18 @@ import {
 import { Button } from "../ui/button";
 import { useUser } from "@clerk/nextjs";
 import {
+  SearchIcon,
   ShoppingBagIcon,
   User2Icon,
   UserCheck2Icon,
   UserRound,
 } from "lucide-react";
+import { Input } from "../ui/input";
+import { useMemo, useRef, useState } from "react";
+import { useLazyQuery } from "@apollo/client";
+import { GET_SEARCH } from "@/lib/query";
+import Image from "next/image";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -51,6 +58,27 @@ const Menu = () => {
 
   const items = useCartStore((state) => state.items);
   const { user } = useUser();
+  const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [data, setData] = useState<ProductsConnection>();
+
+  const [getSearchedProducts, { loading, data: searchData }] =
+    useLazyQuery<Data>(GET_SEARCH);
+
+  const handleChange = useMemo(
+    () => (e: any) => {
+      setSearch(e.target.value);
+      setTimeout(() => {
+        getSearchedProducts({
+          variables: { search: search, first: 20 },
+          notifyOnNetworkStatusChange: true,
+        }).then((res) => {
+          setData(res?.data?.productsConnection);
+        });
+      }, 100);
+    },
+    [search]
+  );
 
   return (
     <div
@@ -76,9 +104,44 @@ const Menu = () => {
           >
             shop.co
           </Link>
+          <NavigationMenu className="hidden md:block">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid p-4 gap-5">
+                    {Shoplist.map((list) => (
+                      <div key={list.title} className="flex flex-col space-y-1">
+                        <NavigationMenuLink
+                          href={`${list.link}`}
+                          className="text-sm font-medium capitalize text-[#313133] text-ellipsis hover:text-gray-400"
+                        >
+                          {list.title}
+                        </NavigationMenuLink>
+                      </div>
+                    ))}
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/top-deals" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    On Sale
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/new-arrivals" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    New Arrivals
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
-        <NavigationMenu className="hidden md:block uppercase text-center">
+        {/* <NavigationMenu className="hidden md:block uppercase text-center">
           <NavigationMenuList>
             <div className="flex flex-row gap-2">
               {Shoplist.map((list) => (
@@ -113,10 +176,80 @@ const Menu = () => {
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
-        </NavigationMenu>
-        {/* <div className="lg:flex-1 hidden lg:block">
-          <Search />
-        </div> */}
+        </NavigationMenu> */}
+        <div className="lg:flex-1 hidden lg:block">
+          <div className="w-full relative">
+            <div className="flex border border-gray-200 rounded-full px-2 justify-between items-center gap-2">
+              <SearchIcon className="w-5 h-5 text-gray-500" />
+              <Input
+                onChange={handleChange}
+                value={search}
+                ref={inputRef}
+                placeholder="Search for products..."
+                className="border-none w-full rounded-full p-1 focus-visible:ring-none focus-visible:ring-0 focus-visible:ring-gray-100"
+              />
+            </div>
+            <div className="absolute top-10 left-0 w-full bg-white shadow-lg z-10 rounded-b-lg max-h-[50vh] overflow-y-auto">
+              {loading ? (
+                <div className="text-center font-semibold text-base">
+                  searching...
+                </div>
+              ) : (
+                <div>
+                  {search && (
+                    <div className="flex flex-col gap-4 divide-y-2 p-4">
+                      {data?.edges?.map((item: any) => (
+                        <div
+                          className="flex items-center justify-between gap-4 pt-4"
+                          key={item.node.id}
+                          onClick={() => {
+                            setSearch("");
+                          }}
+                        >
+                          <Link
+                            href={`/products/${item.node?.slug}`}
+                            className="flex items-center gap-4"
+                          >
+                            <div className="relative">
+                              <Image
+                                className="w-14 h-14 object-cover rounded-lg"
+                                src={item.node.images[0].url}
+                                alt={item.node.productName}
+                                width={500}
+                                height={500}
+                                priority
+                              />
+                            </div>
+
+                            <div className="flex flex-col justify-between gap-4">
+                              <span className="md:text-lg font-medium leading-tight line-clamp-1">
+                                {removeHyphens(item.node.productName)}
+                              </span>
+                            </div>
+                          </Link>
+
+                          <div className="ml-2 ">
+                            <span className="text-lg font-semibold">
+                              {formatCurrencyValue(
+                                item.node.discountedPrice || item.node.price
+                              )}
+                            </span>
+
+                            {item.node.discountedPrice && (
+                              <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
+                                {formatCurrencyValue(item.node.price)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="flex justify-between items-center gap-2 md:gap-4">
           {/* <div className="lg:hidden">
             <DropdownMenu>
@@ -128,7 +261,10 @@ const Menu = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div> */}
-          <Search />
+          <div className="block lg:hidden">
+            <Search />
+          </div>
+
           <Link href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
             {items.length > 0 && (

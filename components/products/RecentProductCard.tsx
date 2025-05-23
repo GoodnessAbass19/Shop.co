@@ -7,6 +7,7 @@ import { Product, SingleProduct } from "@/types";
 import { GET_SINGLE_PRODUCT } from "@/lib/query";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import ProductCard from "./productCard";
+import { SkeletonCard } from "../ui/SkeletonCard";
 
 const RecentProduct = ({ url }: { url: string }) => {
   // Extract the slug from the URL
@@ -31,6 +32,16 @@ const RecentProduct = ({ url }: { url: string }) => {
   //   price: 0,
   //   images: [{ url: "https://via.placeholder.com/500" }],
   // };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     // <Link

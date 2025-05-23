@@ -9,7 +9,15 @@ import { CartProduct } from "@/types";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
-export function AddToCartButton({ name, data }: { name: string; data: any }) {
+export function AddToCartButton({
+  name,
+  data,
+  disabled,
+}: {
+  name: string;
+  data: any;
+  disabled: boolean;
+}) {
   const { toast } = useToast();
   const addToCart = useCartStore((state) => state.addToCart);
   const { user } = useUser();
@@ -18,6 +26,7 @@ export function AddToCartButton({ name, data }: { name: string; data: any }) {
     <Button
       className="flex items-center justify-center w-full h-10 text-lg border border-black text-white text-center bg-black dark:bg-white dark:text-black hover:bg-white hover:text-black rounded-full flex-grow transition-transform delay-150 duration-200 ease-in-out"
       variant="outline"
+      disabled={disabled}
       onClick={() => {
         addToCart(data);
         createCartItem(

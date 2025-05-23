@@ -106,6 +106,14 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       ? data.product.images
       : fallbackImages;
 
+  if (loading) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-center">Loading...</h1>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10">
       <Breadcrumb className="md:block hidden px-5">
@@ -238,38 +246,43 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             <div className="flex items-center gap-3 border h-10 rounded-full">
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-l-full"
-                onClick={
-                  quantity > 1
-                    ? () => setQuantity(quantity - 1)
-                    : () => setQuantity(1)
-                }
+                onClick={() => {
+                  setQuantity(quantity > 1 ? quantity - 1 : 1);
+                }}
               >
-                <MinusIcon className="w-4 h-4 " />
+                <MinusIcon className="w-4 h-4" />
               </button>
-              {items.length > 0 ? (
-                <>
-                  {items.map((item) => (
-                    <span className="w-fit px-2">{item.quantity}</span>
-                  ))}
-                </>
-              ) : (
+
+              {/* <span className="w-fit px-2">{quantity}</span> */}
+              {/* {items.length > 0 ? (
                 <div>
                   {items.map((item) => (
                     <span className="w-fit px-2">{item.quantity}</span>
                   ))}
                 </div>
-              )}
+              ) : ( */}
+              <div>
+                {/* {items.map((item) => ( */}
+                <span className="w-fit px-2">{quantity}</span>
+                {/* ))} */}
+              </div>
+              {/* // )} */}
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-r-full"
-                onClick={() =>
-                  items.length > 0
-                    ? updateItemQuantity(data?.product.id as string, "increase")
-                    : quantity < 10
-                    ? () => setQuantity(quantity + 1)
-                    : () => setQuantity(10)
-                }
+                onClick={() => {
+                  if (items.length > 0) {
+                    updateItemQuantity(
+                      data?.product.id as string,
+                      "increase",
+                      selectedSize as string,
+                      selectedColor as string
+                    );
+                  } else {
+                    setQuantity(quantity < 10 ? quantity + 1 : 10);
+                  }
+                }}
               >
-                <PlusIcon className="w-4 h-4 " />
+                <PlusIcon className="w-4 h-4" />
               </button>
             </div>
 
@@ -282,18 +295,19 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             >
               Add To Cart
             </button> */}
-            {items.length > 0 ? (
+            {/* {items.length > 0 ? (
               <div>
                 {items.map((item) => (
                   <span>{item.quantity} item(s) added</span>
                 ))}
               </div>
-            ) : (
-              <AddToCartButton
-                name={data?.product.productName as string}
-                data={cartData}
-              />
-            )}
+            ) : ( */}
+            <AddToCartButton
+              disabled={!selectedColor || !selectedSize}
+              name={data?.product.productName as string}
+              data={cartData}
+            />
+            {/* )} */}
           </div>
         </div>
       </div>

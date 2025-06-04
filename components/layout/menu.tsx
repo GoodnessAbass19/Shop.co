@@ -26,14 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignOutButton,
-  UserButton,
-} from "@clerk/nextjs";
-import { Button } from "../ui/button";
+
 import { useUser } from "@clerk/nextjs";
 import {
   SearchIcon,
@@ -48,6 +41,7 @@ import { useLazyQuery } from "@apollo/client";
 import { GET_SEARCH } from "@/lib/query";
 import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
+import UserButton from "./user-button";
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -272,7 +266,7 @@ const Menu = () => {
             )}
           </Link>
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger>
               <SignedIn>
                 <div className="flex justify-center items-center gap-2">
@@ -326,8 +320,8 @@ const Menu = () => {
                 </Button>
               </SignedIn>
             </DropdownMenuContent>
-          </DropdownMenu>
-
+          </DropdownMenu> */}
+          <UserButton />
           {/* <ThemeButton /> */}
         </div>
       </div>

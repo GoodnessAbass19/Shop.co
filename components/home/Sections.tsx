@@ -49,8 +49,8 @@ const Sections = ({
   }
 
   return (
-    <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
-      <h2 className="uppercase text-center text-4xl font-extrabold">{title}</h2>
+    <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5">
+      <h2 className="uppercase text-center text-4xl font-semibold">{title}</h2>
       <div className="relative flex items-center">
         {/* Previous Button */}
         <button

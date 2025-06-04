@@ -65,7 +65,7 @@ const Banner = () => {
           </div>
         </div>
       </div>
-      <div className="bg-black w-full py-3">
+      {/* <div className="bg-black w-full py-3">
         <Marquee speed={70} className="max-w-screen-xl mx-auto">
           <div className="flex justify-between items-center gap-10">
             {images.map((item) => (
@@ -81,7 +81,7 @@ const Banner = () => {
             ))}
           </div>
         </Marquee>
-      </div>
+      </div> */}
     </div>
   );
 };

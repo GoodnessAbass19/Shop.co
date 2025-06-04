@@ -64,6 +64,10 @@ const RecentlyViewed = () => {
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
 
+  if (recentlyViewed.length === 0) {
+    return null;
+  }
+
   return (
     <div className="max-w-screen-2xl mx-auto py-5 px-3 space-y-5">
       <h3 className="font-medium text-lg text-black md:text-lg capitalize">

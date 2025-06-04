@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Menu from "@/components/layout/menu";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import Provider from "@/components/layout/Provider";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -42,7 +41,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Provider>
-              <Menu />
               {children}
               <Toaster />
             </Provider>

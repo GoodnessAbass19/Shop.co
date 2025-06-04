@@ -9,87 +9,94 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// prisma/schema.prisma
+
 model User {
-  id        String    @id @map("_id")
-  email     String    @unique
+  id        String   @id @default(cuid())
+  email     String   @unique
   password  String
-  username  String
-  role      UserRole  @default(CUSTOMER)
-  addresses Address[]
-  orders    Order[]
-  cart      Cart?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  name      String
+  isBuyer   Boolean  @default(true)
+  isSeller  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  store  Store?
+  orders Order[] @relation("OrderBuyer")
 }
 
-enum UserRole {
-  ADMIN
-  CUSTOMER
+model Store {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  logo        String?
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  images      String[] // Array of image URLs
+  sizes       String[] // e.g., ["S", "M", "L"]
+  colors      String[] // e.g., ["red", "blue"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  storeId    String
+  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
 }
 
 model Order {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String      @unique
-  user        User        @relation(fields: [userId], references: [id])
-  items       OrderItem[]
-  totalAmount Float
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String      @id @default(uuid())
+  total     Float
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  buyerId String
+  buyer   User        @relation("OrderBuyer", fields: [buyerId], references: [id])
+  items   OrderItem[]
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  quantity Int
+  price    Float
+
+  // Relations
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 enum OrderStatus {
   PENDING
-  PROCESSING
+  PAID
   SHIPPED
   DELIVERED
-  CANCELED
-}
-
-model OrderItem {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String @db.ObjectId
-  order     Order  @relation(fields: [orderId], references: [id])
-  productId Int
-  quantity  Int
-  price     Float
-}
-
-model Address {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  street    String
-  city      String
-  state     String
-  zip       String
-  country   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Cart {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String     @unique
-  user      User?      @relation(fields: [userId], references: [id])
-  items     CartItem[]
-  updatedAt DateTime   @updatedAt
-}
-
-model CartItem {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  cartId    String  @db.ObjectId
-  cart      Cart    @relation(fields: [cartId], references: [id])
-  productId String  @db.ObjectId
-  name      String
-  slug      String
-  image     String
-  price     Float
-  quantity  Int
-  size      String? // Nullable for optional size
-  color     String? // Nullable for optional color
+  CANCELLED
 }

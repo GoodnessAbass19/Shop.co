@@ -46,19 +46,33 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     setSelectedColor(color);
   };
 
-  function percentageDifference(num1: number | 0, num2: number | 0) {
+  function percentageDifference(num1: number, num2: number): string {
+    // Handle the case where both numbers are zero
     if (num1 === 0 && num2 === 0) {
-      return 0; // No difference if both numbers are zero
+      return "0.00"; // Return "0.00" as a string, consistent with toFixed output
     }
 
-    // Use the absolute difference divided by the average of the two numbers
+    // Calculate the absolute difference between the two numbers
     const difference = Math.abs(num1 - num2);
+
+    // Calculate the average of the absolute values of the two numbers
     const average = (Math.abs(num1) + Math.abs(num2)) / 2;
 
-    // Calculate percentage difference
+    // Handle the case where the average is zero (which only happens if both num1 and num2 are 0,
+    // but good to have a safeguard in case the initial check is modified)
+    if (average === 0) {
+      // This case should ideally be caught by the first 'if' statement
+      // but as a fallback, we could return a specific string or throw an error.
+      // For consistency with other calculations, we'll return "0.00".
+      // Alternatively, if you consider this an undefined percentage, you might return "N/A" or throw an error.
+      return "0.00";
+    }
+
+    // Calculate the percentage difference
     const percentage = (difference / average) * 100;
 
-    return percentage.toFixed(0); // Returns the result rounded to 2 decimal places
+    // Returns the result rounded to 2 decimal places as a string
+    return percentage.toFixed(2);
   }
 
   const [quantity, setQuantity] = useState(1);
@@ -169,11 +183,11 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             </h2>
             <div className="flex justify-start items-center gap-2">
               <span className="font-bold text-2xl lg:text-3xl text-start">
-                {formatCurrencyValue(data?.product.price)}
+                {formatCurrencyValue(data?.product.discountedPrice)}
               </span>
               {data?.product.discountedPrice && (
                 <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
-                  {formatCurrencyValue(data?.product.discountedPrice)}
+                  {formatCurrencyValue(data?.product.price)}
                 </span>
               )}
               {data?.product.discountedPrice && (

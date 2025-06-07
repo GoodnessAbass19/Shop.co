@@ -51,7 +51,7 @@ const Menu = () => {
   }
 
   const items = useCartStore((state) => state.items);
-  const { user } = useUser();
+  // const { user } = useUser();
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<ProductsConnection>();

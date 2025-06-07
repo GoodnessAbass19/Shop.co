@@ -20,65 +20,153 @@ model User {
   email     String   @unique
   password  String
   name      String
-  isBuyer   Boolean  @default(true)
-  isSeller  Boolean  @default(false)
+  role      Role     @default(BUYER) // Default role is BUYER
+  phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  store  Store?
-  orders Order[] @relation("OrderBuyer")
+  store     Store?
+  orders    Order[]         @relation("UserOrders")
+  reviews   ProductReview[]
+  addresses Address[] // User can have multiple addresses
+  cart      Cart?
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  street     String
+  city       String
+  state      String
+  postalCode String? // Optional for some regions
+  country    String
+  isDefault  Boolean  @default(false) // Flag to indicate if this is the user's primary/default address
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Foreign key to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Orders associated with this specific address (e.g., shipping address for an order)
+  orders Order[]
 }
 
 model Store {
-  id          String    @id @default(cuid())
-  name        String
+  id          String      @id @default(cuid())
+  name        String      @unique
   description String?
   logo        String?
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  orderItems  OrderItem[] @relation("StoreOrderItems")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  stock       Int
-  images      String[] // Array of image URLs
-  sizes       String[] // e.g., ["S", "M", "L"]
-  colors      String[] // e.g., ["red", "blue"]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(uuid())
+  name              String
+  description       String
+  price             Float?
+  stock             Int?
+  lowStockThreshold Int? // NEW: Alert when stock falls below this
+  images            String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  // Relations
-  storeId    String
-  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  categoryId String
-  category   Category    @relation(fields: [categoryId], references: [id])
+  storeId          String
+  store            Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoryId       String
+  category         Category        @relation(fields: [categoryId], references: [id])
+  subCategoryId    String
+  subCategory      SubCategory     @relation(fields: [subCategoryId], references: [id])
+  subSubCategoryId String?
+  subSubCategory   SubSubCategory? @relation(fields: [subSubCategoryId], references: [id])
+
+  variants  ProductVariant[]
+  reviews   ProductReview[]
+  discounts Discount[]
+}
+
+model ProductVariant {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  size      String?
+  color     String?
+  price     Float
+  stock     Int
+  sku       String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   orderItems OrderItem[]
+  cartItems  CartItem[] // NEW: Variants can be in cart items
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int // 1 to 5
+  comment   String
+  createdAt DateTime @default(now())
+  reply     String? // Seller/admin reply
+}
+
+model Discount {
+  id            String    @id @default(uuid())
+  code          String?   @unique // Optional for automatic discounts
+  description   String
+  percentage    Float // e.g., 10.0 means 10% off
+  expiresAt     DateTime?
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+  canBeCombined Boolean   @default(false) // Whether stackable
+  createdAt     DateTime  @default(now())
 }
 
 model Category {
-  id       String    @id @default(uuid())
-  name     String    @unique
-  products Product[]
+  id            String        @id @default(uuid())
+  name          String        @unique
+  subCategories SubCategory[]
+  products      Product[]
+}
+
+model SubCategory {
+  id               String           @id @default(uuid())
+  name             String
+  categoryId       String
+  category         Category         @relation(fields: [categoryId], references: [id])
+  subSubCategories SubSubCategory[]
+  products         Product[]
+}
+
+model SubSubCategory {
+  id            String      @id @default(uuid())
+  name          String
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  products      Product[]
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  total     Float
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  // Relations
-  buyerId String
-  buyer   User        @relation("OrderBuyer", fields: [buyerId], references: [id])
-  items   OrderItem[]
+  id          String      @id @default(uuid())
+  total       Float
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deliveredAt DateTime? // NEW: When the order was delivered
+  cancelledAt DateTime? // NEW: When the order was cancelled
+  buyerId     String
+  buyer       User        @relation("UserOrders", fields: [buyerId], references: [id])
+  items       OrderItem[]
+  addressId   String // NEW: Link to the specific Address used for this order
+  address     Address     @relation(fields: [addressId], references: [id])
 }
 
 model OrderItem {
@@ -86,11 +174,47 @@ model OrderItem {
   quantity Int
   price    Float
 
-  // Relations
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productVariantId String
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  storeId String
+  store   Store  @relation("StoreOrderItems", fields: [storeId], references: [id])
+}
+
+model OtpToken {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// NEW MODEL: Cart
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique // Ensures one cart per user
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartItems CartItem[] // Items currently in the cart
+}
+
+// NEW MODEL: CartItem
+model CartItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productVariantId String
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
 }
 
 enum OrderStatus {
@@ -99,4 +223,9 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum Role {
+  BUYER
+  SELLER
 }

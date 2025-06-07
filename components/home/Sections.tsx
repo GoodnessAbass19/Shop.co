@@ -10,6 +10,7 @@ import { Navigation, FreeMode } from "swiper/modules";
 import useSwiperRef from "@/Hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { motion } from "framer-motion";
 
 const Sections = ({
   title,
@@ -49,7 +50,11 @@ const Sections = ({
   }
 
   return (
-    <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5"
+    >
       <h2 className="uppercase text-center text-4xl font-semibold">{title}</h2>
       <div className="relative flex items-center">
         {/* Previous Button */}
@@ -114,7 +119,7 @@ const Sections = ({
           </Link>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

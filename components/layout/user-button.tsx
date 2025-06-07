@@ -28,20 +28,54 @@ import {
 } from "lucide-react";
 import { User } from "@prisma/client";
 import LogoutButton from "./logout-button";
+import { ClipLoader } from "react-spinners";
 
 const UserButton = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true); // Set loading to true when starting fetch
     fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => setUser(data.user))
-      .catch((err) => console.error("Failed to fetch user", err));
+      .then((res) => {
+        if (!res.ok) {
+          // If response is not OK (e.g., 401 Unauthorized), the user is not logged in.
+          // Don't throw an error, just set user to null.
+          return { user: null };
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data.user);
+      })
+      .catch((err) => {
+        // This catch block is for network errors or parsing errors
+        console.error("Failed to fetch user:", err);
+        setUser(null); // Ensure user is null on error
+      })
+      .finally(() => {
+        setIsLoading(false); // Always set loading to false after fetch attempt
+      });
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center bg-gray-100">
+        <ClipLoader
+          color={"#000"} // Customize the color as needed
+          loading={isLoading}
+          // cssOverride={override}
+          size={15}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-4">
-      {user?.isSeller && (
+      {user?.role === "SELLER" && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -97,18 +131,20 @@ const UserButton = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {!user.isSeller && (
-                  <DropdownMenuItem>
-                    <Link
-                      href={"/orders"}
-                      className="flex justify-start items-center gap-2 capitalize"
-                    >
-                      <Store className="w-5 h-5 text-black" />
-                      sell on shop.co
-                    </Link>
-                  </DropdownMenuItem>
+                {user.role !== "SELLER" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Link
+                        href={"/orders"}
+                        className="flex justify-start items-center gap-2 capitalize"
+                      >
+                        <Store className="w-5 h-5 text-black" />
+                        sell on shop.co
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
                   <Link

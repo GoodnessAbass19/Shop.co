@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
-import { signToken } from "@/lib/jwt";
+import { sendOtp } from "@/lib/otp"; // your OTP function
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -25,21 +23,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const token = signToken({ id: user.id, email: user.email });
+    await sendOtp(email);
 
-    // ✅ Set cookie with the new Next.js API
-    (
-      await // ✅ Set cookie with the new Next.js API
-      cookies()
-    ).set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: "lax",
-      path: "/",
-    });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: true, message: "OTP sent to your email", email },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

@@ -8,7 +8,10 @@ export default function LogoutButton() {
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "GET" });
+    // Refresh the page to update the UI
+    localStorage.removeItem("token"); // Clear token from local storage if used
     router.push("/"); // Redirect to login or home
+    router.refresh();
   };
 
   return (

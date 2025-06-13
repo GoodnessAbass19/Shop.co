@@ -54,6 +54,7 @@ model Address {
 model Store {
   id          String      @id @default(cuid())
   name        String      @unique
+  slug        String      @unique // Slug for SEO-friendly URLs
   description String?
   logo        String?
   userId      String      @unique
@@ -67,6 +68,7 @@ model Store {
 model Product {
   id                String   @id @default(uuid())
   name              String
+  slug              String   @unique // Slug for SEO-friendly URLs
   description       String
   price             Float?
   stock             Int?
@@ -87,13 +89,14 @@ model Product {
   variants  ProductVariant[]
   reviews   ProductReview[]
   discounts Discount[]
+  soldCount Int              @default(0) // Optional optimization
 }
 
 model ProductVariant {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title     String
   size      String?
   color     String?
   price     Float
@@ -135,6 +138,7 @@ model Category {
   name          String        @unique
   subCategories SubCategory[]
   products      Product[]
+  slug          String        @unique // Slug for SEO-friendly URLs
 }
 
 model SubCategory {
@@ -144,6 +148,7 @@ model SubCategory {
   category         Category         @relation(fields: [categoryId], references: [id])
   subSubCategories SubSubCategory[]
   products         Product[]
+  slug             String           @unique // Slug for SEO-friendly URLs
 }
 
 model SubSubCategory {
@@ -152,6 +157,7 @@ model SubSubCategory {
   subCategoryId String
   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   products      Product[]
+  slug          String      @unique // Slug for SEO-friendly URLs
 }
 
 model Order {

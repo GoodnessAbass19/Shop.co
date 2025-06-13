@@ -7,6 +7,24 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding...");
 
+  console.log("Clearing existing data...");
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.otpToken.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.productReview.deleteMany();
+  await prisma.discount.deleteMany();
+  await prisma.productVariant.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.subSubCategory.deleteMany();
+  await prisma.subCategory.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.store.deleteMany();
+  await prisma.address.deleteMany();
+  await prisma.user.deleteMany();
+  console.log("Cleared existing data.");
+
   // --- 1. Create Users ---
   const hashedPassword1 = await bcrypt.hash("password123", 10);
   const hashedPassword2 = await bcrypt.hash("securepass", 10);
@@ -120,6 +138,7 @@ async function main() {
       description: "Handcrafted goods and unique apparel.",
       logo: "https://placehold.co/150x150/png",
       userId: user2.id, // Jane Smith owns this store
+      slug: "janes-boutique", // Example slug, ensure it's unique
     },
   });
 
@@ -129,6 +148,7 @@ async function main() {
       description: "Your one-stop shop for cutting-edge electronics.",
       logo: "https://placehold.co/150x150/png",
       userId: user3.id, // Admin Seller owns this store
+      slug: "tech-gadgets-hub", // Example slug, ensure it's unique
     },
   });
 
@@ -136,15 +156,15 @@ async function main() {
 
   // --- 5. Create Categories (Level 1) ---
   const clothingCategory = await prisma.category.create({
-    data: { name: "Clothing" },
+    data: { name: "Clothing", slug: "clothing" },
   });
 
   const electronicsCategory = await prisma.category.create({
-    data: { name: "Electronics" },
+    data: { name: "Electronics", slug: "electronics" },
   });
 
   const accessoriesCategory = await prisma.category.create({
-    data: { name: "Accessories" },
+    data: { name: "Accessories", slug: "accessories" },
   });
 
   console.log("Created categories.");
@@ -154,6 +174,7 @@ async function main() {
     data: {
       name: "Men's Clothing",
       categoryId: clothingCategory.id,
+      slug: "mens-clothing", // Example slug, ensure it's unique
     },
   });
 
@@ -161,6 +182,7 @@ async function main() {
     data: {
       name: "Women's Clothing",
       categoryId: clothingCategory.id,
+      slug: "womens-clothing", // Example slug, ensure it's unique
     },
   });
 
@@ -168,6 +190,7 @@ async function main() {
     data: {
       name: "Smartphones",
       categoryId: electronicsCategory.id,
+      slug: "smartphones", // Example slug, ensure it's unique
     },
   });
 
@@ -175,6 +198,7 @@ async function main() {
     data: {
       name: "Laptops",
       categoryId: electronicsCategory.id,
+      slug: "laptops", // Example slug, ensure it's unique
     },
   });
 
@@ -182,6 +206,7 @@ async function main() {
     data: {
       name: "Jewelry",
       categoryId: accessoriesCategory.id,
+      slug: "jewelry", // Example slug, ensure it's unique
     },
   });
 
@@ -192,12 +217,14 @@ async function main() {
     data: {
       name: "T-Shirts",
       subCategoryId: mensClothingSub.id,
+      slug: "mens-tshirts", // Example slug, ensure it's unique
     },
   });
   const mensJeansSubSub = await prisma.subSubCategory.create({
     data: {
       name: "Jeans",
       subCategoryId: mensClothingSub.id,
+      slug: "mens-jeans", // Example slug, ensure it's unique
     },
   });
 
@@ -205,12 +232,14 @@ async function main() {
     data: {
       name: "Dresses",
       subCategoryId: womensClothingSub.id,
+      slug: "womens-dresses", // Example slug, ensure it's unique
     },
   });
   const womensSkirtsSubSub = await prisma.subSubCategory.create({
     data: {
       name: "Skirts",
       subCategoryId: womensClothingSub.id,
+      slug: "womens-skirts", // Example slug, ensure it's unique
     },
   });
 
@@ -218,6 +247,7 @@ async function main() {
     data: {
       name: "Android Phones",
       subCategoryId: smartphonesSub.id,
+      slug: "android-phones", // Example slug, ensure it's unique
     },
   });
 
@@ -238,9 +268,49 @@ async function main() {
       categoryId: clothingCategory.id,
       subCategoryId: mensClothingSub.id,
       subSubCategoryId: mensTshirtsSubSub.id,
+      slug: "classic-fit-cotton-t-shirt", // Example slug, ensure it's unique
     },
   });
 
+  const mensTshirtProduct1 = await prisma.product.create({
+    data: {
+      name: "Courage Graphic T-shirt",
+      description: "Courage Graphic T-shirt for everyone",
+      images: [
+        "https://eu-west-2.graphassets.com/cm53bnv5406or07ml77xd00wa/cm5nuiyleeblh06lar6j02yii",
+        "https://eu-west-2.graphassets.com/cm53bnv5406or07ml77xd00wa/cm5ntu31oe5gr06lauq485e6y",
+      ],
+      lowStockThreshold: 20,
+      stock: 100,
+      price: 3000,
+      storeId: store1.id,
+      categoryId: clothingCategory.id,
+      subCategoryId: mensClothingSub.id,
+      subSubCategoryId: mensTshirtsSubSub.id,
+      slug: "courage-graphic-t-shirt", // Example slug, ensure it's unique
+    },
+  });
+
+  const mensTshirtProduct1VariantSWhite = await prisma.productVariant.create({
+    data: {
+      productId: mensTshirtProduct1.id,
+      size: "S",
+      color: "White",
+      price: 3200,
+      stock: 50,
+      sku: "CR-TSHIRT-S-W",
+    },
+  });
+  const mensTshirtProduct1VariantSBlack = await prisma.productVariant.create({
+    data: {
+      productId: mensTshirtProduct1.id,
+      size: "M",
+      color: "White",
+      price: 3500,
+      stock: 50,
+      sku: "CR-TSHIRT-M-W",
+    },
+  });
   const mensTshirtVariantSWhite = await prisma.productVariant.create({
     data: {
       productId: mensTshirtProduct.id,
@@ -283,6 +353,7 @@ async function main() {
       categoryId: clothingCategory.id,
       subCategoryId: womensClothingSub.id,
       subSubCategoryId: womensSkirtsSubSub.id,
+      slug: "high-waisted-denim-skirt", // Example slug, ensure it's unique
     },
   });
 
@@ -331,6 +402,7 @@ async function main() {
       categoryId: electronicsCategory.id,
       subCategoryId: smartphonesSub.id,
       subSubCategoryId: androidPhonesSubSub.id,
+      slug: "latest-android-smartphone", // Example slug, ensure it's unique
     },
   });
 
@@ -375,6 +447,7 @@ async function main() {
       categoryId: accessoriesCategory.id,
       subCategoryId: jewelrySub.id,
       subSubCategoryId: null,
+      slug: "luxury-gold-necklace", // Example slug, ensure it's unique
     },
   });
 

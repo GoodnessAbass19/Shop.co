@@ -1,17 +1,14 @@
 "use client";
 
-import { GET_SINGLE_PRODUCT } from "@/lib/query";
-import { Product, productTags, SingleProduct } from "@/types";
-import { useQuery } from "@apollo/client";
 import ThumbnailGallery from "../ui/ThumbnailGallery";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/solid";
-import { useMemo, useState } from "react";
-import { Checkbox } from "../ui/checkbox";
+import { useEffect, useMemo, useState, useCallback } from "react";
+// import { Checkbox } from "../ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/store/cart-store";
-import RelatedProducts from "./RelatedProducts";
+// import RelatedProducts from "./RelatedProducts";
 import RecentlyViewed from "./Recent";
 import {
   Breadcrumb,
@@ -22,15 +19,39 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { AddToCartButton } from "../layout/Toast";
-import { createCartItem } from "@/lib/actions";
-import { useUser } from "@clerk/nextjs";
+import { toast } from "react-toastify";
+// import { createCartItem } from "@/lib/actions";
+import useSWR from "swr";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok) {
+    const error: any = new Error(data.error || "Failed to fetch data.");
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+};
 
 const ProductDetails = ({ slug }: { slug: string }) => {
-  const { data, loading, error } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
-    variables: { slug: slug },
-    notifyOnNetworkStatusChange: true,
-  });
-
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/products/${slug}`,
+    fetcher
+  );
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const fallbackImages = [
     { url: "https://via.placeholder.com/200" },
     { url: "https://via.placeholder.com/200" },
@@ -38,50 +59,195 @@ const ProductDetails = ({ slug }: { slug: string }) => {
   ];
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<
+    (typeof data.product.variants)[0] | null
+  >(null);
 
-  const handleSelectSize = (size: string) => {
-    setSelectedSize((prevSize) => (prevSize === size ? null : size));
-  };
-  const handleSelect = (color: string) => {
-    setSelectedColor(color);
-  };
+  const addToCartMutation = useMutation({
+    mutationFn: async ({
+      productVariantId,
+      quantity,
+    }: {
+      productVariantId: string;
+      quantity: number;
+    }) => {
+      const res = await fetch("/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productVariantId, quantity }),
+      });
 
-  function percentageDifference(num1: number, num2: number): string {
-    // Handle the case where both numbers are zero
-    if (num1 === 0 && num2 === 0) {
-      return "0.00"; // Return "0.00" as a string, consistent with toFixed output
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to add item to cart.");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidate the 'cart' query so it refetches next time it's accessed (e.g., if user goes to cart page)
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      toast.success("Item added to cart successfully!");
+    },
+    onError: (mutationError: Error) => {
+      // alert(`Error adding to cart: ${mutationError.message}`);
+      toast.error(`Error adding to cart: ${mutationError.message}`);
+      router.push(`/sign-in?redirectUrl=/products/${slug}`);
+    },
+  });
+  // Derive unique sizes and colors from all variants
+  // Derive ALL unique sizes from product variants
+  const availableSizes = useMemo(() => {
+    if (!data?.product) return [];
+    const sizes = new Set<string>();
+    data?.product.variants.forEach((v: { size: string }) => {
+      if (v.size) sizes.add(v.size);
+    });
+    return Array.from(sizes).sort();
+  }, [data?.product]);
+
+  // Derive ALL unique colors from data?.product variants
+  const availableColors = useMemo(() => {
+    if (!data?.product) return [];
+    const colors = new Set<string>();
+    data?.product.variants.forEach((v: { color: string }) => {
+      if (v.color) colors.add(v.color);
+    });
+    return Array.from(colors).sort();
+  }, [data?.product]);
+
+  // Helper: Get sizes that are actually available given the current color selection
+  const getAvailableSizesForColor = useCallback(
+    (color: string | null) => {
+      if (!data?.product) return new Set<string>();
+      if (!color) {
+        // If no color selected, all sizes that have *any* variant are technically available
+        const sizesWithAnyVariant = new Set<string>();
+        data?.product.variants.forEach((v: { size: string; stock: number }) => {
+          if (v.size && v.stock > 0) sizesWithAnyVariant.add(v.size);
+        });
+        return sizesWithAnyVariant;
+      }
+      const sizes = new Set<string>();
+      data?.product.variants.forEach(
+        (v: { color: string; size: string; stock: number }) => {
+          if (v.color === color && v.size && v.stock > 0) {
+            sizes.add(v.size);
+          }
+        }
+      );
+      return sizes;
+    },
+    [data?.product]
+  );
+
+  // Helper: Get colors that are actually available given the current size selection
+  const getAvailableColorsForSize = useCallback(
+    (size: string | null) => {
+      if (!data?.product) return new Set<string>();
+      if (!size) {
+        // If no size selected, all colors that have *any* variant are technically available
+        const colorsWithAnyVariant = new Set<string>();
+        data?.product.variants.forEach(
+          (v: { color: string; stock: number }) => {
+            if (v.color && v.stock > 0) colorsWithAnyVariant.add(v.color);
+          }
+        );
+        return colorsWithAnyVariant;
+      }
+      const colors = new Set<string>();
+      data?.product.variants.forEach(
+        (v: { size: string; color: string; stock: number }) => {
+          if (v.size === size && v.color && v.stock > 0) {
+            colors.add(v.color);
+          }
+        }
+      );
+      return colors;
+    },
+    [data?.product]
+  );
+
+  // Effect to find the matching variant whenever selections change
+  useEffect(() => {
+    if (!data?.product) {
+      setSelectedVariant(null);
+      setQuantity(1);
+      return;
     }
 
-    // Calculate the absolute difference between the two numbers
-    const difference = Math.abs(num1 - num2);
+    const foundVariant = data?.product.variants.find(
+      (v: { size: string | null; color: string | null }) =>
+        v.size === selectedSize && v.color === selectedColor
+    );
+    setSelectedVariant(foundVariant || null);
 
-    // Calculate the average of the absolute values of the two numbers
-    const average = (Math.abs(num1) + Math.abs(num2)) / 2;
+    // Reset quantity if selected variant changes or becomes unavailable
+    if (foundVariant && foundVariant.stock > 0) {
+      setQuantity(1); // Default to 1
+    } else {
+      setQuantity(0); // Cannot purchase if no variant or out of stock
+    }
+  }, [data?.product, selectedSize, selectedColor]);
 
-    // Handle the case where the average is zero (which only happens if both num1 and num2 are 0,
-    // but good to have a safeguard in case the initial check is modified)
-    if (average === 0) {
-      // This case should ideally be caught by the first 'if' statement
-      // but as a fallback, we could return a specific string or throw an error.
-      // For consistency with other calculations, we'll return "0.00".
-      // Alternatively, if you consider this an undefined percentage, you might return "N/A" or throw an error.
-      return "0.00";
+  // Handle case where selecting one attribute makes the other attribute's current selection invalid
+  // This ensures a valid combination is always sought or resets a non-viable selection.
+  useEffect(() => {
+    if (!data?.product) return;
+
+    // After selectedSize changes, if selectedColor is no longer valid for the new size, reset selectedColor
+    if (selectedSize !== null && selectedColor !== null) {
+      const colorsViableForNewSize = getAvailableColorsForSize(selectedSize);
+      if (!colorsViableForNewSize.has(selectedColor)) {
+        setSelectedColor(null); // Reset color if it's no longer viable
+      }
     }
 
-    // Calculate the percentage difference
-    const percentage = (difference / average) * 100;
+    // After selectedColor changes, if selectedSize is no longer valid for the new color, reset selectedSize
+    if (selectedColor !== null && selectedSize !== null) {
+      const sizesViableForNewColor = getAvailableSizesForColor(selectedColor);
+      if (!sizesViableForNewColor.has(selectedSize)) {
+        setSelectedSize(null); // Reset size if it's no longer viable
+      }
+    }
+  }, [
+    selectedSize,
+    selectedColor,
+    data?.product,
+    getAvailableColorsForSize,
+    getAvailableSizesForColor,
+  ]);
 
-    // Returns the result rounded to 2 decimal places as a string
-    return percentage.toFixed(2);
-  }
+  // Effect to find the matching variant whenever selections change
+  useEffect(() => {
+    if (!data?.product) {
+      setSelectedVariant(null);
+      setQuantity(0);
+      return;
+    }
+
+    const foundVariant = data?.product.variants.find(
+      (v: { size: string | null; color: string | null }) =>
+        v.size === selectedSize && v.color === selectedColor
+    );
+    setSelectedVariant(foundVariant || null);
+
+    // Reset quantity if selected variant changes or becomes unavailable
+    if (foundVariant && foundVariant.stock > 0) {
+      setQuantity(1); // Default to 1
+    } else {
+      setQuantity(0); // Cannot purchase if no variant or out of stock
+    }
+  }, [data?.product, selectedSize, selectedColor]);
 
   const [quantity, setQuantity] = useState(1);
-  const items = useCartStore((state) => state.items)
-    .filter((item) => item.id === data?.product.id)
-    .map((item) => {
-      return item;
-    });
-  const updateItemQuantity = useCartStore((state) => state.updateQuantity);
+  // const items = useCartStore((state) => state.items)
+  //   .filter((item) => item.id === data?.product.id)
+  //   .map((item) => {
+  //     return item;
+  //   });
+  // const updateItemQuantity = useCartStore((state) => state.updateQuantity);
 
   const {
     price = 0,
@@ -120,11 +286,93 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       ? data.product.images
       : fallbackImages;
 
-  if (loading) {
+  const handleAddToCart = () => {
+    if (!selectedVariant) {
+      alert("Please select a size and color combination.");
+      return;
+    }
+
+    if (selectedVariant.stock === 0) {
+      alert("This variant is currently out of stock.");
+      return;
+    }
+
+    if (quantity <= 0 || quantity > selectedVariant.stock) {
+      alert(`Please select a quantity between 1 and ${selectedVariant.stock}.`);
+      return;
+    }
+
+    // Call the mutation
+    addToCartMutation.mutate({
+      productVariantId: selectedVariant.id,
+      quantity: quantity,
+    });
+  };
+
+  // --- NEW PRICE CALCULATION LOGIC ---
+  // Get the base price for the currently selected configuration (variant or product)
+  const currentBasePrice = selectedVariant
+    ? selectedVariant.price
+    : data?.product.price; // Fallback to data?.product's base price if no variant selected
+
+  // Determine the best active discount percentage for the data?.product
+  const bestDiscountPercentage = useMemo(() => {
+    if (
+      !data?.product ||
+      !data?.product.discounts ||
+      data?.product.discounts.length === 0
+    ) {
+      return 0; // No discounts or data?.product data
+    }
+    // Assumes data?.product.discounts are already ordered by percentage: 'desc' from API
+    const activeDiscounts = data?.product.discounts.filter(
+      (d: { expiresAt: string | number | Date }) =>
+        d.expiresAt && new Date(d.expiresAt) >= new Date()
+    );
+    if (activeDiscounts.length > 0) {
+      return activeDiscounts[0].percentage; // Take the highest active discount
+    }
+    return 0;
+  }, [data?.product]);
+
+  // Calculate the final display price by applying the discount to the currentBasePrice
+  const finalDisplayPrice = useMemo(() => {
+    if (currentBasePrice === undefined || currentBasePrice === null) {
+      return 0; // Or handle as desired
+    }
+    if (bestDiscountPercentage > 0) {
+      const priceAfterDiscount =
+        currentBasePrice * (1 - bestDiscountPercentage / 100);
+      return parseFloat(priceAfterDiscount.toFixed(2)); // Ensure proper rounding
+    }
+    return currentBasePrice;
+  }, [bestDiscountPercentage, currentBasePrice]);
+
+  // Determine if there's an actual discount applied for display (line-through price)
+  const isDiscountApplied = finalDisplayPrice < currentBasePrice;
+
+  const isAddToCartButtonDisabled =
+    !selectedVariant ||
+    selectedVariant.stock === 0 ||
+    quantity === 0 ||
+    addToCartMutation.isPending;
+  if (isLoading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold text-center">Loading...</h1>
-      </div>
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="text-red-600 text-lg">
+          Error loading product details: {error.message}
+        </div>
+      </section>
     );
   }
 
@@ -149,19 +397,19 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              href={`/${data?.product.category[0].slug}`}
+              href={`/${data?.product.category.slug}`}
               className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
             >
-              {data?.product.category[0].categoryName}
+              {data?.product.category.name}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              href={`/${data?.product.category[0].slug}/${data?.product.subCategory[0].slug}`}
+              href={`/${data?.product.category.slug}/${data?.product.subCategory.slug}`}
               className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
             >
-              {data?.product.subCategory[0].title}
+              {data?.product.subCategory.name}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -178,44 +426,124 @@ const ProductDetails = ({ slug }: { slug: string }) => {
         <ThumbnailGallery images={image} />
         <div className="flex flex-col space-y-5 items-start justify-start">
           <div className="grid gap-3 justify-start items-start">
-            <h2 className="font-semibold text-lg md:text-xl lg:text-2xl uppercase text-wrap">
-              {data?.product.productName}
-            </h2>
             <div className="flex justify-start items-center gap-2">
               <span className="font-bold text-2xl lg:text-3xl text-start">
-                {formatCurrencyValue(data?.product.discountedPrice)}
+                {formatCurrencyValue(finalDisplayPrice)}
               </span>
-              {data?.product.discountedPrice && (
+              {isDiscountApplied && (
                 <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
-                  {formatCurrencyValue(data?.product.price)}
+                  {formatCurrencyValue(currentBasePrice)}
                 </span>
               )}
               {data?.product.discountedPrice && (
-                <span className="font-light text-base text-center text-white dark:text-black dark:bg-white bg-black rounded-lg p-1">
-                  -
-                  {percentageDifference(
+                <span className="font-medium tracking-wide text-sm text-center text-white dark:text-black dark:bg-white bg-black/65 rounded-full p-1 px-1.5">
+                  {data?.product?.discounts?.[0]?.percentage}
+                  {/* {percentageDifference(
                     // @ts-ignore
                     data?.product.price,
                     data?.product.discountedPrice
-                  )}
-                  %
+                  )} */}
+                  % off
                 </span>
               )}
             </div>
 
-            <p className="hidden md:line-clamp-3 lg:line-clamp-none">
+            {/* <h2 className="font-medium text-lg text-wrap">
+              {data?.product.name}
+            </h2> */}
+            <p className="hidden md:line-clamp-3 lg:line-clamp-none text-base text-start text-black/70 dark:text-white/70">
               {data?.product.description}
             </p>
           </div>
           <Separator />
+          {data.product.variants.length > 0 && (
+            <div className="space-y-4 mt-4 w-full">
+              {/* Size Selector */}
+              {availableSizes.length > 0 && (
+                <div>
+                  <Label
+                    htmlFor="size-select"
+                    className="mb-2 block font-semibold"
+                  >
+                    Size
+                  </Label>
+                  <Select
+                    onValueChange={setSelectedSize}
+                    value={selectedSize || undefined}
+                  >
+                    <SelectTrigger id="size-select" className="w-full">
+                      <SelectValue placeholder="Select a size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSizes.map((size) => (
+                        <SelectItem
+                          key={size}
+                          value={size}
+                          // disabled={
+                          //   !getAvailableSizesForColor(selectedColor).has(size)
+                          // } // Disable if not available for selected color
+                        >
+                          {size}{" "}
+                          {selectedColor &&
+                          !getAvailableSizesForColor(selectedColor).has(size)
+                            ? "(Unavailable for this color)"
+                            : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
+              {/* Color Selector (Visual Swatches are a great upgrade here!) */}
+              {availableColors.length > 0 && (
+                <div>
+                  <Label
+                    htmlFor="color-select"
+                    className="mb-2 block font-semibold"
+                  >
+                    Color
+                  </Label>
+                  <Select
+                    onValueChange={setSelectedColor}
+                    value={selectedColor || undefined}
+                  >
+                    <SelectTrigger id="color-select" className="w-full">
+                      <SelectValue placeholder="Select a color" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {availableColors.map((color) => (
+                          <SelectItem
+                            key={color}
+                            value={color}
+                            // disabled={
+                            //   !getAvailableColorsForSize(selectedSize).has(
+                            //     color
+                            //   )
+                            // } // Disable if not available for selected size
+                          >
+                            {color}{" "}
+                            {selectedSize &&
+                            !getAvailableColorsForSize(selectedSize).has(color)
+                              ? "(Unavailable for this size)"
+                              : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
           {/* COLOR SELECTORS */}
           <div className="space-y-3">
-            <span className="text-base font-medium capitalize text-start">
+            {/* <span className="text-base font-medium capitalize text-start">
               select color
-            </span>
+            </span> */}
 
-            <div className="flex gap-3 items-start justify-start">
+            {/* <div className="flex gap-3 items-start justify-start">
               {data?.product.colours.map((item) => (
                 <div key={item.hex}>
                   <Checkbox
@@ -233,36 +561,18 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                   />
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
-          <Separator />
-
-          {/* SIZES */}
-          <div className="flex gap-3 items-center justify-start flex-wrap">
-            {data?.product.productSizes.map((size) => (
-              <div
-                key={size}
-                onClick={() => handleSelectSize(size)} // Handles click for the div
-                className={`px-4 py-2 rounded-lg cursor-pointer border text-center ${
-                  selectedSize === size
-                    ? "bg-black text-white"
-                    : "bg-white text-black"
-                }`}
-              >
-                {size.toUpperCase()}
-              </div>
-            ))}
-          </div>
-
-          <Separator />
 
           <div className="flex gap-4 mt-4 items-center justify-start w-full">
             <div className="flex items-center gap-3 border h-10 rounded-full">
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-l-full"
                 onClick={() => {
-                  setQuantity(quantity > 1 ? quantity - 1 : 1);
+                  // setQuantity(quantity > 1 ? quantity - 1 : 1);
+                  setQuantity((prev) => Math.max(1, prev - 1));
                 }}
+                disabled={quantity <= 1}
               >
                 <MinusIcon className="w-4 h-4" />
               </button>
@@ -284,17 +594,21 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-r-full"
                 onClick={() => {
-                  if (items.length > 0) {
-                    updateItemQuantity(
-                      data?.product.id as string,
-                      "increase",
-                      selectedSize as string,
-                      selectedColor as string
-                    );
-                  } else {
-                    setQuantity(quantity < 10 ? quantity + 1 : 10);
-                  }
+                  // if (items.length > 0) {
+                  //   updateItemQuantity(
+                  //     data?.product.id as string,
+                  //     "increase",
+                  //     selectedSize as string,
+                  //     selectedColor as string
+                  //   );
+                  // } else {
+                  //   setQuantity(quantity < 10 ? quantity + 1 : 10);
+                  // }
+                  setQuantity((prev) =>
+                    Math.min(selectedVariant?.stock, prev + 1)
+                  );
                 }}
+                disabled={quantity >= selectedVariant?.stock}
               >
                 <PlusIcon className="w-4 h-4" />
               </button>
@@ -317,9 +631,10 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               </div>
             ) : ( */}
             <AddToCartButton
-              disabled={!selectedColor || !selectedSize}
-              name={data?.product.productName as string}
-              data={cartData}
+              productName={data?.product.productName}
+              onAddToCartClick={handleAddToCart}
+              isDisabled={isAddToCartButtonDisabled}
+              isAddingToCart={addToCartMutation.isPending}
             />
             {/* )} */}
           </div>
@@ -346,9 +661,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               Reviews
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="details">
-            {data?.product.productDetails.text}
-          </TabsContent>
+          <TabsContent value="details">{data?.product.description}</TabsContent>
           <TabsContent value="reviews">
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur
             eius facilis adipisci nostrum. Voluptatum doloremque itaque autem
@@ -359,10 +672,10 @@ const ProductDetails = ({ slug }: { slug: string }) => {
       </div>
 
       <div className="mt-5">
-        <RelatedProducts
+        {/* <RelatedProducts
           tag={data?.product.productTag[0]}
           name={data?.product.productName as string}
-        />
+        /> */}
       </div>
       <div className="mt-5">
         <RecentlyViewed />

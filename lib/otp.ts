@@ -1,64 +1,121 @@
-// lib/otp.ts (Recommended Update)
+// lib/otp.ts
 import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
-// Ensure these environment variables are set in your .env.local file:
-// EMAIL_USER="your_email@gmail.com"
-// EMAIL_PASS="your_app_password" // For Gmail, use an App Password, not your regular account password
-
 export async function sendOtp(email: string) {
   const otp = crypto.randomInt(100000, 999999).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Expires in 10 mins
 
-  // Using upsert to handle cases where an OTP already exists for the email
+  // --- Correction 1: createdAt for upsert ---
+  // In upsert, `createdAt` in `update` block is usually not needed/desired
+  // if you're using `@default(now())` and `@updatedAt` in your schema.
+  // Prisma will automatically update `updatedAt` for `update` operations.
+  // `createdAt` should only be set on `create`.
   await prisma.otpToken.upsert({
-    where: { email }, // Check if an OTP for this email already exists
+    where: { email },
     update: {
       token: otp,
       expiresAt,
-      createdAt: new Date(), // Update creation time to reset expiry window
+      // createdAt: new Date(), // REMOVED: Prisma's @updatedAt will handle this.
+      // If you want to reset creation time on update, reconsider this logic.
+      // Usually, createdAt is immutable.
     },
     create: {
       email,
       token: otp,
       expiresAt,
+      // createdAt: new Date(), // This is redundant if you use @default(now()) in Prisma schema
+      // but harmless.
     },
   });
 
-  // Configure your email transporter
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      // type: "OAuth2",
-      user: process.env.EMAIL_USER, // Use environment variable
-      pass: process.env.EMAIL_PASSWORD,
-      // clientId: process.env.GOOGLE_CLIENT_ID!,
-      // clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // refreshToken: process.env.GOOGLE_REFRESH_TOKEN!,
-    },
-  });
+  let transporter;
 
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error("Email transport error:", error);
-    } else {
-      console.log("Server is ready to take messages");
+  if (process.env.NODE_ENV === "production") {
+    // ✅ Production: Use Gmail OAuth2 or other provider
+    // --- Correction 2: Better error handling/type safety for env vars ---
+    // Use optional chaining and nullish coalescing or throw errors if crucial env vars are missing.
+    // For `createTransport`, types might expect strings, so `!` asserts non-null.
+    if (
+      !process.env.EMAIL_USER ||
+      !process.env.GOOGLE_CLIENT_ID ||
+      !process.env.GOOGLE_CLIENT_SECRET ||
+      !process.env.GOOGLE_REFRESH_TOKEN
+    ) {
+      throw new Error(
+        "Missing required environment variables for Gmail OAuth2 in production mode."
+      );
     }
-  });
-  // Send the email
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER, // Use environment variable
-    to: email,
-    subject: "Your OTP Code for [YourAppName]", // Consider adding your app name
-    html: `<p>Your One-Time Password (OTP) is: <strong>${otp}</strong></p>
-           <p>This code will expire in 10 minutes. Do not share it with anyone.</p>
-           <p>If you did not request this, please ignore this email.</p>`,
-  });
 
-  console.log(`OTP sent to ${email}: ${otp}`); // For debugging, remove in production
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: process.env.EMAIL_USER,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+      },
+    });
+  } else {
+    // ✅ Development: Use Ethereal
+    // --- Correction 3: Await for createTestAccount outside transporter init ---
+    // nodemailer.createTestAccount() is async and needs to be awaited before
+    // its result (testAccount) is used in createTransport.
+    let testAccount;
+    try {
+      testAccount = await nodemailer.createTestAccount();
+    } catch (err) {
+      console.error(
+        "Failed to create Ethereal test account. Check network or nodemailer setup.",
+        err
+      );
+      throw new Error(
+        "Could not create Ethereal test account for development email."
+      );
+    }
+
+    transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false, // Ethereal is not secure with SSL/TLS, but uses STARTTLS on port 587
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  }
+
+  // --- Correction 4: Error handling for sendMail ---
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER, // Ensure this matches your EMAIL_USER for Gmail OAuth2
+      to: email,
+      subject: "Your OTP Code",
+      html: `<p>Your OTP is: <strong>${otp}</strong></p>
+             <p>This code expires in 10 minutes. Do not share it.</p>`,
+    });
+
+    // For local debugging
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Preview URL: " + nodemailer.getTestMessageUrl(info));
+    }
+
+    console.log(`OTP sent to ${email}: ${otp}`);
+    // Optional: Return true or some status on success
+    return true;
+  } catch (mailError) {
+    console.error("Email transport error:", mailError);
+    // Re-throw the error or return false/error object
+    throw new Error(
+      `Failed to send OTP email: ${
+        mailError instanceof Error ? mailError.message : String(mailError)
+      }`
+    );
+  }
 }
 
 export async function verifyOtp(email: string, token: string) {
@@ -67,22 +124,16 @@ export async function verifyOtp(email: string, token: string) {
       email,
       token,
       expiresAt: {
-        gt: new Date(), // OTP must be greater than current time (not expired)
+        gt: new Date(),
       },
     },
   });
 
   if (!otpRecord) {
-    // It's good to be generic for security reasons (don't reveal if email is wrong or OTP is wrong)
     throw new Error(
       "Invalid or expired OTP. Please try again or request a new one."
     );
   }
 
-  // OTP is valid and not expired; delete the record immediately
-  await prisma.otpToken.delete({
-    where: { id: otpRecord.id },
-  });
-
-  // No return value needed, success is implied if no error is thrown
+  await prisma.otpToken.delete({ where: { id: otpRecord.id } });
 }

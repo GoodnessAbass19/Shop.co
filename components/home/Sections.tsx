@@ -11,30 +11,61 @@ import useSwiperRef from "@/Hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
+import useSWR from "swr";
+import {
+  Category,
+  Product,
+  ProductVariant,
+  SubCategory,
+  SubSubCategory,
+  Store,
+  Discount, // Import Discount type
+} from "@prisma/client";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok) {
+    const error: any = new Error(data.error || "Failed to fetch data.");
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+};
+
+export type ProductFromApi = Product & {
+  category: Pick<Category, "id" | "name" | "slug">;
+  subCategory: Pick<SubCategory, "id" | "name" | "slug">;
+  subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
+  variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
+  store: Pick<Store, "id" | "name" | "slug">;
+  discounts: Discount[]; // Include discounts
+  // These are added by the API route's mapping:
+  productName: string;
+  lowestPrice: number; // The lowest base price (from variants or product)
+  discountedPrice: number | null; // The price after discount
+  images: { url: string }[]; // Transformed image array
+};
 
 const Sections = ({
   title,
-  tag,
-  first,
   href,
+  url,
 }: {
   title: string;
-  tag: any;
-  first: number;
   href: string;
+  url: string;
 }) => {
-  const { data, loading } = useQuery<ProductData>(GET_PRODUCTS_BY_TAGS, {
-    variables: { tag: tag, first: first },
-    notifyOnNetworkStatusChange: true,
-  });
+  const { data, error, isLoading } = useSWR(url, fetcher);
+  const products: ProductFromApi[] | null = data?.products || null;
 
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
-        <h2 className="uppercase text-center text-4xl font-extrabold">
+        <h2 className="uppercase text-center text-3xl font-extrabold">
           {title}
         </h2>
         <div className="grid grid-cols-5 justify-center items-center w-full h-full mx-auto gap-5">
@@ -55,7 +86,7 @@ const Sections = ({
       animate={{ opacity: 1 }}
       className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5"
     >
-      <h2 className="uppercase text-center text-4xl font-semibold">{title}</h2>
+      <h2 className="uppercase text-center text-3xl font-extrabold">{title}</h2>
       <div className="relative flex items-center">
         {/* Previous Button */}
         <button
@@ -92,9 +123,20 @@ const Sections = ({
             nextEl,
           }}
         >
-          {data?.products.map((item, index) => (
+          {products?.map((product, index) => (
             <SwiperSlide key={index}>
-              <ProductCard item={item} loading={loading} />
+              <ProductCard
+                item={{
+                  id: product.id,
+                  slug: product.slug,
+                  productName: product.productName,
+                  images: product.images, // Already mapped in API to { url: string }[]
+                  price: product.price!,
+                  discountedPrice: product?.discountedPrice,
+                  discountPercentage: product?.discounts?.[0]?.percentage || 0,
+                }}
+                loading={isLoading}
+              />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -109,7 +151,7 @@ const Sections = ({
         </button>
       </div>
 
-      {!loading && (
+      {!isLoading && (
         <div className="flex justify-center items-center w-[200px] mx-auto">
           <Link
             href={`/${href}`}

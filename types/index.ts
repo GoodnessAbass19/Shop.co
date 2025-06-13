@@ -14,9 +14,9 @@ export type Product = {
   description: string;
   images: {
     url: string;
-    width: number;
-    height: number;
-    id: string;
+    // width: number;
+    // height: number;
+    // id: string;
   }[];
   price: number;
   discountedPrice: number;

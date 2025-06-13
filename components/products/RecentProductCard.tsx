@@ -8,17 +8,31 @@ import { GET_SINGLE_PRODUCT } from "@/lib/query";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import ProductCard from "./productCard";
 import { SkeletonCard } from "../ui/SkeletonCard";
+import useSWR from "swr";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok) {
+    const error: any = await new Error(data.error || "Failed to fetch data.");
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+};
 
 const RecentProduct = ({ url }: { url: string }) => {
   // Extract the slug from the URL
   const getSlugFromUrl = (url: string) => url.split("/").filter(Boolean).pop();
   const slug = getSlugFromUrl(url);
 
-  const { loading, error, data } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
-    variables: { slug },
-    notifyOnNetworkStatusChange: true,
-    skip: !slug, // Skip the query if slug is not valid
-  });
+  // const { loading, error, data } = useQuery<SingleProduct>(GET_SINGLE_PRODUCT, {
+  //   variables: { slug },
+  //   notifyOnNetworkStatusChange: true,
+  //   skip: !slug, // Skip the query if slug is not valid
+  // });
+
+  const { data, error, isLoading } = useSWR(`/api/products/${slug}`, fetcher);
 
   // if (!slug || error) {
   //   console.error(`Failed to fetch product for slug: ${slug}`, error);
@@ -33,7 +47,7 @@ const RecentProduct = ({ url }: { url: string }) => {
   //   images: [{ url: "https://via.placeholder.com/500" }],
   // };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 justify-between items-stretch pt-5">
         {Array.from({ length: 5 }).map((_, index) => (
@@ -43,6 +57,10 @@ const RecentProduct = ({ url }: { url: string }) => {
     );
   }
 
+  if (error) {
+    console.error("Error fetching product:", error);
+    return null; // Return nothing if there's an error
+  }
   return (
     // <Link
     //   href={product.slug || "#"}
@@ -78,7 +96,13 @@ const RecentProduct = ({ url }: { url: string }) => {
     //     </div>
     //   </div>
     // </Link>
-    <ProductCard item={data?.product as Product} loading={loading} />
+    <ProductCard
+      item={{
+        ...(data?.product as Product),
+        discountPercentage: data?.product?.discounts?.[0]?.percentage,
+      }}
+      loading={isLoading}
+    />
   );
 };
 

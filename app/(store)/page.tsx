@@ -1,5 +1,6 @@
 import Banner from "@/components/home/Banner";
 import Sections from "@/components/home/Sections";
+import ProductGrid from "@/components/products/productIndex";
 import { productTags } from "@/types";
 
 export default function Home() {
@@ -9,17 +10,15 @@ export default function Home() {
       {/* <Product /> */}
       <Sections
         title={"new arrivals"}
-        tag={productTags.newArrivals}
-        first={15}
+        url="api/products/new-arrivals"
         href="new-arrivals"
       />
       <Sections
         title={"top deals"}
-        tag={productTags.topDeals}
-        first={15}
+        url="api/products/top-deals"
         href="top-deals"
       />
-
+      <ProductGrid />
       {/* <Styles /> */}
     </div>
   );

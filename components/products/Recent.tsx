@@ -54,7 +54,11 @@ const RecentlyViewed = () => {
       );
 
       // Exclude the current page
-      return recentlyViewed.filter((page: string) => page !== currentPage);
+      return recentlyViewed
+        .slice(0, 10)
+        .filter(
+          (page: string) => page !== currentPage && page.includes("/product")
+        );
     } catch (error) {
       console.error("Failed to retrieve recently viewed:", error);
       return [];

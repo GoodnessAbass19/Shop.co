@@ -1,7 +1,6 @@
 // app/orders/[orderId]/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Order,
@@ -20,6 +19,7 @@ import {
   XCircle,
   Home,
 } from "lucide-react"; // Added Home icon
+import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Assuming shadcn/ui Card
 import { Separator } from "@/components/ui/separator"; // Assuming shadcn/ui Separator
 
@@ -35,53 +35,125 @@ type OrderWithAllDetails = Order & {
   address: Address;
 };
 
+const fetcher = (url: string) =>
+  fetch(url).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const error: any = new Error(
+        data.error || "Failed to fetch order details."
+      );
+      error.status = res.status;
+      throw error;
+    }
+    return data;
+  });
+
 const OrderDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
   const orderId = params.details as string;
 
-  const [order, setOrder] = useState<OrderWithAllDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, isLoading } = useSWR(
+    orderId ? `/api/orders/${orderId}` : null,
+    fetcher
+  );
 
-  useEffect(() => {
-    if (!orderId) {
-      setIsLoading(false);
-      setError("Order ID not provided.");
-      return;
-    }
+  // Redirect if unauthorized
+  if (error && error.status === 401) {
+    router.push(`/sign-in?redirectUrl=/orders/${orderId}`);
+    return null;
+  }
 
-    const fetchOrderDetails = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/orders/${orderId}`);
-        const data = await res.json();
+  if (isLoading) {
+    return (
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <p className="text-lg text-gray-700">Loading order details...</p>
+        </div>
+      </section>
+    );
+  }
 
-        if (res.ok) {
-          setOrder(data.order);
-        } else {
-          // Handle specific errors like 404, 401
-          if (res.status === 401) {
-            router.push(`/sign-in?redirectUrl=/orders/${orderId}`);
-          } else if (res.status === 404) {
-            setError(
-              "Order not found or you don't have permission to view it."
-            );
-          } else {
-            setError(data.error || "Failed to fetch order details.");
-          }
-        }
-      } catch (err) {
-        console.error("Network or parsing error:", err);
-        setError("Network error: Could not connect to the server.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  if (error) {
+    return (
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center bg-red-50">
+        <div className="p-8 border border-red-300 rounded-lg bg-red-100 text-red-800 text-center shadow-md">
+          <p className="text-xl font-semibold mb-3">Error:</p>
+          <p className="mb-4">{error.message}</p>
+          <Link
+            href="/orders"
+            className="inline-flex items-center px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Orders
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
-    fetchOrderDetails();
-  }, [orderId, router]);
+  const order: OrderWithAllDetails | null = data?.order ?? null;
+
+  if (!order) {
+    return (
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center bg-white">
+        <div className="p-8 text-center">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-xl font-semibold text-gray-700 mb-2">
+            Order Not Found
+          </p>
+          <p className="text-gray-500 mb-4">
+            The order you are looking for does not exist or you do not have
+            permission to view it.
+          </p>
+          <Link
+            href="/orders"
+            className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to All Orders
+          </Link>
+        </div>
+      </section>
+    );
+  }
+  // useEffect(() => {
+  //   if (!orderId) {
+  //     setIsLoading(false);
+  //     setError("Order ID not provided.");
+  //     return;
+  //   }
+
+  //   const fetchOrderDetails = async () => {
+  //     setIsLoading(true);
+  //     setError(null);
+  //     try {
+  //       const res = await fetch(`/api/orders/${orderId}`);
+  //       const data = await res.json();
+
+  //       if (res.ok) {
+  //         setOrder(data.order);
+  //       } else {
+  //         // Handle specific errors like 404, 401
+  //         if (res.status === 401) {
+  //           router.push(`/sign-in?redirectUrl=/orders/${orderId}`);
+  //         } else if (res.status === 404) {
+  //           setError(
+  //             "Order not found or you don't have permission to view it."
+  //           );
+  //         } else {
+  //           setError(data.error || "Failed to fetch order details.");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Network or parsing error:", err);
+  //       setError("Network error: Could not connect to the server.");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchOrderDetails();
+  // }, [orderId, router]);
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
@@ -116,34 +188,6 @@ const OrderDetailsPage = () => {
         return null;
     }
   };
-
-  if (isLoading) {
-    return (
-      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          <p className="text-lg text-gray-700">Loading order details...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center bg-red-50">
-        <div className="p-8 border border-red-300 rounded-lg bg-red-100 text-red-800 text-center shadow-md">
-          <p className="text-xl font-semibold mb-3">Error:</p>
-          <p className="mb-4">{error}</p>
-          <Link
-            href="/orders"
-            className="inline-flex items-center px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Orders
-          </Link>
-        </div>
-      </section>
-    );
-  }
 
   if (!order) {
     return (

@@ -1,5 +1,5 @@
 "use client";
-import { ThemeButton } from "./theme-button";
+// import { ThemeButton } from "./theme-button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,29 +12,12 @@ import {
 import Link from "next/link";
 import Search from "./Search";
 import CartIcon from "../Icons/cartIcon";
-import UserIcon from "../Icons/userIcon";
 import { useBoolean } from "@/Hooks/useBoolean";
 import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
 import { Data, ProductsConnection, Shoplist } from "@/types";
 import { useCartStore } from "@/store/cart-store";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { useUser } from "@clerk/nextjs";
-import {
-  SearchIcon,
-  ShoppingBagIcon,
-  User2Icon,
-  UserCheck2Icon,
-  UserRound,
-} from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { useMemo, useRef, useState } from "react";
 import { useLazyQuery } from "@apollo/client";
@@ -42,6 +25,23 @@ import { GET_SEARCH } from "@/lib/query";
 import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import UserButton from "./user-button";
+import useSWR from "swr";
+import { Cart, CartItem } from "@prisma/client";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok) {
+    const error: any = new Error(data.error || "Failed to fetch data.");
+    error.status = res.status;
+    throw error;
+  }
+  return data;
+};
+
+type CartItems = Cart & {
+  cartItems: CartItem[];
+};
 
 const Menu = () => {
   const [isOpen, setIsOpen] = useBoolean(false);
@@ -50,7 +50,9 @@ const Menu = () => {
     return textWithoutHyphen;
   }
 
-  const items = useCartStore((state) => state.items);
+  const { data: cart } = useSWR("/api/cart", fetcher);
+
+  const items: CartItems = cart?.cart || [];
   // const { user } = useUser();
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -261,7 +263,7 @@ const Menu = () => {
 
           <Link href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
-            {items.length > 0 && (
+            {items?.cartItems?.length > 0 && (
               <div className="rounded-full bg-red-500 animate-bounce absolute top-0 right-0 size-2"></div>
             )}
           </Link>

@@ -1,14 +1,23 @@
-import { Product } from "@/types";
+// import { Product } from "@/types";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Image from "next/image";
 import Link from "next/link";
 import { SkeletonCard } from "../ui/SkeletonCard";
+interface ProductCardItem {
+  id: string;
+  slug: string;
+  productName: string; // From API's mapping of product.name
+  images: { url: string }[]; // From API's mapping of product.images
+  price: number; // This is the 'lowestPrice' from API
+  discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
+  discountPercentage?: number | null; // The 'discountPercentage' from API
+}
 
 const ProductCard = ({
   item,
   loading,
 }: {
-  item: Product;
+  item: ProductCardItem;
   loading: boolean;
 }) => {
   function percentageDifference(num1: number | 0, num2: number | 0) {
@@ -33,14 +42,14 @@ const ProductCard = ({
   return (
     <Link
       href={`/products/${item?.slug}`}
-      className="w-full rounded-lg h-full overflow-hidden relative"
+      className="w-full h-full overflow-hidden relative shadow-md"
     >
       {/* {item.images[0]?.url && ( */}
       <Image
         src={
           loading
             ? "https://via.placeholder.com/200"
-            : `${item?.images[0]?.url}`
+            : `${item?.images?.[0]?.url}`
         }
         alt={item?.productName || "product"}
         blurDataURL="https://via.placeholder.com/200"
@@ -64,12 +73,12 @@ const ProductCard = ({
         )}
         {item?.discountedPrice && (
           <span className="font-light text-sm text-center text-[#F4F4F4] bg-black/40 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
-            -
-            {percentageDifference(
+            -{item?.discountPercentage}
+            {/* {percentageDifference(
               // @ts-ignore
               item?.price,
               item?.discountedPrice
-            )}
+            )} */}
             %
           </span>
         )}

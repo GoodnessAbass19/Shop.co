@@ -7,44 +7,52 @@ import { createCartItem } from "@/lib/actions";
 import { useCartStore } from "@/store/cart-store";
 import { CartProduct } from "@/types";
 import { useUser } from "@clerk/nextjs";
+import { Loader2, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
+interface AddToCartButtonProps {
+  productName: string; // Renamed 'name' to 'productName' for clarity
+  onAddToCartClick: () => void; // The function to call when button is clicked
+  isDisabled: boolean; // Renamed 'disabled' to 'isDisabled' to avoid conflict with native disabled
+  isAddingToCart: boolean; // New prop to indicate loading state for the button
+}
+
 export function AddToCartButton({
-  name,
-  data,
-  disabled,
-}: {
-  name: string;
-  data: any;
-  disabled: boolean;
-}) {
+  productName,
+  onAddToCartClick,
+  isDisabled,
+  isAddingToCart,
+}: AddToCartButtonProps) {
   const { toast } = useToast();
-  const addToCart = useCartStore((state) => state.addToCart);
-  const { user } = useUser();
+
+  const handleClick = () => {
+    onAddToCartClick(); // Execute the function passed from parent
+    toast({
+      title: "Adding To Cart...", // Title changes based on pending state
+      description: isAddingToCart
+        ? `Adding ${productName} to cart...`
+        : `${productName} added to cart`,
+      action: (
+        <ToastAction altText="Go to cart">
+          <Link href={"/cart"}>Go to cart</Link>
+        </ToastAction>
+      ),
+    });
+  };
 
   return (
     <Button
       className="flex items-center justify-center w-full h-10 text-lg border border-black text-white text-center bg-black dark:bg-white dark:text-black hover:bg-white hover:text-black rounded-full flex-grow transition-transform delay-150 duration-200 ease-in-out"
       variant="outline"
-      disabled={disabled}
-      onClick={() => {
-        addToCart(data);
-        createCartItem(
-          { success: false, error: false },
-          { userId: user?.id, ...data }
-        );
-        toast({
-          title: "Added To Cart",
-          description: `${name} added to cart`,
-          action: (
-            <ToastAction altText="Go to cart">
-              <Link href={"/cart"}>Go to cart</Link>
-            </ToastAction>
-          ),
-        });
-      }}
+      disabled={isDisabled || isAddingToCart}
+      onClick={handleClick}
     >
-      Add To Cart
+      {isAddingToCart ? (
+        <Loader2 className="animate-spin mr-2 h-5 w-5" /> // Show spinner when adding
+      ) : (
+        <ShoppingCart className="w-5 h-5 mr-2" /> // Show cart icon normally
+      )}
+      {isAddingToCart ? "Adding..." : "Add To Cart"}
     </Button>
   );
 }

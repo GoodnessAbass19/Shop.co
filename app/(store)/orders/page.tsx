@@ -2,11 +2,11 @@
 
 import { Order, OrderItem, Product, ProductVariant } from "@prisma/client"; // Import necessary types
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Assuming these are from your shadcn/ui setup
 import { Package, XCircle, Clock, CheckCircle } from "lucide-react"; // Icons for status
 import Image from "next/image"; // For optimized images
 import Link from "next/link";
+import useSWR from "swr";
 
 // Extend the Order type to include relations fetched from the API
 type OrderWithDetails = Order & {
@@ -17,73 +17,122 @@ type OrderWithDetails = Order & {
   })[];
 };
 
+const fetcher = (url: string) =>
+  fetch(url).then(async (res) => {
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const error: any = new Error(
+        errorData.error || "Failed to fetch orders."
+      );
+      error.status = res.status;
+      throw error;
+    }
+    return res.json();
+  });
+
 const OrdersPageContent = () => {
   // Renamed for clarity, assuming it's used inside a wrapper component
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [orders, setOrders] = useState<OrderWithDetails[] | null>(null); // Use the extended type
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [error, setError] = useState<string | null>(null);
+  // const [orders, setOrders] = useState<OrderWithDetails[] | null>(null); // Use the extended type
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // We'll skip the `/api/me` call here as the parent layout/page should handle user authentication
-        // and ensure the user is logged in before rendering this component.
-        // If this component can be accessed without a user, you'd need the `/api/me` call here.
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       // We'll skip the `/api/me` call here as the parent layout/page should handle user authentication
+  //       // and ensure the user is logged in before rendering this component.
+  //       // If this component can be accessed without a user, you'd need the `/api/me` call here.
 
-        const ordersRes = await fetch("/api/orders");
-        if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
-          setOrders(ordersData.orders);
-        } else {
-          const errorData = await ordersRes.json();
-          setError(errorData.error || "Failed to fetch orders.");
-          console.error("Failed to fetch orders:", ordersRes.status, errorData);
-          // If orders fail to load, and it's due to unauthorized, you might still want to redirect
-          if (ordersRes.status === 401) {
-            router.push("/sign-in?redirectUrl=/orders");
-          }
-        }
-      } catch (err) {
-        console.error("Network or parsing error during data fetch:", err);
-        setError(
-          "Network error: Could not connect to the server or parse response."
-        );
-        // router.push("/sign-in?redirectUrl=/orders"); // Only redirect if not authenticated, not just network error
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [router]);
+  //       const ordersRes = await fetch("/api/orders");
+  //       if (ordersRes.ok) {
+  //         const ordersData = await ordersRes.json();
+  //         setOrders(ordersData.orders);
+  //       } else {
+  //         const errorData = await ordersRes.json();
+  //         setError(errorData.error || "Failed to fetch orders.");
+  //         console.error("Failed to fetch orders:", ordersRes.status, errorData);
+  //         // If orders fail to load, and it's due to unauthorized, you might still want to redirect
+  //         if (ordersRes.status === 401) {
+  //           router.push("/sign-in?redirectUrl=/orders");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Network or parsing error during data fetch:", err);
+  //       setError(
+  //         "Network error: Could not connect to the server or parse response."
+  //       );
+  //       // router.push("/sign-in?redirectUrl=/orders"); // Only redirect if not authenticated, not just network error
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [router]);
+
+  // if (isLoading) {
+  //   return (
+  //     <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+  //       <div className="flex flex-col items-center gap-4">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+  //         {/* <p className="text-lg text-gray-700">Loading your orders...</p> */}
+  //       </div>
+  //     </section>
+  //   );
+  // }
+
+  // if (error) {
+  //   return (
+  //     <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center bg-red-50">
+  //       <div className="p-6 border border-red-300 rounded-md bg-red-100 text-red-800 text-center">
+  //         <p className="text-xl font-semibold mb-3">Error loading orders:</p>
+  //         <p className="mb-4">{error}</p>
+  //         <button
+  //           onClick={() => window.location.reload()} // Simple reload to retry
+  //           className="px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </section>
+  //   );
+  // }
+
+  const { data, error, isLoading } = useSWR("/api/orders", fetcher);
+
+  if (error && error.status === 401) {
+    router.push("/sign-in?redirectUrl=/orders");
+    return null;
+  }
 
   if (isLoading) {
     return (
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          {/* <p className="text-lg text-gray-700">Loading your orders...</p> */}
         </div>
       </section>
     );
   }
 
-  if (error) {
-    return (
-      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center bg-red-50">
-        <div className="p-6 border border-red-300 rounded-md bg-red-100 text-red-800 text-center">
-          <p className="text-xl font-semibold mb-3">Error loading orders:</p>
-          <p className="mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()} // Simple reload to retry
-            className="px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
-          >
-            Retry
-          </button>
-        </div>
-      </section>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center bg-red-50">
+  //       <div className="p-6 border border-red-300 rounded-md bg-red-100 text-red-800 text-center">
+  //         <p className="text-xl font-semibold mb-3">Error loading orders:</p>
+  //         <p className="mb-4">{error.message}</p>
+  //         <button
+  //           onClick={() => window.location.reload()}
+  //           className="px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </section>
+  //   );
+  // }
+
+  const orders: OrderWithDetails[] | null = data?.orders ?? null;
 
   // If no orders data available after loading
   if (!orders) {

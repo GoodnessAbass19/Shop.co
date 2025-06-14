@@ -101,7 +101,7 @@ const OrdersPageContent = () => {
   const { data, error, isLoading } = useSWR("/api/orders", fetcher);
 
   if (error && error.status === 401) {
-    router.push("/sign-in?redirectUrl=/orders");
+    router.push("/sign-in?redirect_url=/orders");
     return null;
   }
 
@@ -266,6 +266,8 @@ const OrderCard: React.FC<OrderCardProps> = ({
         return "text-green-600 bg-green-100";
       case "CANCELLED":
         return "text-red-600 bg-red-100";
+      case "REFUNDED":
+        return "text-gray-600 bg-gray-100";
       default:
         return "text-gray-600 bg-gray-100";
     }
@@ -283,6 +285,8 @@ const OrderCard: React.FC<OrderCardProps> = ({
         return <CheckCircle className="w-4 h-4 mr-1" />;
       case "CANCELLED":
         return <XCircle className="w-4 h-4 mr-1" />;
+      case "REFUNDED":
+        return <CheckCircle className="w-4 h-4 mr-1" />;
       default:
         return null;
     }

@@ -313,7 +313,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
   // Get the base price for the currently selected configuration (variant or product)
   const currentBasePrice = selectedVariant
     ? selectedVariant.price
-    : data?.product.price; // Fallback to data?.product's base price if no variant selected
+    : data?.product.basePrice; // Fallback to data?.product's base price if no variant selected
 
   // Determine the best active discount percentage for the data?.product
   const bestDiscountPercentage = useMemo(() => {
@@ -428,7 +428,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <div className="grid gap-3 justify-start items-start">
             <div className="flex justify-start items-center gap-2">
               <span className="font-bold text-2xl lg:text-3xl text-start">
-                {formatCurrencyValue(finalDisplayPrice)}
+                {formatCurrencyValue(
+                  finalDisplayPrice || data?.product?.discountedPrice
+                )}
               </span>
               {isDiscountApplied && (
                 <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">

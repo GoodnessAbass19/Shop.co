@@ -31,12 +31,14 @@ import {
   ArrowLeft,
   Plus,
   Minus,
+  Trash2Icon,
 } from "lucide-react"; // Icons for empty state, loading, remove item
 import { Button } from "@/components/ui/button"; // Assuming shadcn/ui Button
 import EmptyCartIcon from "@/components/ui/EmptyCartIcon";
 import useSWR from "swr";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 // import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
 
 // --- Extended Types to match API response ---
@@ -65,6 +67,7 @@ const CartPage = () => {
   const queryClient = useQueryClient();
   // const { data, error, isLoading, mutate } = useSWR("/api/cart", fetcher);
   const [isUpdating, setIsUpdating] = useState(false); // For showing loading on quantity update
+  const router = useRouter();
   const {
     data: cart,
     isLoading,
@@ -106,6 +109,49 @@ const CartPage = () => {
       toast.error(`Error removing item`);
     },
   });
+
+  // --- NEW: useMutation for Stripe Checkout ---
+  const createCheckoutSessionMutation = useMutation({
+    mutationFn: async () => {
+      // The backend will fetch the cart, validate, and create the session
+      const res = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // No body needed here, as the backend fetches the cart from the user's session
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to initiate checkout.");
+      }
+      return res.json();
+    },
+    onSuccess: (data: { sessionId: string; url: string }) => {
+      // Redirect user to Stripe Checkout page
+      if (data.url) {
+        router.push(data.url);
+      } else {
+        alert("Stripe session URL not received.");
+      }
+    },
+    onError: (mutationError: Error) => {
+      alert(`Checkout Error: ${mutationError.message}`);
+    },
+  });
+
+  // --- NEW: handleProceedToCheckout ---
+  const handleProceedToCheckout = useCallback(() => {
+    if (!cart || cart.cartItems.length === 0) {
+      alert(
+        "Your cart is empty. Please add items before proceeding to checkout."
+      );
+      return;
+    }
+    createCheckoutSessionMutation.mutate();
+  }, [cart, createCheckoutSessionMutation]);
+
   // const fetchCart = useCallback(async () => {
   //   setIsLoading(true);
   //   setError(null);
@@ -243,6 +289,11 @@ const CartPage = () => {
 
   // Calculate final total after discount
   const finalTotal = subtotal - totalDiscountAmount;
+  // Combine pending states for all mutations
+  const isAnyMutationPending =
+    updateQuantityMutation.isPending ||
+    deleteCartItemMutation.isPending ||
+    createCheckoutSessionMutation.isPending;
 
   // Render Loading State
   if (isLoading) {
@@ -400,7 +451,7 @@ const CartPage = () => {
                         onClick={() => handleRemoveItem(item.id)}
                         disabled={isUpdating} // Disable during update/delete operations
                       >
-                        <XCircle className="w-5 h-5" />
+                        <Trash2Icon className="w-5 h-5" />
                       </Button>
                     </div>
                   </div>
@@ -446,8 +497,24 @@ const CartPage = () => {
               <span>${finalTotal.toFixed(2)}</span>
             </div>
           </div>
-          <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white text-lg py-3 rounded-md shadow-lg transition-all duration-300 mt-8 transform hover:scale-105">
-            Proceed to Checkout
+          {/* --- NEW: Proceed to Checkout Button --- */}
+          <Button
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white text-lg py-3 rounded-md shadow-lg transition-all duration-300 mt-8 transform hover:scale-105"
+            onClick={handleProceedToCheckout}
+            disabled={
+              !cart ||
+              cart.cartItems.length === 0 ||
+              isAnyMutationPending ||
+              createCheckoutSessionMutation.isPending
+            }
+          >
+            {createCheckoutSessionMutation.isPending ? (
+              <>
+                <Loader2 className="animate-spin mr-2" /> Initiating Checkout...
+              </>
+            ) : (
+              "Proceed to Checkout"
+            )}
           </Button>
           <div className="mt-4 text-center">
             <Link

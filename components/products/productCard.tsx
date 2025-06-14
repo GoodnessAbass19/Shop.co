@@ -9,6 +9,7 @@ interface ProductCardItem {
   productName: string; // From API's mapping of product.name
   images: { url: string }[]; // From API's mapping of product.images
   price: number; // This is the 'lowestPrice' from API
+  basePrice: number; // This is the 'lowestPrice' from API
   discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
   discountPercentage?: number | null; // The 'discountPercentage' from API
 }
@@ -63,7 +64,9 @@ const ProductCard = ({
       </h2>
       <div className="space-y-2">
         <span className="text-lg font-semibold">
-          {formatCurrencyValue(item?.discountedPrice || item?.price)}
+          {formatCurrencyValue(
+            item?.discountedPrice || item?.basePrice || item?.price
+          )}
         </span>
 
         {item?.discountedPrice && (

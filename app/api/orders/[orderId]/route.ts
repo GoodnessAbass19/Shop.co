@@ -39,6 +39,15 @@ export async function GET(
           },
         },
         address: true, // Include the shipping address
+        buyer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true, // Include buyer's contact details
+          },
+        },
+
         // You might want to include buyer details here too if for admin view,
         // but for a user's own page, `user` object already has their info.
       },

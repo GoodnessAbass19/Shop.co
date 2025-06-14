@@ -8,6 +8,7 @@ import {
   Product,
   ProductVariant,
   Address,
+  User,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,10 +19,14 @@ import {
   Package,
   XCircle,
   Home,
+  Loader2,
 } from "lucide-react"; // Added Home icon
 import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Assuming shadcn/ui Card
 import { Separator } from "@/components/ui/separator"; // Assuming shadcn/ui Separator
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
 
 // Extend types to match API response structure
 type OrderItemWithProductDetails = OrderItem & {
@@ -33,6 +38,7 @@ type OrderItemWithProductDetails = OrderItem & {
 type OrderWithAllDetails = Order & {
   items: OrderItemWithProductDetails[];
   address: Address;
+  buyer: User;
 };
 
 const fetcher = (url: string) =>
@@ -48,19 +54,63 @@ const fetcher = (url: string) =>
     return data;
   });
 
+const fetchOrderById = async (
+  orderId: string
+): Promise<OrderWithAllDetails> => {
+  const res = await fetch(`/api/orders/${orderId}`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || `Failed to fetch order: ${orderId}`);
+  }
+  const data = await res.json();
+  return data.order; // Assuming API returns { order: ... }
+};
+
 const OrderDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
   const orderId = params.details as string;
+  const queryClient = useQueryClient();
 
-  const { data, error, isLoading } = useSWR(
-    orderId ? `/api/orders/${orderId}` : null,
-    fetcher
-  );
+  const { data, isLoading, isError, error } = useQuery<
+    OrderWithAllDetails,
+    Error
+  >({
+    queryKey: ["order", orderId],
+    queryFn: () => fetchOrderById(orderId),
+    enabled: !!orderId,
+  });
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/orders/${id}/cancel`, {
+        method: "PATCH",
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to cancel order.");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] }); // Invalidate current order
+      queryClient.invalidateQueries({ queryKey: ["orders"] }); // Invalidate general order list
+      toast.success("Order cancelled successfully!");
+    },
+    onError: (mutationError: Error) => {
+      toast.error(`Error cancelling order: ${mutationError.message}`);
+    },
+  });
+
+  const handleCancelClick = () => {
+    if (order) {
+      cancelOrderMutation.mutate(order.id);
+    }
+  };
 
   // Redirect if unauthorized
-  if (error && error.status === 401) {
-    router.push(`/sign-in?redirectUrl=/orders/${orderId}`);
+  if (error) {
+    router.push(`/sign-in?redirect_url=/orders/${orderId}`);
     return null;
   }
 
@@ -80,7 +130,7 @@ const OrderDetailsPage = () => {
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center bg-red-50">
         <div className="p-8 border border-red-300 rounded-lg bg-red-100 text-red-800 text-center shadow-md">
           <p className="text-xl font-semibold mb-3">Error:</p>
-          <p className="mb-4">{error.message}</p>
+          {/* <p className="mb-4">{error.}</p> */}
           <Link
             href="/orders"
             className="inline-flex items-center px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
@@ -92,8 +142,10 @@ const OrderDetailsPage = () => {
     );
   }
 
-  const order: OrderWithAllDetails | null = data?.order ?? null;
-
+  const order: OrderWithAllDetails | null = data ?? null;
+  const isCancellable = order?.status === "PENDING" || order?.status === "PAID"; // Adjust based on your OrderStatus enum
+  const hasRefundStatus =
+    order?.refundStatus !== undefined && order?.refundStatus !== null;
   if (!order) {
     return (
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center bg-white">
@@ -338,6 +390,7 @@ const OrderDetailsPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-gray-700">
+                  <p className="font-semibold">Recipient: {order.buyer.name}</p>
                   <p className="font-medium">{order.address.street}</p>
                   <p>
                     {order.address.city}, {order.address.state}{" "}
@@ -380,6 +433,54 @@ const OrderDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      <div>
+        {/* --- NEW: Display Refund Status --- */}
+        {hasRefundStatus && (
+          <p className="text-lg text-gray-700 mb-2">
+            <strong>Refund Status:</strong>
+            <span
+              className={`font-semibold ml-2 ${
+                order.refundStatus === "SUCCEEDED"
+                  ? "text-green-600"
+                  : order.refundStatus === "REQUIRED" ||
+                    order.refundStatus === "PENDING"
+                  ? "text-orange-600"
+                  : order.refundStatus === "FAILED"
+                  ? "text-red-600"
+                  : "text-gray-600"
+              }`}
+            >
+              {order.refundStatus?.replace(/_/g, " ") || "N/A"}{" "}
+              {/* Replace underscores for display */}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {isCancellable && (
+        <Button
+          onClick={handleCancelClick}
+          disabled={cancelOrderMutation.isPending}
+          className="mt-6 bg-red-600 hover:bg-red-700 text-white"
+        >
+          {cancelOrderMutation.isPending ? (
+            <Loader2 className="animate-spin mr-2" />
+          ) : (
+            "Cancel Order"
+          )}
+        </Button>
+      )}
+      {!isCancellable && order.status !== "CANCELLED" && (
+        <p className="mt-4 text-gray-600">
+          This order cannot be cancelled at its current status.
+        </p>
+      )}
+      {order.status === "CANCELLED" && (
+        <p className="mt-4 text-red-600 font-semibold">
+          This order has been cancelled.
+        </p>
+      )}
     </section>
   );
 };

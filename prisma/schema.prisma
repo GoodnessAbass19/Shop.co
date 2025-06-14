@@ -96,7 +96,7 @@ model ProductVariant {
   id        String   @id @default(uuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  title     String
+  // title     String
   size      String?
   color     String?
   price     Float
@@ -161,18 +161,21 @@ model SubSubCategory {
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  total       Float
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deliveredAt DateTime? // NEW: When the order was delivered
-  cancelledAt DateTime? // NEW: When the order was cancelled
-  buyerId     String
-  buyer       User        @relation("UserOrders", fields: [buyerId], references: [id])
-  items       OrderItem[]
-  addressId   String // NEW: Link to the specific Address used for this order
-  address     Address     @relation(fields: [addressId], references: [id])
+  id                    String      @id @default(uuid())
+  total                 Float
+  status                OrderStatus @default(PENDING)
+  stripePaymentIntentId String?
+  stripeRefundId        String? // Refund ID from Stripe
+  refundStatus          String? // "PENDING", "SUCCEEDED", "FAILED", etc.
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  deliveredAt           DateTime? // NEW: When the order was delivered
+  cancelledAt           DateTime? // NEW: When the order was cancelled
+  buyerId               String
+  buyer                 User        @relation("UserOrders", fields: [buyerId], references: [id])
+  items                 OrderItem[]
+  addressId             String // NEW: Link to the specific Address used for this order
+  address               Address     @relation(fields: [addressId], references: [id])
 }
 
 model OrderItem {
@@ -229,9 +232,16 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  REFUNDED
+  REFUND_REQUESTED
+  //   DELIVERED_PENDING_CONFIRMATION
+  // OUT_FOR_DELIVERY
+  // READY_FOR_PICKUP
 }
 
 enum Role {
   BUYER
   SELLER
+  // ADMIN
+  // DISPATCH
 }

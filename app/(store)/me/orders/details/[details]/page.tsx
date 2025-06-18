@@ -119,7 +119,7 @@ const OrderDetailsPage = () => {
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[calc(100vh-200px)] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          <p className="text-lg text-gray-700">Loading order details...</p>
+          {/* <p className="text-lg text-gray-700">Loading order details...</p> */}
         </div>
       </section>
     );
@@ -265,11 +265,11 @@ const OrderDetailsPage = () => {
   }
 
   return (
-    <section className="max-w-screen-xl mx-auto mt-10 px-4 md:px-6 lg:px-8 pb-10">
+    <section className="max-w-screen-2xl mx-auto mt-10 px-4 md:px-6 lg:px-8 pb-10">
       <div className="container mx-auto">
         <div className="flex items-center mb-6">
           <Link
-            href="/orders"
+            href="/me/orders"
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />

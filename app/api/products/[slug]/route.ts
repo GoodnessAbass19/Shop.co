@@ -1,6 +1,7 @@
 // app/api/products/[slug]/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { generateUniqueSlug } from "@/utils/generate-slug";
 
 export async function GET(
   request: Request,
@@ -95,6 +96,56 @@ export async function GET(
     console.error("Error fetching single product:", error);
     return NextResponse.json(
       { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const productId = params.id;
+    const body = await req.json();
+    const {
+      name,
+      description,
+      price,
+      images,
+      categoryId,
+      subCategoryId,
+      subSubCategoryId,
+      stock,
+      isFeatured,
+    } = body;
+
+    let updateData: any = {};
+    if (name) {
+      // --- NEW: Generate unique slug when name is updated ---
+      updateData.slug = await generateUniqueSlug("Product", name, productId);
+      updateData.name = name;
+    }
+    if (description) updateData.description = description;
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (images) updateData.images = images;
+    if (categoryId) updateData.categoryId = categoryId;
+    if (subCategoryId) updateData.subCategoryId = subCategoryId;
+    if (subSubCategoryId !== undefined)
+      updateData.subSubCategoryId = subSubCategoryId;
+    if (stock !== undefined) updateData.stock = parseInt(stock, 10);
+    if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
+
+    const updatedProduct = await prisma.product.update({
+      where: { id: productId },
+      data: updateData,
+    });
+
+    return NextResponse.json(updatedProduct, { status: 200 });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: "Failed to update product." },
       { status: 500 }
     );
   }

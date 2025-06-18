@@ -397,7 +397,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
       {/* View Details Button */}
       <div className="mt-auto pt-4 border-t border-gray-100">
         <Link
-          href={`/orders/details/${order.id}`}
+          href={`/me/orders/details/${order.id}`}
           className="block text-center bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-md font-medium transition duration-300"
         >
           View Order Details

@@ -6,18 +6,21 @@ import prisma from "./prisma";
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
+  console.log(token);
 
   if (!token) return null;
 
   try {
     const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+      where: { id: decoded.userId },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        phone: true,
+        createdAt: true,
       },
     });
     return user;

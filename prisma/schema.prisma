@@ -16,20 +16,22 @@ datasource db {
 // prisma/schema.prisma
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(BUYER) // Default role is BUYER
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  store     Store?
-  orders    Order[]         @relation("UserOrders")
-  reviews   ProductReview[]
-  addresses Address[] // User can have multiple addresses
-  cart      Cart?
+  id         String          @id @default(cuid())
+  email      String          @unique
+  password   String
+  name       String
+  role       Role            @default(BUYER) // Default role is BUYER
+  phone      String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  gender     String?
+  birthDate  DateTime?
+  isVerified Boolean         @default(false)
+  store      Store?
+  orders     Order[]         @relation("UserOrders")
+  reviews    ProductReview[]
+  addresses  Address[] // User can have multiple addresses
+  cart       Cart?
 }
 
 model Address {
@@ -38,6 +40,7 @@ model Address {
   city       String
   state      String
   postalCode String? // Optional for some regions
+  // phone      String?
   country    String
   isDefault  Boolean  @default(false) // Flag to indicate if this is the user's primary/default address
   createdAt  DateTime @default(now())
@@ -174,8 +177,8 @@ model Order {
   buyerId               String
   buyer                 User        @relation("UserOrders", fields: [buyerId], references: [id])
   items                 OrderItem[]
-  addressId             String // NEW: Link to the specific Address used for this order
-  address               Address     @relation(fields: [addressId], references: [id])
+  addressId             String? // NEW: Link to the specific Address used for this order
+  address               Address?    @relation(fields: [addressId], references: [id])
 }
 
 model OrderItem {

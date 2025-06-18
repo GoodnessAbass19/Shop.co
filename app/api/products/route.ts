@@ -1,6 +1,7 @@
 // app/api/products/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Your Prisma client instance
+import { generateUniqueSlug } from "@/utils/generate-slug";
 
 export async function GET(request: Request) {
   try {
@@ -102,6 +103,61 @@ export async function GET(request: Request) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// app/api/products/route.ts (POST method excerpt)
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const {
+      name,
+      description,
+      price,
+      images,
+      categoryId,
+      subCategoryId,
+      subSubCategoryId,
+      storeId,
+      stock,
+      isFeatured,
+    } = body;
+
+    // Basic validation
+    if (!name || !description || !price || !images || !categoryId || !storeId) {
+      return NextResponse.json(
+        { error: "Missing required fields." },
+        { status: 400 }
+      );
+    }
+
+    // --- NEW: Generate unique slug explicitly ---
+    const slug = await generateUniqueSlug("Product", name);
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        slug, // Use the generated unique slug
+        description,
+        price: parseFloat(price),
+        images,
+        categoryId,
+        subCategoryId,
+        subSubCategoryId,
+        storeId,
+        stock: parseInt(stock, 10),
+      },
+    });
+
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    console.error("Error creating product:", error);
+    // Handle other errors, e.g., if sellerId/categoryId doesn't exist
+    return NextResponse.json(
+      { error: "Failed to create product." },
       { status: 500 }
     );
   }

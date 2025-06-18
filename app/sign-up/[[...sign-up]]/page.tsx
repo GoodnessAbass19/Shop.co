@@ -1,3 +1,4 @@
+import { MultiStepSignUpForm } from "@/components/auth/multiStepSignUpForm";
 import AuthForm from "@/components/ui/AuthForm";
 
 export default function Page() {
@@ -6,5 +7,6 @@ export default function Page() {
     //   <SignUp />
     // </div>
     <AuthForm type="register" />
+    // <MultiStepSignUpForm />
   );
 }

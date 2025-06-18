@@ -79,7 +79,9 @@ const UserButton = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Store />
+              <Link href={"/your/store/dashboard"}>
+                <Store />
+              </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p className="capitalize">shop manager</p>
@@ -123,7 +125,7 @@ const UserButton = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Link
-                    href={"/orders"}
+                    href={"/me/orders"}
                     className="flex justify-start items-center gap-2 capitalize"
                   >
                     <ShoppingBagIcon className="w-5 h-5 text-black" />
@@ -148,7 +150,7 @@ const UserButton = () => {
 
                 <DropdownMenuItem>
                   <Link
-                    href={""}
+                    href={"/me/account"}
                     className="flex justify-between items-center gap-3 capitalize"
                   >
                     <Settings className="w-5 h-5 text-black" />

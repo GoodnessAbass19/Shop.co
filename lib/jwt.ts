@@ -8,8 +8,8 @@ export function signToken(payload: any) {
 
 export function verifyToken(token: string) {
   return jwt.verify(token, JWT_SECRET) as {
-    id: string;
+    userId: string;
     email: string;
-    isBuyer: boolean;
+    role: string;
   };
 }

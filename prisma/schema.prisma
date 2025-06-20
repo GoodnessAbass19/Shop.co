@@ -60,6 +60,7 @@ model Store {
   slug        String      @unique // Slug for SEO-friendly URLs
   description String?
   logo        String?
+  banner      String[]
   userId      String      @unique
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   products    Product[]

@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { generateUniqueSlug } from "@/utils/generate-slug";
 import { Role } from "@prisma/client";
+import { uploadImage } from "@/lib/upload-image";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, description, logo, products } = await request.json(); // Destructure products from body
+    const { name, description, logo, products, banner } = await request.json(); // Destructure products from body
 
     // Basic validation for store name
     if (!name) {
@@ -21,6 +22,20 @@ export async function POST(request: Request) {
         { error: "Store name is required." },
         { status: 400 }
       );
+    }
+
+    if (banner && !Array.isArray(banner)) {
+      return NextResponse.json(
+        { error: "Banner must be an array of image URLs." },
+        { status: 400 }
+      );
+    }
+
+    // Upload all banner images and store as array of strings
+    const bannerUrls: string[] = [];
+    for (const file of banner || []) {
+      const url = await uploadImage(file, "stores/banners");
+      bannerUrls.push(url);
     }
 
     // Check if the user already has a store
@@ -119,6 +134,7 @@ export async function POST(request: Request) {
         slug: await generateUniqueSlug("Store", name), // Generate slug for store
         description,
         logo,
+        banner: bannerUrls, // Store banner URLs
         userId: user.id, // Link the store to the current authenticated user
         products: {
           create: productsToCreate, // Nested create for products

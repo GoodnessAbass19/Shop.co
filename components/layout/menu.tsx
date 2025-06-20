@@ -82,12 +82,12 @@ const Menu = () => {
         isOpen ? "h-full" : "h-fit"
       } md:h-fit`}
     >
-      <div className="bg-black text-white text-center py-2">
+      {/* <div className="bg-black text-white text-center py-2">
         <p className="md:text-lg text-sm font-medium text-white">
           Sign up and get 20% off on your first order.{" "}
           <span className="uppercase underline inline-flex">sign up now</span>
         </p>
-      </div>
+      </div> */}
       <div className="flex justify-between items-center p-2 py-4 max-w-screen-xl mx-auto gap-5">
         <div className="flex justify-between items-center md:gap-x-5 gap-x-3">
           <div className="md:hidden">

@@ -1,59 +1,110 @@
+// components/store/StoreDetailsStep.tsx
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { Loader2, UploadCloud, Trash2, Image as ImageIcon } from "lucide-react";
+import {
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+  FieldErrors,
+} from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/Hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import Image from "next/image";
-import { Button } from "../ui/button";
-import { UploadCloud } from "lucide-react";
 
-type StoreSetupData = {
+interface StoreFormData {
   name: string;
-  category: string;
-  description: string;
-};
+  description?: string;
+  logo: string;
+  banners: string[];
+  products: any[];
+}
 
-export default function StoreSetupForm({
-  onNext,
-}: {
-  onNext: (data: any) => void;
-}) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<StoreSetupData>();
-  const [logo, setLogo] = useState<string | null>(null);
-  const [banners, setBanners] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
+interface StoreDetailsStepProps {
+  register: UseFormRegister<StoreFormData>;
+  setValue: UseFormSetValue<StoreFormData>;
+  watch: UseFormWatch<StoreFormData>;
+  errors: FieldErrors<StoreFormData>;
+}
 
-  const onDropLogo = async (acceptedFiles: File[]) => {
-    setUploading(true);
-    const uploaded = await uploadToCloudinary(acceptedFiles[0]);
-    setLogo(uploaded);
-    setUploading(false);
-  };
-  // console.log(logo);
-  const onDropBanners = async (acceptedFiles: File[]) => {
-    setUploading(true);
-    const uploadedUrls = await Promise.all(
-      acceptedFiles.map(uploadToCloudinary)
-    );
-    setBanners((prev) => [...prev, ...uploadedUrls]);
-    setUploading(false);
+export function StoreDetailsStep({
+  register,
+  setValue,
+  watch,
+  errors,
+}: StoreDetailsStepProps) {
+  const { toast } = useToast();
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanners, setUploadingBanners] = useState(false);
+
+  const currentLogo = watch("logo");
+  const currentBanners = watch("banners") || [];
+
+  const onDropLogo = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (!acceptedFiles.length) return;
+
+      setUploadingLogo(true);
+      try {
+        const url = await uploadToCloudinary(acceptedFiles[0]);
+        setValue("logo", url, { shouldValidate: true });
+        toast({ title: "Logo Uploaded", description: "Store logo updated." });
+      } catch (e: any) {
+        toast({
+          title: "Upload Error",
+          description: e.message || "Logo upload failed.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingLogo(false);
+      }
+    },
+    [setValue, toast]
+  );
+
+  const onDropBanners = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (!acceptedFiles.length) return;
+
+      setUploadingBanners(true);
+      try {
+        const urls = await Promise.all(acceptedFiles.map(uploadToCloudinary));
+        const updated = [...currentBanners, ...urls];
+        setValue("banners", updated, { shouldValidate: true });
+        toast({
+          title: "Banners Uploaded",
+          description: `${urls.length} banner(s) added.`,
+        });
+      } catch (e: any) {
+        toast({
+          title: "Upload Error",
+          description: e.message || "Banner upload failed.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingBanners(false);
+      }
+    },
+    [setValue, currentBanners, toast]
+  );
+
+  const removeBanner = (index: number) => {
+    const updated = currentBanners.filter((_, i) => i !== index);
+    setValue("banners", updated, { shouldValidate: true });
+    toast({ title: "Banner Removed", description: "Banner removed." });
   };
 
   const { getRootProps: getLogoRootProps, getInputProps: getLogoInputProps } =
     useDropzone({
       onDrop: onDropLogo,
-      accept: {
-        "image/jpeg": [],
-        "image/png": [],
-      },
+      accept: { "image/jpeg": [], "image/png": [], "image/jpg": [] },
+      maxSize: 5 * 1024 * 1024,
       multiple: false,
     });
 
@@ -62,181 +113,162 @@ export default function StoreSetupForm({
     getInputProps: getBannerInputProps,
   } = useDropzone({
     onDrop: onDropBanners,
-    accept: {
-      "image/jpeg": [],
-      "image/png": [],
-    },
+    accept: { "image/jpeg": [], "image/png": [], "image/jpg": [] },
+    maxSize: 5 * 1024 * 1024,
+    maxFiles: 5,
     multiple: true,
-    maxFiles: 5, // limit to 5 banners
-    maxSize: 5 * 1024 * 1024, // limit to 5MB per file
-    // onDropRejected: (fileRejections) => {
-    //   alert(
-    //     `Some files were rejected: ${fileRejections
-    //       .map((r) => r.errors.map((e) => e.message).join(", "))
-    //       .join("; ")}`
-    //   );
-    // },
   });
 
-  const onSubmit = (data: StoreSetupData) => {
-    if (!logo || banners.length === 0) {
-      // alert("Please upload logo and at least one banner.");
-      return;
-    }
-
-    const formData = {
-      ...data,
-      logo,
-      banners,
-    };
-
-    onNext(formData); // move to next step with collected data
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+    <div className="space-y-8">
+      {/* Store Name */}
       <div>
-        <Label className="text-lg font-semibold capitalize mb-2 block text-[#303031]">
-          Store Name
+        <Label htmlFor="name">
+          Store Name <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register("name", { required: "Store name is required" })}
-          className="input"
+          id="name"
+          placeholder="e.g. Sunny Threads Boutique"
+          {...register("name", { required: "Store name is required." })}
+          className={cn(errors.name && "border-red-500")}
         />
-        {errors.name && <p className="text-red-500">{errors.name.message}</p>}
-      </div>
-
-      <div>
-        <Label className="text-lg font-semibold capitalize mb-2 block text-[#303031]">
-          Category
-        </Label>
-        <Input
-          {...register("category", { required: "Category is required" })}
-          className="input"
-        />
-        {errors.category && (
-          <p className="text-red-500">{errors.category.message}</p>
+        {errors.name?.message && (
+          <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
         )}
       </div>
 
+      {/* Description */}
       <div>
-        <Label className="text-lg font-semibold capitalize mb-2 block text-[#303031]">
-          Description
-        </Label>
-        <Textarea {...register("description")} className="input" />
+        <Label htmlFor="description">Store Description</Label>
+        <Textarea
+          id="description"
+          placeholder="Tell customers what your store is about..."
+          {...register("description")}
+        />
       </div>
 
+      {/* Logo Upload */}
       <div>
-        <Label className="text-lg font-semibold capitalize mb-2 block text-[#303031]">
-          Upload Store Logo
+        <Label>
+          Store Logo <span className="text-red-500">*</span>
         </Label>
         <div
           {...getLogoRootProps()}
-          className="dropzone cursor-pointer border border-dashed border-blue-500 p-4 rounded-md w-full"
+          className={cn(
+            "dropzone border-2 border-dashed p-5 rounded-lg cursor-pointer text-center transition",
+            uploadingLogo ? "opacity-60" : "",
+            errors.logo ? "border-red-500" : "border-gray-300"
+          )}
         >
-          <Input {...getLogoInputProps()} />
-          <div className="flex flex-col items-center justify-center">
-            {/* <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+          <input {...getLogoInputProps()} />
+          {uploadingLogo ? (
+            <Loader2 className="animate-spin mx-auto w-6 h-6" />
+          ) : (
+            <>
+              <UploadCloud className="mx-auto text-blue-500 w-10 h-10" />
+              <p className="text-lg font-semibold text-gray-800 mb-1">
+                Drag 'n' drop your logo here
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                or click to select file
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
               >
-                <path
-                  d="M21 7V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M10 9L15 12L10 15V9Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-            </div> */}
-            <UploadCloud className="w-8 h-10 text-[#0065FF] mb-2" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              Upload Store Logo
-            </h3>
-
-            {/* <p className="text-gray-600 mb-2">Upload Logo</p> */}
-            <p className="text-sm text-gray-500 mb-4">
-              Drag 'n' drop file here, or click to select file
-            </p>
-            <p className="text-xs text-gray-400">
-              Supported formats: PNG, JPEG, JPG (up to 5MB)
-            </p>
-            <button className="mt-4 px-4 py-2 bg-[#0065FF] text-white rounded-full text-sm">
-              Choose File
-            </button>
-          </div>
+                Choose File
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Supported formats: PNG, JPEG, JPG (Max 5MB)
+              </p>
+            </>
+          )}
         </div>
-        {logo && <img src={logo} alt="Store Logo" className="w-24 h-24 mt-2" />}
+        {errors.logo?.message && (
+          <p className="text-sm text-red-500 mt-1">{errors.logo.message}</p>
+        )}
+        {currentLogo && (
+          <div className="mt-3">
+            <img
+              src={currentLogo}
+              alt="Logo Preview"
+              className="h-24 w-24 rounded-full object-cover border border-gray-300 shadow-sm"
+              onError={(e) =>
+                (e.currentTarget.src =
+                  "https://placehold.co/96x96?text=Invalid+Logo")
+              }
+            />
+          </div>
+        )}
       </div>
 
+      {/* Banner Upload */}
       <div>
-        <Label className="text-lg font-semibold capitalize mb-2 block text-[#303031]">
-          Upload Banners (multiple)
-        </Label>
+        <Label>Store Banners (max 5)</Label>
         <div
           {...getBannerRootProps()}
-          className="dropzone cursor-pointer border border-dashed border-blue-500 p-4 rounded-md w-full"
+          className={cn(
+            "dropzone border-2 border-dashed p-5 rounded-lg cursor-pointer text-center transition",
+            uploadingBanners ? "opacity-60" : "",
+            errors.banners ? "border-red-500" : "border-gray-300"
+          )}
         >
-          <Input {...getBannerInputProps()} />
-          <div className="flex flex-col items-center justify-center">
-            {/* <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+          <input {...getBannerInputProps()} />
+          {uploadingBanners ? (
+            <Loader2 className="animate-spin mx-auto w-6 h-6" />
+          ) : (
+            <>
+              <ImageIcon className="mx-auto text-blue-500 w-10 h-10" />
+              <p className="text-lg font-semibold text-gray-800 mb-1">
+                Drag 'n' drop banner images here
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                or click to select files
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
               >
-                <path
-                  d="M21 7V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                Choose Files
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Supported formats: PNG, JPEG, JPG (Max 5MB each, up to 5 files)
+              </p>
+            </>
+          )}
+        </div>
+        {errors.banners?.message && (
+          <p className="text-sm text-red-500 mt-1">{errors.banners.message}</p>
+        )}
+        {currentBanners.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {currentBanners.map((url, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={url}
+                  alt={`Banner ${idx + 1}`}
+                  className="rounded-md object-cover w-full h-28"
+                  onError={(e) =>
+                    (e.currentTarget.src =
+                      "https://placehold.co/200x112?text=Invalid+Image")
+                  }
                 />
-                <path
-                  d="M10 9L15 12L10 15V9Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-            </div> */}
-
-            <UploadCloud className="w-8 h-10 text-[#0065FF] mb-2" />
-            <p className="text-gray-600 mb-2">Upload store images</p>
-            <p className="text-sm text-gray-500 mb-4">
-              Drag 'n' drop some files here, or click to select files (up to 5)
-            </p>
-            <p className="text-xs text-gray-400">
-              Supported formats: PNG, JPEG, JPG (up to 5MB each)
-            </p>
-            <button className="mt-4 px-4 py-2 bg-[#0065FF] text-white rounded-full text-sm">
-              Choose File
-            </button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeBanner(idx)}
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {banners.map((url, idx) => (
-            <Image
-              key={idx}
-              src={url}
-              alt={`banner-${idx}`}
-              width={500}
-              height={500}
-              className="w-24 h-24"
-            />
-          ))}
-        </div>
+        )}
       </div>
-
-      <Button type="submit" disabled={uploading} className="btn-primary mt-4">
-        {uploading ? "Uploading..." : "Next"}
-      </Button>
-    </form>
+    </div>
   );
 }

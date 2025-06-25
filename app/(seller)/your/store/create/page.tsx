@@ -1,7 +1,7 @@
 // app/seller/create-store/page.tsx
 // This page should ideally be protected by your authentication middleware.
 
-import MultiStepStoreForm from "@/components/store/multi-step-form";
+import { MultiStepStoreCreationForm } from "@/components/store/multi-step-form";
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -47,7 +47,7 @@ export default async function CreateStorePage() {
           <MultiStepStoreCreationForm />
         )}
       */}
-      <MultiStepStoreForm />
+      <MultiStepStoreCreationForm />
     </div>
   );
 }

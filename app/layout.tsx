@@ -37,7 +37,7 @@ export default function RootLayout({
           <NextTopLoader height={5} speed={800} />
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
@@ -55,6 +55,7 @@ export default function RootLayout({
                 theme="light"
               />
               {children}
+
               <Toaster />
             </Provider>
           </ThemeProvider>

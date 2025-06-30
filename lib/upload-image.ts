@@ -1,12 +1,11 @@
 // lib/upload-image.ts
-import cloudinary from "./cloudinary";
+// import cloudinary from "./cloudinary";
 
-export async function uploadImage(file: string, folder: string = "stores") {
-  const uploadResponse = await cloudinary.uploader.upload(file, {
-    folder,
-    resource_type: "image",
-  });
+import { uploadToCloudinary } from "./cloudinary";
 
-  return uploadResponse.secure_url; // return only the URL
+export async function uploadImage(file: File, folder: string = "stores") {
+  const secureUrl = await uploadToCloudinary(file);
+
+  return secureUrl; // return only the URL
 }
 // }

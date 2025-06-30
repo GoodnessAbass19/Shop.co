@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { getFirstName, getInitials, getLastName } from "@/lib/utils";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -665,10 +666,66 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           </TabsList>
           <TabsContent value="details">{data?.product.description}</TabsContent>
           <TabsContent value="reviews">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur
-            eius facilis adipisci nostrum. Voluptatum doloremque itaque autem
-            distinctio omnis natus suscipit ea. Iusto vitae sed beatae facilis!
-            Laboriosam, quod eos?
+            {data?.product.reviews.length > 0 ? (
+              <div className="grid grid-cols-2 items-stretch justify-start space-x-5">
+                {data?.product.reviews.map((review: any) => (
+                  <div
+                    key={review.id}
+                    className="w-full p-4 border rounded-lg border-gray-300 bg-white shadow-sm"
+                  >
+                    <div className="flex flex-col-reverse items-start justify-start space-y-2 mb-2">
+                      <span className="font-semibold">
+                        {getFirstName(review.user.name)}{" "}
+                        {getLastName(review.user.name)}.
+                      </span>
+                      <span className="text-yellow-500 text-3xl">
+                        {"★".repeat(review.rating)}
+                        {"☆".repeat(5 - review.rating)}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">"{review.comment}"</p>
+
+                    <p className="text-gray-500 text-sm mt-2">
+                      Posted on{" "}
+                      {new Date(review.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-start justify-start space-y-5">
+                <h3 className="text-xl font-semibold">Customer Reviews</h3>
+                <p className="text-gray-600">
+                  No reviews yet. Be the first to review this product!
+                </p>
+              </div>
+            )}
+            {/* Placeholder for reviews component */}
+            <div className="flex flex-col items-start justify-start space-y-5">
+              <h3 className="text-xl font-semibold">Customer Reviews</h3>
+              <p className="text-gray-600">
+                No reviews yet. Be the first to review this product!
+              </p>
+              {/* Add review form or component here */}
+              <div className="w-full max-w-md">
+                <Label htmlFor="review" className="block mb-2">
+                  Write a Review
+                </Label>
+                <textarea
+                  id="review"
+                  rows={4}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Share your thoughts about this product..."
+                ></textarea>
+                <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                  Submit Review
+                </button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         subCategoryId: productData.subCategoryId,
         subSubCategoryId: productData.subSubCategoryId,
         stock: parseInt(productData.stock, 10),
-        isFeatured: productData.isFeatured || false,
+        // isFeatured: productData.isFeatured || false,
         variants: {
           create: variantsToCreate, // Nested create for variants
         },

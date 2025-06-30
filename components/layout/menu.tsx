@@ -16,7 +16,6 @@ import { useBoolean } from "@/Hooks/useBoolean";
 import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
 import { Data, ProductsConnection, Shoplist } from "@/types";
-import { useCartStore } from "@/store/cart-store";
 import { SearchIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { useMemo, useRef, useState } from "react";
@@ -27,6 +26,7 @@ import { formatCurrencyValue } from "@/utils/format-currency-value";
 import UserButton from "./user-button";
 import useSWR from "swr";
 import { Cart, CartItem } from "@prisma/client";
+import CategoryMenu from "./category-menu";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -89,7 +89,7 @@ const Menu = () => {
         </p>
       </div> */}
       <div className="flex justify-between items-center p-2 py-4 max-w-screen-xl mx-auto gap-5">
-        <div className="flex justify-between items-center md:gap-x-5 gap-x-3">
+        <div className="flex items-center md:gap-x-5 gap-x-3">
           <div className="md:hidden">
             <MenuButton isOpen={isOpen} onClick={setIsOpen.toggle} />
           </div>
@@ -100,7 +100,8 @@ const Menu = () => {
           >
             shop.co
           </Link>
-          <NavigationMenu className="hidden md:block">
+          <CategoryMenu />
+          {/* <NavigationMenu className="hidden md:block">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
@@ -134,7 +135,7 @@ const Menu = () => {
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
-          </NavigationMenu>
+          </NavigationMenu> */}
         </div>
 
         {/* <NavigationMenu className="hidden md:block uppercase text-center">

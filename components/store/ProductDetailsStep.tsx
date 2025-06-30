@@ -729,7 +729,7 @@ export function ProductImageUploadSection({
       <div
         {...getRootProps()}
         className={cn(
-          "dropzone mt-2 p-5 border-2 border-dashed rounded-md text-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition",
+          "dropzone mt-2 border-2 border-dashed p-5 rounded-lg cursor-pointer text-center bg-gray-50 hover:bg-gray-100 transition",
           errors?.products?.[pIdx]?.images && "border-red-500" // Apply error styling
         )}
       >

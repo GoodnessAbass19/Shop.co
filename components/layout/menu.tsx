@@ -1,32 +1,21 @@
 "use client";
 // import { ThemeButton } from "./theme-button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+
 import Link from "next/link";
-import Search from "./Search";
 import CartIcon from "../Icons/cartIcon";
 import { useBoolean } from "@/Hooks/useBoolean";
-import MenuButton from "./menuButton";
 import MobileNav from "./mobileNav";
-import { Data, ProductsConnection, Shoplist } from "@/types";
 import { SearchIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { useMemo, useRef, useState } from "react";
-import { useLazyQuery } from "@apollo/client";
-import { GET_SEARCH } from "@/lib/query";
 import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import UserButton from "./user-button";
 import useSWR from "swr";
 import { Cart, CartItem } from "@prisma/client";
 import CategoryMenu from "./category-menu";
+import { useQuery } from "@tanstack/react-query";
+import MobileMenu from "./mobileMenu";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -37,6 +26,15 @@ const fetcher = async (url: string) => {
     throw error;
   }
   return data;
+};
+
+const fetchSearchedProducts = async (search: string) => {
+  if (!search) return { products: [] };
+  const res = await fetch(
+    `/api/search-products?query=${encodeURIComponent(search)}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch products");
+  return res.json();
 };
 
 type CartItems = Cart & {
@@ -56,25 +54,26 @@ const Menu = () => {
   // const { user } = useUser();
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const [data, setData] = useState<ProductsConnection>();
 
-  const [getSearchedProducts, { loading, data: searchData }] =
-    useLazyQuery<Data>(GET_SEARCH);
+  // React Query for search
+  const { data: searchData, isFetching: loading } = useQuery({
+    queryKey: ["search-products", search],
+    queryFn: () => fetchSearchedProducts(search),
+    enabled: !!search,
+    staleTime: 0,
+  });
 
-  const handleChange = useMemo(
-    () => (e: any) => {
-      setSearch(e.target.value);
-      setTimeout(() => {
-        getSearchedProducts({
-          variables: { search: search, first: 20 },
-          notifyOnNetworkStatusChange: true,
-        }).then((res) => {
-          setData(res?.data?.productsConnection);
-        });
-      }, 100);
-    },
-    [search]
-  );
+  // Debounced input handler
+  const handleChange = useMemo(() => {
+    let timeout: NodeJS.Timeout;
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setSearch(value);
+      }, 200);
+    };
+  }, []);
 
   return (
     <div
@@ -89,10 +88,10 @@ const Menu = () => {
         </p>
       </div> */}
       <div className="flex justify-between items-center p-2 py-4 max-w-screen-xl mx-auto gap-5">
-        <div className="flex items-center md:gap-x-5 gap-x-3">
-          <div className="md:hidden">
+        <div className="flex items-center justify-between md:gap-x-5 gap-x-3">
+          {/* <div className="md:hidden">
             <MenuButton isOpen={isOpen} onClick={setIsOpen.toggle} />
-          </div>
+          </div> */}
 
           <Link
             href={"/"}
@@ -100,7 +99,10 @@ const Menu = () => {
           >
             shop.co
           </Link>
-          <CategoryMenu />
+          <div className="lg:block hidden">
+            <CategoryMenu />
+          </div>
+
           {/* <NavigationMenu className="hidden md:block">
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -177,7 +179,7 @@ const Menu = () => {
         <div className="lg:flex-1 hidden lg:block">
           <div className="w-full relative">
             <div className="flex border border-gray-200 rounded-full px-2 justify-between items-center gap-2">
-              <SearchIcon className="w-5 h-5 text-gray-500" />
+              <SearchIcon className="w-5 h-5 text-gray-500 font-bold" />
               <Input
                 onChange={handleChange}
                 value={search}
@@ -195,23 +197,23 @@ const Menu = () => {
                 <div>
                   {search && (
                     <div className="flex flex-col gap-4 divide-y-2 p-4">
-                      {data?.edges?.map((item: any) => (
+                      {searchData?.products?.map((item: any) => (
                         <div
                           className="flex items-center justify-between gap-4 pt-4"
-                          key={item.node.id}
+                          key={item.id}
                           onClick={() => {
                             setSearch("");
                           }}
                         >
                           <Link
-                            href={`/products/${item.node?.slug}`}
+                            href={`/products/${item.slug}`}
                             className="flex items-center gap-4"
                           >
                             <div className="relative">
                               <Image
                                 className="w-14 h-14 object-cover rounded-lg"
-                                src={item.node.images[0].url}
-                                alt={item.node.productName}
+                                src={item.images[0]}
+                                alt={item.name}
                                 width={500}
                                 height={500}
                                 priority
@@ -220,7 +222,7 @@ const Menu = () => {
 
                             <div className="flex flex-col justify-between gap-4">
                               <span className="md:text-lg font-medium leading-tight line-clamp-1">
-                                {removeHyphens(item.node.productName)}
+                                {removeHyphens(item.name)}
                               </span>
                             </div>
                           </Link>
@@ -228,13 +230,13 @@ const Menu = () => {
                           <div className="ml-2 ">
                             <span className="text-lg font-semibold">
                               {formatCurrencyValue(
-                                item.node.discountedPrice || item.node.price
+                                item.discountedPrice || item.price
                               )}
                             </span>
 
-                            {item.node.discountedPrice && (
+                            {item.discountedPrice && (
                               <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
-                                {formatCurrencyValue(item.node.price)}
+                                {formatCurrencyValue(item.price)}
                               </span>
                             )}
                           </div>
@@ -258,9 +260,6 @@ const Menu = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div> */}
-          <div className="block lg:hidden">
-            <Search />
-          </div>
 
           <Link href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
@@ -326,6 +325,82 @@ const Menu = () => {
           </DropdownMenu> */}
           <UserButton />
           {/* <ThemeButton /> */}
+        </div>
+      </div>
+      <div className="block lg:hidden p-2">
+        <div className="flex justify-between items-center gap-2.5">
+          <MobileMenu />
+          <div className="w-full relative flex-1">
+            <div className="flex border border-gray-200 rounded-full px-2 justify-between items-center gap-2">
+              <SearchIcon className="w-5 h-5 text-gray-500 font-bold" />
+              <Input
+                onChange={handleChange}
+                value={search}
+                ref={inputRef}
+                placeholder="Search for products..."
+                className="border-none w-full rounded-full p-1 focus-visible:ring-none focus-visible:ring-0 focus-visible:ring-gray-100"
+              />
+            </div>
+            <div className="absolute top-10 left-0 max-w-full bg-white shadow-lg z-10 rounded-b-lg max-h-[50vh] overflow-y-auto">
+              {loading ? (
+                <div className="text-center font-semibold text-base">
+                  searching...
+                </div>
+              ) : (
+                <div>
+                  {search && (
+                    <div className="flex flex-col gap-4 divide-y-2 p-4">
+                      {searchData?.products?.map((item: any) => (
+                        <div
+                          className="flex items-center justify-between gap-4 pt-4"
+                          key={item.id}
+                          onClick={() => {
+                            setSearch("");
+                          }}
+                        >
+                          <Link
+                            href={`/products/${item.slug}`}
+                            className="flex items-center gap-4"
+                          >
+                            <div className="relative">
+                              <Image
+                                className="w-14 h-14 object-cover rounded-lg"
+                                src={item.images[0]}
+                                alt={item.name}
+                                width={500}
+                                height={500}
+                                priority
+                              />
+                            </div>
+
+                            <div className="flex flex-col justify-between gap-4">
+                              <span className="md:text-lg font-medium leading-tight line-clamp-1">
+                                {removeHyphens(item.name)}
+                              </span>
+                            </div>
+                          </Link>
+
+                          <div className="ml-2 ">
+                            <span className="text-lg font-semibold">
+                              {formatCurrencyValue(
+                                item.discountedPrice || item.price
+                              )}
+                            </span>
+
+                            {item.discountedPrice && (
+                              <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
+                                {formatCurrencyValue(item.price)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

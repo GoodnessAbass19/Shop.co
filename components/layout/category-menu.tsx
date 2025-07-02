@@ -48,17 +48,20 @@ const fetchCategories = async (): Promise<ProductCategory[]> => {
 };
 
 const CategoryMenu = () => {
-  const {
-    data: categories,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
   });
-  const [activeCategory, setActiveCategory] = useState(categories?.[0] || null);
+  const [activeCategory, setActiveCategory] = useState<
+    ProductCategory | undefined
+  >(undefined);
+
+  React.useEffect(() => {
+    if (categories && categories.length > 0) {
+      setActiveCategory(categories[0]);
+    }
+  }, [categories]);
 
   return (
     <div>
@@ -73,7 +76,7 @@ const CategoryMenu = () => {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-full h-[60vh] max-w-screen-[800px] bg-white shadow-lg rounded-md p-4 grid-cols-4 grid mt-2.5"
+          className="w-full !h-[75vh] !max-w-screen-[700px] bg-white shadow-lg rounded-md p-4 grid-cols-4 grid mt-2.5"
           align="start"
         >
           <div className="col-span-1 border-r overflow-y-scroll">
@@ -81,7 +84,7 @@ const CategoryMenu = () => {
               <DropdownMenuItem
                 key={category.name}
                 className={cn(
-                  "py-2 px-1.5 rounded-md cursor-pointer hover:bg-muted text-sm font-normal font-sans capitalize flex justify-between items-center",
+                  "py-2 px-1.5 rounded-md cursor-pointer hover:bg-muted text-base font-semibold font-sans capitalize flex justify-between items-center",
                   category.name === activeCategory?.name &&
                     "bg-muted font-semibold"
                 )}
@@ -94,7 +97,7 @@ const CategoryMenu = () => {
           </div>
 
           {/* Subcategory Grid */}
-          <div className="col-span-3 pl-4">
+          <div className="col-span-3 pl-4 w-full">
             <div>
               <Link
                 href={""}
@@ -103,37 +106,50 @@ const CategoryMenu = () => {
                 all {activeCategory?.name} <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-2.5 overflow-y-scroll justify-between items-center">
-              {(activeCategory?.subCategories?.length ?? 0) > 0 ? (
-                activeCategory?.subCategories?.map((item) => (
-                  <div
-                    key={item?.name}
-                    className="flex flex-col items-center text-center rounded-md p-2 hover:shadow-2xl col-span-1"
-                  >
-                    {isLoading ? (
-                      <div className="w-20 h-20 rounded-md overflow-hidden animate-pulse"></div>
-                    ) : (
-                      <Image
-                        src={
-                          item.image ||
-                          "https://placehold.co/100x100/e2e8f0/64748b?text=No+Image"
-                        }
-                        alt={item.name}
-                        width={500}
-                        height={500}
-                        className="w-[150px] h-[150px] rounded-md overflow-hidden mb-1"
-                      />
-                    )}
-
-                    <span className="text-sm font-semibold font-sans">
-                      {item?.name}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-3 pl-4 text-sm text-muted-foreground">
-                  No subcategories
+            <div className="grid grid-cols-3 gap-2.5 overflow-y-scroll justify-between items-stretch w-full">
+              {isLoading ? (
+                <div>
+                  {Array(5).map((item, idx) => (
+                    <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse col-span-1"></div>
+                  ))}
                 </div>
+              ) : (
+                <>
+                  {(activeCategory?.subCategories?.length ?? 0) > 0 ? (
+                    activeCategory?.subCategories?.map((item) => (
+                      <Link
+                        href={""}
+                        key={item?.name}
+                        className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
+                      >
+                        {isLoading ? (
+                          <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse"></div>
+                        ) : (
+                          <div>
+                            <Image
+                              src={
+                                item.image ||
+                                "https://placehold.co/200x200/e2e8f0/64748b?text=No+Image"
+                              }
+                              alt={item.name}
+                              width={500}
+                              height={500}
+                              loading={"lazy"}
+                              className="max-w-[200px] max-h-[200px] w-full h-full object-cover object-center rounded-lg overflow-hidden"
+                            />
+                            <span className="text-sm font-semibold font-sans line-clamp-1">
+                              {item?.name}
+                            </span>
+                          </div>
+                        )}
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="col-span-3 pl-4 text-sm text-muted-foreground">
+                      No subcategories
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

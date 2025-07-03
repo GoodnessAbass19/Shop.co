@@ -54,19 +54,19 @@ const MobileMenu = () => {
     queryFn: fetchCategories,
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
   });
-  const [activeCategory, setActiveCategory] = useState<
-    ProductCategory | undefined
-  >(undefined);
+  // const [activeCategory, setActiveCategory] = useState<
+  //   ProductCategory | undefined
+  // >(undefined);
 
-  React.useEffect(() => {
-    if (categories && categories.length > 0) {
-      setActiveCategory(categories[0]);
-    }
-  }, [categories]);
+  // React.useEffect(() => {
+  //   if (categories && categories.length > 0) {
+  //     setActiveCategory(categories[0]);
+  //   }
+  // }, [categories]);
 
   return (
     <Drawer>
-      <DrawerTrigger asChild className="">
+      <DrawerTrigger asChild className="" disabled={isLoading}>
         <AlignJustify className="w-5 h-5 font-bold" />
       </DrawerTrigger>
       <DrawerContent>

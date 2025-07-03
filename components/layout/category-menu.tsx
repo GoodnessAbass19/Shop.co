@@ -12,6 +12,7 @@ import {
 } from "../ui/dropdown-menu";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface ProductCategory {
   id: string;
@@ -62,6 +63,7 @@ const CategoryMenu = () => {
       setActiveCategory(categories[0]);
     }
   }, [categories]);
+  const router = useRouter();
 
   return (
     <div>
@@ -81,7 +83,7 @@ const CategoryMenu = () => {
         >
           <div className="col-span-1 border-r overflow-y-scroll">
             {categories?.map((category) => (
-              <DropdownMenuItem
+              <div
                 key={category.name}
                 className={cn(
                   "py-2 px-1.5 rounded-md cursor-pointer hover:bg-muted text-base font-semibold font-sans capitalize flex justify-between items-center",
@@ -92,24 +94,23 @@ const CategoryMenu = () => {
               >
                 {category.name}
                 <ChevronRight className="w-5 h-5" />
-              </DropdownMenuItem>
+              </div>
             ))}
           </div>
 
           {/* Subcategory Grid */}
           <div className="col-span-3 pl-4 w-full">
-            <div>
-              <Link
-                href={""}
-                className="flex gap-2 justify-start items-center font-semibold font-serif text-base capitalize hover:gap-2.5 transition-transform duration-500 ease-in-out"
-              >
-                all {activeCategory?.name} <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
+            <Link
+              href={`/c/${activeCategory?.slug}`}
+              className="flex gap-2 justify-start items-center font-semibold font-serif text-base capitalize hover:gap-2.5 transition-transform duration-500 ease-in-out"
+            >
+              all {activeCategory?.name} <ArrowRight className="w-5 h-5" />
+            </Link>
+
             <div className="grid grid-cols-3 gap-2.5 overflow-y-scroll justify-between items-stretch w-full">
               {isLoading ? (
                 <div>
-                  {Array(5).map((item, idx) => (
+                  {Array.from({ length: 5 }).map((item, idx) => (
                     <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse col-span-1"></div>
                   ))}
                 </div>
@@ -117,15 +118,16 @@ const CategoryMenu = () => {
                 <>
                   {(activeCategory?.subCategories?.length ?? 0) > 0 ? (
                     activeCategory?.subCategories?.map((item) => (
-                      <Link
-                        href={""}
-                        key={item?.name}
-                        className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
-                      >
+                      <div>
                         {isLoading ? (
                           <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse"></div>
                         ) : (
-                          <div>
+                          <Link
+                            href={`/c/${activeCategory?.slug}/${item.slug}`}
+                            key={item?.name}
+                            // onClick={() => router.prefetch(`${item.slug}`)}
+                            className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
+                          >
                             <Image
                               src={
                                 item.image ||
@@ -140,9 +142,9 @@ const CategoryMenu = () => {
                             <span className="text-sm font-semibold font-sans line-clamp-1">
                               {item?.name}
                             </span>
-                          </div>
+                          </Link>
                         )}
-                      </Link>
+                      </div>
                     ))
                   ) : (
                     <div className="col-span-3 pl-4 text-sm text-muted-foreground">

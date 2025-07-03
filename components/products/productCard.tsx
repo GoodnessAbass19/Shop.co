@@ -3,22 +3,44 @@ import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Image from "next/image";
 import Link from "next/link";
 import { SkeletonCard } from "../ui/SkeletonCard";
+import {
+  Category,
+  Product,
+  ProductVariant,
+  SubCategory,
+  SubSubCategory,
+  Store,
+  Discount, // Import Discount type
+} from "@prisma/client";
 interface ProductCardItem {
   id: string;
   slug: string;
   productName: string; // From API's mapping of product.name
   images: { url: string }[]; // From API's mapping of product.images
   price: number; // This is the 'lowestPrice' from API
-  basePrice: number; // This is the 'lowestPrice' from API
   discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
   discountPercentage?: number | null; // The 'discountPercentage' from API
 }
+
+export type ProductFromApi = Product & {
+  category: Pick<Category, "id" | "name" | "slug">;
+  subCategory: Pick<SubCategory, "id" | "name" | "slug">;
+  subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
+  variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
+  store: Pick<Store, "id" | "name" | "slug">;
+  discounts: Discount[]; // Include discounts
+  // These are added by the API route's mapping:
+  productName: string;
+  lowestPrice: number; // The lowest base price (from variants or product)
+  discountedPrice: number | null; // The price after discount
+  images: { url: string }[]; // Transformed image array
+};
 
 const ProductCard = ({
   item,
   loading,
 }: {
-  item: ProductCardItem;
+  item: ProductFromApi;
   loading: boolean;
 }) => {
   function percentageDifference(num1: number | 0, num2: number | 0) {
@@ -64,9 +86,7 @@ const ProductCard = ({
       </h2>
       <div className="space-y-2">
         <span className="text-lg font-semibold">
-          {formatCurrencyValue(
-            item?.discountedPrice || item?.basePrice || item?.price
-          )}
+          {formatCurrencyValue(item?.discountedPrice || item?.price)}
         </span>
 
         {item?.discountedPrice && (
@@ -76,7 +96,7 @@ const ProductCard = ({
         )}
         {item?.discountedPrice && (
           <span className="font-light text-sm text-center text-[#F4F4F4] bg-black/40 rounded-full p-1.5 px-2 ml-3 absolute top-1 right-1">
-            -{item?.discountPercentage}
+            -{item?.discounts?.[0].percentage}
             {/* {percentageDifference(
               // @ts-ignore
               item?.price,

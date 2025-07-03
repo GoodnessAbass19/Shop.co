@@ -2,12 +2,26 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: { category: string } }
+) {
   try {
+    const { category } = await params;
+    if (!category) {
+      return NextResponse.json(
+        { error: "Category slug is required." },
+        { status: 400 }
+      );
+    }
     // Fetch all top-level categories and eagerly load their nested sub-categories
     // and sub-sub-categories using Prisma's `include` functionality.
-    const categories = await prisma.category.findMany({
+    const categories = await prisma.category.findUnique({
+      where: {
+        slug: category,
+      },
       include: {
+        products: true,
         subCategories: {
           // Include the subCategories relation
           include: {
@@ -18,10 +32,6 @@ export async function GET() {
             // name: "asc",
           },
         },
-      },
-      orderBy: {
-        // Optional: order top-level categories by name
-        name: "asc",
       },
     });
 

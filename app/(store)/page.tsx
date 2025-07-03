@@ -1,7 +1,5 @@
 import Banner from "@/components/home/Banner";
 import Sections from "@/components/home/Sections";
-import ProductGrid from "@/components/products/productIndex";
-import { productTags } from "@/types";
 
 export default function Home() {
   return (
@@ -18,8 +16,6 @@ export default function Home() {
         url="api/products/top-deals"
         href="top-deals"
       />
-      <ProductGrid />
-      {/* <Styles /> */}
     </div>
   );
 }

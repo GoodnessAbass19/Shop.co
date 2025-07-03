@@ -11,8 +11,6 @@ export async function generateMetadata({
   const { slug } = await params;
   return {
     title: `${slug}`,
-    // description: project.description,
-    metadataBase: new URL("https://media.graphassets.com"),
   };
 }
 

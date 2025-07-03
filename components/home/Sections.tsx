@@ -125,18 +125,7 @@ const Sections = ({
         >
           {products?.map((product, index) => (
             <SwiperSlide key={index}>
-              <ProductCard
-                item={{
-                  id: product.id,
-                  slug: product.slug,
-                  productName: product.productName,
-                  images: product.images, // Already mapped in API to { url: string }[]
-                  price: product.price!,
-                  discountedPrice: product?.discountedPrice,
-                  discountPercentage: product?.discounts?.[0]?.percentage || 0,
-                }}
-                loading={isLoading}
-              />
+              <ProductCard item={product} loading={isLoading} />
             </SwiperSlide>
           ))}
         </Swiper>

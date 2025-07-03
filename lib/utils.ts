@@ -53,3 +53,11 @@ export function getLastName(name: string): string {
   // Return the first word as the first name.
   return names || "";
 }
+
+// utils/sortOptions.ts
+export const SORT_OPTIONS = [
+  { label: "Recent", value: "recent" },
+  { label: "Highest Price", value: "highest_price" },
+  { label: "Lowest Price", value: "lowest_price" },
+  // { label: "Top Customer Reviews", value: "top_reviews" },
+];

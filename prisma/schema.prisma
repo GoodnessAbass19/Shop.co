@@ -16,22 +16,23 @@ datasource db {
 // prisma/schema.prisma
 
 model User {
-  id         String          @id @default(cuid())
-  email      String          @unique
-  password   String
-  name       String
-  role       Role            @default(BUYER) // Default role is BUYER
-  phone      String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  gender     String?
-  birthDate  DateTime?
-  isVerified Boolean         @default(false)
-  store      Store?
-  orders     Order[]         @relation("UserOrders")
-  reviews    ProductReview[]
-  addresses  Address[] // User can have multiple addresses
-  cart       Cart?
+  id            String          @id @default(cuid())
+  email         String          @unique
+  password      String
+  name          String
+  role          Role            @default(BUYER) // Default role is BUYER
+  phone         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  gender        String?
+  birthDate     DateTime?
+  isVerified    Boolean         @default(false)
+  store         Store?
+  orders        Order[]         @relation("UserOrders")
+  reviews       ProductReview[]
+  addresses     Address[] // User can have multiple addresses
+  cart          Cart?
+  wishlistItems WishlistItem[]
 }
 
 model Address {
@@ -90,10 +91,11 @@ model Product {
   subSubCategoryId String?
   subSubCategory   SubSubCategory? @relation(fields: [subSubCategoryId], references: [id])
 
-  variants  ProductVariant[]
-  reviews   ProductReview[]
-  discounts Discount[]
-  soldCount Int              @default(0) // Optional optimization
+  variants      ProductVariant[]
+  reviews       ProductReview[]
+  discounts     Discount[]
+  soldCount     Int              @default(0) // Optional optimization
+  wishlistItems WishlistItem[]
 }
 
 model ProductVariant {
@@ -231,6 +233,18 @@ model CartItem {
 
   productVariantId String
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  addedAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // A user can only add a specific product to their wishlist once
 }
 
 enum OrderStatus {

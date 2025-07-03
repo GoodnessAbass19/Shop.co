@@ -111,47 +111,44 @@ const CategoryMenu = () => {
               {isLoading ? (
                 <div>
                   {Array.from({ length: 5 }).map((item, idx) => (
-                    <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse col-span-1"></div>
+                    <div
+                      key={idx}
+                      className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse col-span-1"
+                    ></div>
                   ))}
                 </div>
+              ) : (activeCategory?.subCategories?.length ?? 0) > 0 ? (
+                activeCategory?.subCategories?.map((item) => (
+                  <div key={item?.name}>
+                    {isLoading ? (
+                      <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse"></div>
+                    ) : (
+                      <Link
+                        href={`/c/${activeCategory?.slug}/${item.slug}`}
+                        className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
+                      >
+                        <Image
+                          src={
+                            item.image ||
+                            "https://placehold.co/200x200/e2e8f0/64748b?text=No+Image"
+                          }
+                          alt={item.name}
+                          width={500}
+                          height={500}
+                          loading={"lazy"}
+                          className="max-w-[200px] max-h-[200px] w-full h-full object-cover object-center rounded-lg overflow-hidden"
+                        />
+                        <span className="text-sm font-semibold font-sans line-clamp-1">
+                          {item?.name}
+                        </span>
+                      </Link>
+                    )}
+                  </div>
+                ))
               ) : (
-                <>
-                  {(activeCategory?.subCategories?.length ?? 0) > 0 ? (
-                    activeCategory?.subCategories?.map((item) => (
-                      <div>
-                        {isLoading ? (
-                          <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse"></div>
-                        ) : (
-                          <Link
-                            href={`/c/${activeCategory?.slug}/${item.slug}`}
-                            key={item?.name}
-                            // onClick={() => router.prefetch(`${item.slug}`)}
-                            className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
-                          >
-                            <Image
-                              src={
-                                item.image ||
-                                "https://placehold.co/200x200/e2e8f0/64748b?text=No+Image"
-                              }
-                              alt={item.name}
-                              width={500}
-                              height={500}
-                              loading={"lazy"}
-                              className="max-w-[200px] max-h-[200px] w-full h-full object-cover object-center rounded-lg overflow-hidden"
-                            />
-                            <span className="text-sm font-semibold font-sans line-clamp-1">
-                              {item?.name}
-                            </span>
-                          </Link>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 pl-4 text-sm text-muted-foreground">
-                      No subcategories
-                    </div>
-                  )}
-                </>
+                <div className="col-span-3 pl-4 text-sm text-muted-foreground">
+                  No subcategories
+                </div>
               )}
             </div>
           </div>

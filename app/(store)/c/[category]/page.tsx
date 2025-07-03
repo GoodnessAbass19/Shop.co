@@ -1,6 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
-import Category from "@/components/category/Catergory";
+import Category from "@/components/category/Category";
 
 type Params = { category: string };
 

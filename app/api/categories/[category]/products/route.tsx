@@ -47,9 +47,7 @@ export async function GET(
     return NextResponse.json({
       products,
       total,
-      totalPages,
       page,
-      limit: ITEM_PER_PAGE,
     });
   } catch (error) {
     console.error("Error fetching category products:", error);

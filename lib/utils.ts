@@ -61,3 +61,16 @@ export const SORT_OPTIONS = [
   { label: "Lowest Price", value: "lowest_price" },
   // { label: "Top Customer Reviews", value: "top_reviews" },
 ];
+
+export function separateStringByComma(string: string) {
+  /**
+   * Separates a string of words by commas and returns an array of words.
+   *
+   * @param {string} string - The input string containing words separated by commas.
+   * @returns {string[]} An array of words.
+   */
+  return string
+    .split("_")
+    .map((word) => word.trim())
+    .join(" ");
+}

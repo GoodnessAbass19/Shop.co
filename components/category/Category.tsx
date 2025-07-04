@@ -13,8 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { cn, SORT_OPTIONS } from "@/lib/utils";
+import { cn, separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
 import { Product } from "@prisma/client";
+import { SlidersHorizontal } from "lucide-react";
+import Pagination from "../ui/Pagination";
 
 // Types
 interface ProductCategory {
@@ -71,7 +73,7 @@ const fetchCategoryProducts = async ({
     `/api/categories/${category}/products?sort=${sort}&page=${page}&limit=${limit}`
   );
   const data = await res.json();
-  return data.products;
+  return data;
 };
 
 const Category = ({ param }: { param: string }) => {
@@ -96,7 +98,11 @@ const Category = ({ param }: { param: string }) => {
   });
 
   // Query products using selected sort
-  const { data: products, isLoading: productLoading } = useQuery({
+  const {
+    data: products,
+    isLoading: productLoading,
+    error,
+  } = useQuery({
     queryKey: ["category-product", category?.slug, sort, page],
     queryFn: ({ queryKey }) =>
       fetchCategoryProducts({
@@ -118,15 +124,16 @@ const Category = ({ param }: { param: string }) => {
     setPage(1);
   };
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
-    setPage(newPage);
-  };
+  // const handlePageChange = (newPage: number) => {
+  //   const params = new URLSearchParams(searchParams);
+  //   params.set("page", newPage.toString());
+  //   router.push(`${pathname}?${params.toString()}`);
+  //   setPage(newPage);
+  // };
 
-  const product = products?.products || [];
-  const totalPages = products?.totalPages || 1;
+  // const product = products?.products || [];
+
+  const p = pageParam ? page : 1;
 
   // Subcategories with toggle logic
   const [showAll, setShowAll] = useState(false);
@@ -200,33 +207,38 @@ const Category = ({ param }: { param: string }) => {
       </div>
 
       {/* Product Sorting */}
-      <div className="flex justify-end">
-        <Select onValueChange={handleSortChange} defaultValue={currentSort}>
-          <SelectTrigger className="w-60">
-            <SelectValue placeholder="Sort By" />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
+      {!productLoading && !error ? (
+        <div className="flex justify-between items-center px-5 mx-auto">
+          <div className="rounded-full border border-black p-2 flex gap-2 capitalize font-semibold font-sans text-sm">
+            <SlidersHorizontal className="w-4 h-4" /> all filters
+          </div>
+          <Select onValueChange={handleSortChange} defaultValue={currentSort}>
+            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans">
+              {/* <SelectValue placeholder="Sort By" /> */}
+              Sort By: {separateStringByComma(sort)}
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
       {/* Product List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[300px] rounded-md" />
           ))
-        ) : products?.length === 0 ? (
+        ) : products?.products?.length === 0 ? (
           <p className="text-center col-span-full text-muted-foreground">
             No products found in this category.
           </p>
         ) : (
-          products?.map((product: Product) => (
+          products?.products?.map((product: Product) => (
             <div
               key={product.id}
               className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
@@ -248,8 +260,8 @@ const Category = ({ param }: { param: string }) => {
           ))
         )}
       </div>
-
-      {totalPages > 1 && (
+      <Pagination count={products?.total} page={products?.page} />
+      {/* {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-10">
           <Button
             variant="outline"
@@ -280,7 +292,7 @@ const Category = ({ param }: { param: string }) => {
             Next
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

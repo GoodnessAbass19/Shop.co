@@ -15,8 +15,11 @@ import {
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { cn, separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
 import { Product } from "@prisma/client";
-import { SlidersHorizontal } from "lucide-react";
+import { Heart, SlidersHorizontal } from "lucide-react";
 import Pagination from "../ui/Pagination";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
+import Link from "next/link";
+import CategoryProductCard from "./CategoryProductCard";
 
 // Types
 interface ProductCategory {
@@ -76,6 +79,8 @@ const fetchCategoryProducts = async ({
   return data;
 };
 
+// Function to check if a product is in the wishlist
+
 const Category = ({ param }: { param: string }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -87,7 +92,6 @@ const Category = ({ param }: { param: string }) => {
   const [page, setPage] = useState(pageParam);
   // Get initial sort state from query params
   const currentSort = searchParams.get("sort") || "recent";
-  const [value, setValue] = useState(currentSort);
 
   // Query category data
   const { data: category, isLoading } = useQuery({
@@ -124,30 +128,13 @@ const Category = ({ param }: { param: string }) => {
     setPage(1);
   };
 
-  // const handlePageChange = (newPage: number) => {
-  //   const params = new URLSearchParams(searchParams);
-  //   params.set("page", newPage.toString());
-  //   router.push(`${pathname}?${params.toString()}`);
-  //   setPage(newPage);
-  // };
-
-  // const product = products?.products || [];
-
-  const p = pageParam ? page : 1;
+  // const p = pageParam ? page : 1;
 
   // Subcategories with toggle logic
   const [showAll, setShowAll] = useState(false);
   const limit = 5;
   const subcategories = category?.subCategories ?? [];
   const visibleItems = showAll ? subcategories : subcategories.slice(0, limit);
-
-  // Handle sorting dropdown change
-  // const handleChange = (newValue: string) => {
-  //   setValue(newValue);
-  //   const params = new URLSearchParams(searchParams);
-  //   params.set("sort", newValue);
-  //   router.push(`${pathname}?${params.toString()}`);
-  // };
 
   return (
     <div className="w-full space-y-10">
@@ -169,7 +156,8 @@ const Category = ({ param }: { param: string }) => {
                 />
               ))
             : visibleItems.map((item) => (
-                <div
+                <Link
+                  href={`/c/${category?.slug}/${item.slug}`}
                   className="w-full transition-transform duration-300 basis-1/6 hover:underline"
                   key={item.id}
                 >
@@ -186,7 +174,7 @@ const Category = ({ param }: { param: string }) => {
                   <h3 className="text-sm text-center font-medium font-sans capitalize mt-2">
                     {item.name}
                   </h3>
-                </div>
+                </Link>
               ))}
         </section>
 
@@ -228,7 +216,7 @@ const Category = ({ param }: { param: string }) => {
         </div>
       ) : null}
       {/* Product List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
         {productLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[300px] rounded-md" />
@@ -239,24 +227,32 @@ const Category = ({ param }: { param: string }) => {
           </p>
         ) : (
           products?.products?.map((product: Product) => (
-            <div
-              key={product.id}
-              className="border border-gray-200 rounded-lg p-4 shadow-sm bg-white"
-            >
-              <Image
-                src={product?.images?.[0] || "https://placehold.co/300x300"}
-                alt={product.name}
-                width={300}
-                height={300}
-                className="w-full h-[200px] object-cover rounded-md"
-              />
-              <div className="mt-3">
-                <h4 className="text-md font-semibold">{product.name}</h4>
-                <p className="text-sm text-gray-500 mt-1">
-                  {/* ₦{product?.price.toLocaleString()} */}
-                </p>
-              </div>
-            </div>
+            // <Link
+            //   href={`/products/${product.slug}`}
+            //   key={product.id}
+            //   className="rounded-lg space-y-1 relative overflow-hidden"
+            // >
+            //   <Image
+            //     src={product?.images?.[0] || "https://placehold.co/300x300"}
+            //     alt={product.name}
+            //     width={300}
+            //     height={300}
+            //     className="w-full h-[250px] object-cover object-center rounded-sm"
+            //   />
+            //   <div className="px-1.5">
+            //     <h4 className="text-base font-normal line-clamp-1">
+            //       {product.name}
+            //     </h4>
+            //     <p className="text-lg uppercase font-semibold font-sans text-black mt-1">
+            //       {formatCurrencyValue(product.price)}
+            //     </p>
+            //   </div>
+
+            //   <span className="font-light text-sm text-center text-black bg-white rounded-full p-2 absolute top-1 right-1">
+            //     <Heart className="w-4 h-4" />
+            //   </span>
+            // </Link>
+            <CategoryProductCard product={product} key={product.id} />
           ))
         )}
       </div>

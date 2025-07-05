@@ -424,7 +424,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
 
       {/* PRODUCT INAGES AND DETAILS */}
       <div className="mx-auto md:grid-cols-2 grid justify-between md:items-start items-center w-full gap-5 px-5">
-        <ThumbnailGallery images={image} />
+        <ThumbnailGallery images={image} id={id} name={productName} />
         <div className="flex flex-col space-y-5 items-start justify-start">
           <div className="grid gap-3 justify-start items-start">
             <div className="flex justify-start items-center gap-2">

@@ -59,7 +59,7 @@ export const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
   { label: "Highest Price", value: "highest_price" },
   { label: "Lowest Price", value: "lowest_price" },
-  // { label: "Top Customer Reviews", value: "top_reviews" },
+  { label: "Top Customer Reviews", value: "top_reviews" },
 ];
 
 export function separateStringByComma(string: string) {

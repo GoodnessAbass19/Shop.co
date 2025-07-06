@@ -12,6 +12,7 @@ export async function GET() {
           // Include the subCategories relation
           include: {
             subSubCategories: true, // Include the subSubCategories relation nested within subCategories
+            category: true, // Include the parent category relation for subCategories
           },
           orderBy: {
             // Optional: order sub-categories by name

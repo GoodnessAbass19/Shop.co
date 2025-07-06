@@ -21,7 +21,15 @@ export async function GET(
       },
       include: {
         products: true,
-        subSubCategories: true,
+        subSubCategories: {
+          include: {
+            subCategory: {
+              include: {
+                category: true,
+              },
+            }, // Include the parent category relation for subSubCategories
+          },
+        },
       },
     });
 

@@ -26,6 +26,16 @@ interface SubSubCategory {
   name: string;
   slug: string;
   image?: string;
+  subCategory: {
+    id: string;
+    name: string;
+    slug: string;
+    category?: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
 }
 
 // Fetch category details
@@ -136,7 +146,7 @@ const SubCategory = ({ param }: { param: string }) => {
               ))
             : visibleItems.map((item) => (
                 <Link
-                  href={window.location.href + `/${item.slug}`}
+                  href={`/c/${item.subCategory.category?.slug}/${subCategory?.slug}/${item.slug}`}
                   className="w-full transition-transform duration-300 basis-1/6 hover:underline"
                   key={item.id}
                 >
@@ -193,7 +203,26 @@ const SubCategory = ({ param }: { param: string }) => {
             </SelectContent>
           </Select>
         </div>
-      ) : null}
+      ) : (
+        <div className="flex justify-between items-center px-5 mx-auto">
+          <div className="rounded-full border border-black p-2 flex gap-2 capitalize font-semibold font-sans text-sm">
+            <SlidersHorizontal className="w-4 h-4" /> all filters
+          </div>
+          <Select onValueChange={handleSortChange} defaultValue={currentSort}>
+            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans">
+              {/* <SelectValue placeholder="Sort By" /> */}
+              Sort By: {separateStringByComma(sort)}
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       {/* Product List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
         {productLoading ? (

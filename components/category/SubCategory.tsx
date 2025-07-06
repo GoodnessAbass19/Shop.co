@@ -1,36 +1,17 @@
 "use client";
-
+import { cn, separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { Skeleton } from "../ui/skeleton";
-import { Button } from "../ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { cn, separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
-import { Product } from "@prisma/client";
-import { Heart, SlidersHorizontal } from "lucide-react";
-import Pagination from "../ui/Pagination";
-import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Link from "next/link";
+import Image from "next/image";
+import { Button } from "../ui/button";
+import Pagination from "../ui/Pagination";
 import CategoryProductCard from "./CategoryProductCard";
 import { ProductFromApi } from "../products/productCard";
-
-// Types
-interface ProductCategory {
-  id: string;
-  name: string;
-  slug: string;
-  image?: string;
-  product: Product[];
-  subCategories: SubCategory[];
-}
+import { SlidersHorizontal } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 
 interface SubCategory {
   id: string;
@@ -48,12 +29,12 @@ interface SubSubCategory {
 }
 
 // Fetch category details
-const fetchCategory = async ({
-  category,
+const fetchSubCategory = async ({
+  subcategory,
 }: {
-  category: string;
-}): Promise<ProductCategory> => {
-  const res = await fetch(`/api/categories/${category}`);
+  subcategory: string;
+}): Promise<SubCategory> => {
+  const res = await fetch(`/api/subcategories/${subcategory}`);
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.error || "Failed to fetch category data.");
@@ -62,7 +43,7 @@ const fetchCategory = async ({
 };
 
 // Fetch sorted products in the category
-const fetchCategoryProducts = async ({
+const fetchSubCategoryProducts = async ({
   category,
   sort,
   page,
@@ -74,15 +55,13 @@ const fetchCategoryProducts = async ({
   limit?: number;
 }) => {
   const res = await fetch(
-    `/api/categories/${category}/products?sort=${sort}&page=${page}&limit=${limit}`
+    `/api/subcategories/${category}/products?sort=${sort}&page=${page}&limit=${limit}`
   );
   const data = await res.json();
   return data;
 };
 
-// Function to check if a product is in the wishlist
-
-const Category = ({ param }: { param: string }) => {
+const SubCategory = ({ param }: { param: string }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -95,10 +74,10 @@ const Category = ({ param }: { param: string }) => {
   const currentSort = searchParams.get("sort") || "recent";
 
   // Query category data
-  const { data: category, isLoading } = useQuery({
+  const { data: subCategory, isLoading } = useQuery({
     queryKey: ["category", param],
     queryFn: ({ queryKey }) =>
-      fetchCategory({ category: queryKey[1] as string }),
+      fetchSubCategory({ subcategory: queryKey[1] as string }),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -108,15 +87,15 @@ const Category = ({ param }: { param: string }) => {
     isLoading: productLoading,
     error,
   } = useQuery({
-    queryKey: ["category-product", category?.slug, sort, page],
+    queryKey: ["category-product", subCategory?.slug, sort, page],
     queryFn: ({ queryKey }) =>
-      fetchCategoryProducts({
+      fetchSubCategoryProducts({
         category: queryKey[1] as string,
         sort,
         page,
         limit,
       }),
-    enabled: !!category?.slug,
+    enabled: !!subCategory?.slug,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -129,17 +108,16 @@ const Category = ({ param }: { param: string }) => {
     setPage(1);
   };
 
-  // const p = pageParam ? page : 1;
-
   // Subcategories with toggle logic
   const [showAll, setShowAll] = useState(false);
   const limit = 5;
-  const subcategories = category?.subCategories ?? [];
-  const visibleItems = showAll ? subcategories : subcategories.slice(0, limit);
+  const subsubcategories = subCategory?.subSubCategories ?? [];
+  const visibleItems = showAll
+    ? subsubcategories
+    : subsubcategories.slice(0, limit);
 
   return (
     <div className="w-full space-y-10">
-      {/* Subcategories Preview */}
       <div className="space-y-3 flex flex-col items-center justify-center">
         <section
           className={cn(
@@ -158,7 +136,7 @@ const Category = ({ param }: { param: string }) => {
               ))
             : visibleItems.map((item) => (
                 <Link
-                  href={`/c/${category?.slug}/${item.slug}`}
+                  href={window.location.href + `/${item.slug}`}
                   className="w-full transition-transform duration-300 basis-1/6 hover:underline"
                   key={item.id}
                 >
@@ -180,7 +158,7 @@ const Category = ({ param }: { param: string }) => {
         </section>
 
         {/* Show More / Show Less */}
-        {subcategories.length > limit && (
+        {subsubcategories.length > limit && (
           <div className="flex justify-center">
             <Button
               className="rounded-full p-3 bg-gray-300 text-base font-semibold font-sans"
@@ -189,7 +167,7 @@ const Category = ({ param }: { param: string }) => {
             >
               {showAll
                 ? `Show Less`
-                : `Show More (${subcategories.length - limit})`}
+                : `Show More (${subsubcategories.length - limit})`}
             </Button>
           </div>
         )}
@@ -228,31 +206,6 @@ const Category = ({ param }: { param: string }) => {
           </p>
         ) : (
           products?.products?.map((product: ProductFromApi) => (
-            // <Link
-            //   href={`/products/${product.slug}`}
-            //   key={product.id}
-            //   className="rounded-lg space-y-1 relative overflow-hidden"
-            // >
-            //   <Image
-            //     src={product?.images?.[0] || "https://placehold.co/300x300"}
-            //     alt={product.name}
-            //     width={300}
-            //     height={300}
-            //     className="w-full h-[250px] object-cover object-center rounded-sm"
-            //   />
-            //   <div className="px-1.5">
-            //     <h4 className="text-base font-normal line-clamp-1">
-            //       {product.name}
-            //     </h4>
-            //     <p className="text-lg uppercase font-semibold font-sans text-black mt-1">
-            //       {formatCurrencyValue(product.price)}
-            //     </p>
-            //   </div>
-
-            //   <span className="font-light text-sm text-center text-black bg-white rounded-full p-2 absolute top-1 right-1">
-            //     <Heart className="w-4 h-4" />
-            //   </span>
-            // </Link>
             <CategoryProductCard product={product} key={product.id} />
           ))
         )}
@@ -294,4 +247,4 @@ const Category = ({ param }: { param: string }) => {
   );
 };
 
-export default Category;
+export default SubCategory;

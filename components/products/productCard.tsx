@@ -10,7 +10,8 @@ import {
   SubCategory,
   SubSubCategory,
   Store,
-  Discount, // Import Discount type
+  Discount,
+  ProductReview, // Import Discount type
 } from "@prisma/client";
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +41,8 @@ export type ProductFromApi = Product & {
   lowestPrice: number; // The lowest base price (from variants or product)
   discountedPrice: number | null; // The price after discount
   images: { url: string }[]; // Transformed image array
+  reviews: ProductReview[];
+  averageRating: number; // Average rating calculated from reviews
 };
 
 const checkWishlistStatus = async (

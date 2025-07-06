@@ -10,6 +10,7 @@ import Link from "next/link";
 import React, { useCallback } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { ProductFromApi } from "../products/productCard";
 
 const checkWishlistStatus = async (
   productId: string
@@ -50,7 +51,7 @@ const removeProductFromWishlist = async (productId: string) => {
   return res.json();
 };
 
-const CategoryProductCard = ({ product }: { product: Product }) => {
+const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -144,11 +145,38 @@ const CategoryProductCard = ({ product }: { product: Product }) => {
           height={300}
           className="w-full h-[250px] object-cover object-center rounded-sm"
         />
-        <div className="px-1.5">
+        <div className="px-1.5 leading-tight">
           <h4 className="text-base font-normal line-clamp-1">{product.name}</h4>
-          <p className="text-lg uppercase font-semibold font-sans text-black mt-1">
-            {formatCurrencyValue(product.price)}
-          </p>
+          <div>
+            {product.reviews.length > 0 && (
+              <span className="text-black text-2xl font-normal flex items-center gap-1">
+                {"★".repeat(product.averageRating)}
+                {"☆".repeat(5 - product.averageRating)}{" "}
+                <span className="text-base">({product.reviews.length})</span>
+              </span>
+            )}
+          </div>
+          <div className="flex gap-0.5 items-center">
+            <p className="text-lg uppercase font-semibold font-sans text-black mt-1">
+              {formatCurrencyValue(product.discountedPrice || product.price)}
+            </p>
+
+            {product?.discountedPrice && (
+              <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
+                {formatCurrencyValue(product?.price)}
+              </span>
+            )}
+            {product?.discountedPrice !== null && (
+              <span className="font-normal text-sm text-center text-black font-sans">
+                ({product?.discounts?.[0]?.percentage}% off)
+                {/* {percentageDifference(
+              // @ts-ignore
+              item?.price,
+              item?.discountedPrice
+            )} */}
+              </span>
+            )}
+          </div>
         </div>
       </Link>
       {/* <span className="font-light text-sm text-center text-black bg-white rounded-full p-2 absolute top-1 right-1">

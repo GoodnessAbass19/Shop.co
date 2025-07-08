@@ -306,25 +306,6 @@ const CartPage = () => {
     );
   }
 
-  // Render Error State
-  // if (error) {
-  //   return (
-  //     <section className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-red-50">
-  //       <div className="p-8 border border-red-300 rounded-lg bg-red-100 text-red-800 text-center shadow-md">
-  //         <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-  //         <p className="text-xl font-semibold mb-3">Error loading your cart:</p>
-  //         <p className="mb-4">{error.message}</p>
-  //         <Button
-  //           onClick={() => mutate()}
-  //           className="bg-red-700 hover:bg-red-800 text-white"
-  //         >
-  //           Retry Loading Cart
-  //         </Button>
-  //       </div>
-  //     </section>
-  //   );
-  // }
-
   // Render Empty Cart State
   if (!cart || cart.cartItems.length === 0) {
     return (

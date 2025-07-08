@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const { orderId } = params;
+    const { orderId } = await params;
 
     // 1. Authenticate User
     const user = await getCurrentUser();

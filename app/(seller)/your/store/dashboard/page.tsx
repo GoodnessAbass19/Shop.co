@@ -135,7 +135,7 @@ export default function SellerDashboardPage() {
               {store.name}
             </h2>
           </div>
-          <Link href={`/store/${store.slug}`} passHref>
+          <Link href={`/shop/${store.slug}`} passHref>
             <Button
               variant="outline"
               className="text-blue-600 hover:text-blue-800 border-blue-600 hover:border-blue-800"
@@ -146,10 +146,6 @@ export default function SellerDashboardPage() {
         </div>
         <p className="text-gray-700 text-lg">
           {store.description || "No description provided."}
-        </p>
-        <p className="text-sm text-gray-500 mt-4">Store ID: {store.id}</p>
-        <p className="text-sm text-gray-500">
-          Created: {new Date(store.createdAt).toLocaleDateString()}
         </p>
       </div>
 

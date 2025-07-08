@@ -240,38 +240,6 @@ const SubCategory = ({ param }: { param: string }) => {
         )}
       </div>
       <Pagination count={products?.total} page={products?.page} />
-      {/* {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-10">
-          <Button
-            variant="outline"
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-          >
-            Previous
-          </Button>
-
-          {Array.from({ length: totalPages }).map((_, idx) => {
-            const pageNum = idx + 1;
-            return (
-              <Button
-                key={pageNum}
-                variant={page === pageNum ? "default" : "outline"}
-                onClick={() => handlePageChange(pageNum)}
-              >
-                {pageNum}
-              </Button>
-            );
-          })}
-
-          <Button
-            variant="outline"
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-          >
-            Next
-          </Button>
-        </div>
-      )} */}
     </div>
   );
 };

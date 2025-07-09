@@ -35,12 +35,14 @@ const Wishlist = () => {
   });
 
   return (
-    <div>
+    <div className="px-4 max-w-screen-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Wishlist</h1>
       {productLoading ? (
-        Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-[300px] rounded-md" />
-        ))
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-[300px] rounded-md" />
+          ))}
+        </div>
       ) : products?.products?.length === 0 ? (
         <p className="text-center col-span-full text-muted-foreground">
           No products found.

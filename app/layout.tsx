@@ -35,30 +35,30 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <NextTopLoader height={5} speed={800} />
-          <ThemeProvider
+          {/* <ThemeProvider
             attribute="class"
             defaultTheme="light"
             enableSystem
             disableTransitionOnChange
-          >
-            <Provider>
-              <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-              />
-              {children}
+          > */}
+          <Provider>
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+            {children}
 
-              <Toaster />
-            </Provider>
-          </ThemeProvider>
+            <Toaster />
+          </Provider>
+          {/* </ThemeProvider> */}
         </body>
       </html>
     </ClerkProvider>

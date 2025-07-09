@@ -30,6 +30,11 @@ export const config = {
 //   "/api/products/top-selling",
 //   "/api/products/new-arrivals",
 //   "/api/products/:slug",
+//   "/api/search-products",
+//   "/api/categories/:category",
+//   "/api/categories/:category/products",
+//   "/api/subcategories/:subcategory/products",
+//   "/api/subsubcategories/:slug/products",
 // ];
 
 // // Build matchers for dynamic public routes

@@ -221,6 +221,15 @@ export async function GET(request: Request) {
             subSubCategory: true,
           },
         },
+        orderItems: {
+          include: {
+            order: {
+              include: {
+                buyer: true, // Include user details for the order
+              },
+            },
+          },
+        },
       },
     });
 

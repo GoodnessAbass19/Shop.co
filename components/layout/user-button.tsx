@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import {
   ChevronDown,
   CircleUserRound,
+  Heart,
   Settings,
   ShoppingBagIcon,
   Store,
@@ -130,6 +131,16 @@ const UserButton = () => {
                   >
                     <ShoppingBagIcon className="w-5 h-5 text-black" />
                     orders
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link
+                    href={"/me/wishlist"}
+                    className="flex justify-start items-center gap-2 capitalize"
+                  >
+                    <Heart className="w-5 h-5 text-black" />
+                    wishlist
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -1,10 +1,12 @@
-// components/seller/SellerDashboard.tsx
+// app/dashboard/seller/layout.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import {
-  LayoutDashboard,
+  Loader2,
+  X,
+  Store as StoreIcon,
   Package,
   ShoppingBag,
   BarChart,
@@ -13,19 +15,14 @@ import {
   Settings,
   MessageSquare,
   Star,
-  LogOut,
-  Menu,
-  X,
-  Store as StoreIcon,
-  Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils"; // Utility for merging Tailwind classes
-import { Button } from "@/components/ui/button"; // Assuming you have a Button component
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   useQuery,
   QueryClient,
   QueryClientProvider,
-} from "@tanstack/react-query"; // For data fetching
+} from "@tanstack/react-query";
 import {
   User,
   Role,
@@ -38,20 +35,11 @@ import {
   Order,
   Address,
 } from "@prisma/client";
-
-// Placeholder components for each dashboard page
-import { DashboardOverview } from "./DashboardOverview";
-import { ProductManagement } from "./ProductManagement";
-import { OrderManagement } from "./OrderManagement";
-import { SalesAnalytics } from "./SalesAnalytics";
-import { InventoryManagement } from "./InventoryManagement";
-import { DiscountManagement } from "./DiscountManagement";
-import { StoreSettings } from "./StoreSettings";
-import { CustomerMessages } from "./CustomerMessages";
-import { ProductReviews } from "./ProductReviews";
+import { Sidebar } from "../dashboard/Sidebar";
+import { SellerStoreProvider } from "@/Hooks/use-store-context";
 
 // Define the structure of the SellerStore data expected from the API
-interface SellerStore {
+interface SellerStoreData {
   id: string;
   name: string;
   description: string | null;
@@ -60,7 +48,6 @@ interface SellerStore {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
-  // Include relations as fetched by your API route
   products: (Product & {
     variants: ProductVariant[];
     category: Category;
@@ -70,26 +57,46 @@ interface SellerStore {
   orderItems: (OrderItem & {
     order: Order & {
       buyer: User;
-      address: Address; // Assuming Address is included in Order
+      address: Address;
     };
   })[];
 }
 
-// Define navigation items
+// Define navigation items (moved here from Sidebar for centralized control)
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, component: DashboardOverview },
-  { name: "Products", icon: Package, component: ProductManagement },
-  { name: "Orders", icon: ShoppingBag, component: OrderManagement },
-  { name: "Sales & Analytics", icon: BarChart, component: SalesAnalytics },
-  { name: "Inventory", icon: Warehouse, component: InventoryManagement },
-  { name: "Discounts", icon: Percent, component: DiscountManagement },
-  { name: "Store Settings", icon: Settings, component: StoreSettings },
-  { name: "Messages", icon: MessageSquare, component: CustomerMessages },
-  { name: "Reviews", icon: Star, component: ProductReviews },
+  {
+    name: "Dashboard",
+    icon: StoreIcon,
+    href: "/your/store/dashboard",
+  }, // Using StoreIcon for general dashboard
+  { name: "Products", icon: Package, href: "/your/store/dashboard/products" },
+  { name: "Orders", icon: ShoppingBag, href: "/your/store/dashboard/orders" },
+  {
+    name: "Sales & Analytics",
+    icon: BarChart,
+    href: "/your/store/dashboard/sales-analytics",
+  },
+  {
+    name: "Inventory",
+    icon: Warehouse,
+    href: "/your/store/dashboard/inventory",
+  },
+  { name: "Discounts", icon: Percent, href: "/your/store/dashboard/discounts" },
+  {
+    name: "Store Settings",
+    icon: Settings,
+    href: "/your/store/dashboard/settings",
+  },
+  {
+    name: "Messages",
+    icon: MessageSquare,
+    href: "/your/store/dashboard/messages",
+  },
+  { name: "Reviews", icon: Star, href: "/your/store/dashboard/reviews" },
 ];
 
 // Function to fetch seller's store data
-const fetchSellerStore = async (): Promise<{ store: SellerStore }> => {
+const fetchSellerStore = async (): Promise<{ store: SellerStoreData }> => {
   const res = await fetch("/api/store"); // Your API endpoint
   if (!res.ok) {
     const errorData = await res.json();
@@ -98,13 +105,18 @@ const fetchSellerStore = async (): Promise<{ store: SellerStore }> => {
   return res.json();
 };
 
-export function SellerDashboard() {
-  const [activePage, setActivePage] = useState("Dashboard");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar
+// Initialize QueryClient outside the component
+const queryClient = new QueryClient();
 
+// Main Layout Component
+export default function SellerDashboardLayout({
+  children, // This is where your page.tsx content will be rendered
+}: {
+  children: React.ReactNode;
+}) {
   // Fetch seller's store data
   const { data, isLoading, isError, error } = useQuery<
-    { store: SellerStore },
+    { store: SellerStoreData },
     Error
   >({
     queryKey: ["sellerStore"],
@@ -114,19 +126,7 @@ export function SellerDashboard() {
     retry: 1, // Retry once if it fails
   });
 
-  const sellerStore = data?.store; // Extract the store object
-
-  // Close sidebar on page change for mobile
-  useEffect(() => {
-    if (isSidebarOpen) {
-      setIsSidebarOpen(false);
-    }
-  }, [activePage]);
-
-  // Determine the component to render based on activePage
-  const ActiveComponent = navItems.find(
-    (item) => item.name === activePage
-  )?.component;
+  const sellerStore = data?.store;
 
   // Handle loading state for the main store data
   if (isLoading) {
@@ -180,20 +180,23 @@ export function SellerDashboard() {
     );
   }
 
-  // Function to handle logout (placeholder)
-  const handleLogout = () => {
-    // Implement your logout logic here (e.g., clear token, redirect to login)
-    console.log("Logging out...");
-    // Example: router.push('/sign-in');
-  };
-
   return (
-    <div
-    // className="flex min-h-screen bg-gray-100 font-inter"
-    >
-      <DashboardOverview store={sellerStore} />
-    </div>
+    <SellerStoreProvider store={sellerStore}>
+      {" "}
+      {/* Provide store data to children */}
+      <div className="flex min-h-screen bg-gray-100 font-inter">
+        {/* Sidebar is now a separate component */}
+        <Sidebar storeName={sellerStore.name} navItems={navItems} />{" "}
+        {/* No setActivePage needed */}
+        {/* Main Content Area */}
+        {/* Adjusted padding-top (pt-20) for mobile fixed header */}
+        <main className="flex-1 p-4 md:p-8 pt-20 md:pt-4 overflow-y-auto">
+          <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-40px)]">
+            {children}{" "}
+            {/* This is where the specific page content will be rendered */}
+          </div>
+        </main>
+      </div>
+    </SellerStoreProvider>
   );
 }
-
-export default SellerDashboard;

@@ -1,3 +1,5 @@
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import SellerDashboardLayout from "@/components/seller/Layout";
 import Link from "next/link";
 
 export default function DashboardLayout({
@@ -17,7 +19,8 @@ export default function DashboardLayout({
           </Link>
         </div>
       </div>
-      {children}
+
+      <SellerDashboardLayout children={children} />
     </div>
   );
 }

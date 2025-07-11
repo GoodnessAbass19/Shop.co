@@ -5,6 +5,9 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
+      where: {
+        status: "ACTIVE", // Only fetch active products
+      },
       orderBy: {
         createdAt: "desc", // Order by creation date for new arrivals
       },

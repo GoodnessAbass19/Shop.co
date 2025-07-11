@@ -71,25 +71,25 @@ model Store {
 }
 
 model Product {
-  id                String   @id @default(uuid())
+  id                String          @id @default(uuid())
   name              String
-  slug              String   @unique // Slug for SEO-friendly URLs
+  slug              String          @unique // Slug for SEO-friendly URLs
   description       String
   price             Float?
   stock             Int?
   lowStockThreshold Int? // NEW: Alert when stock falls below this
   images            String[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  storeId          String
-  store            Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  categoryId       String
-  category         Category        @relation(fields: [categoryId], references: [id])
-  subCategoryId    String
-  subCategory      SubCategory     @relation(fields: [subCategoryId], references: [id])
-  subSubCategoryId String?
-  subSubCategory   SubSubCategory? @relation(fields: [subSubCategoryId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  status            ProductStatus   @default(ACTIVE)
+  storeId           String
+  store             Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoryId        String
+  category          Category        @relation(fields: [categoryId], references: [id])
+  subCategoryId     String
+  subCategory       SubCategory     @relation(fields: [subCategoryId], references: [id])
+  subSubCategoryId  String?
+  subSubCategory    SubSubCategory? @relation(fields: [subSubCategoryId], references: [id])
 
   variants      ProductVariant[]
   reviews       ProductReview[]
@@ -265,4 +265,11 @@ enum Role {
   SELLER
   // ADMIN
   // DISPATCH
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+  OUT_OF_STOCK
 }

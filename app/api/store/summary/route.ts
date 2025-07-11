@@ -192,7 +192,7 @@ export async function GET(request: Request) {
     // === Monthly Revenue & Orders (grouped by month) ===
     const monthlyRaw = await prisma.order.findMany({
       where: {
-        status: OrderStatus.DELIVERED,
+        status: OrderStatus.PAID,
         items: {
           some: { storeId },
         },

@@ -24,6 +24,7 @@ export async function GET(
         subCategory: {
           slug: params.subcategory,
         },
+        status: "ACTIVE", // Only count active products
       },
     });
 

@@ -10,26 +10,59 @@ import {
   Users,
   Loader2,
   Info,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, getMonth, getYear, subMonths } from "date-fns";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 
 // Define the shape of the data expected from the API
+// interface DashboardSummary {
+//   totalRevenue: number;
+//   monthlyRevenue: number;
+//   totalOrders: number;
+//   monthlyOrders: number;
+//   totalProducts: number;
+//   totalCustomers: number;
+//   recentActivities: Array<{
+//     id: string;
+//     type: "ORDER" | "STOCK_LOW" | "PAYOUT" | "REVIEW";
+//     message: string;
+//     timestamp: string;
+//   }>;
+// }
+
 interface DashboardSummary {
   totalRevenue: number;
-  monthlyRevenue: number;
   totalOrders: number;
-  monthlyOrders: number;
   totalProducts: number;
+  topProducts: TopProduct[];
   totalCustomers: number;
-  recentActivities: Array<{
-    id: string;
-    type: "ORDER" | "STOCK_LOW" | "PAYOUT" | "REVIEW";
-    message: string;
-    timestamp: string;
-  }>;
+  recentActivities: RecentActivity[];
+  monthlyStats: MonthlyStat[];
+}
+
+interface TopProduct {
+  id: string;
+  name: string;
+  soldCount: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: string;
+}
+
+interface MonthlyStat {
+  month: string;
+  revenue: number;
+  orders: number;
 }
 
 // Function to fetch dashboard summary data for a specific store
@@ -80,9 +113,8 @@ export function DashboardOverview() {
 
   const {
     totalRevenue,
-    monthlyRevenue,
+    monthlyStats,
     totalOrders,
-    monthlyOrders,
     totalProducts,
     totalCustomers,
     recentActivities,
@@ -95,6 +127,48 @@ export function DashboardOverview() {
     totalCustomers: 0,
     recentActivities: [],
   };
+
+  const now = new Date();
+  const currentMonth = getMonth(now); // 0-indexed (0 = January)
+  const currentYear = getYear(now);
+
+  // Find current month stat
+  const currentMonthStat = monthlyStats?.find((stat) => {
+    const statDate = new Date(stat.month);
+    return (
+      getMonth(statDate) === currentMonth && getYear(statDate) === currentYear
+    );
+  });
+
+  // Find previous month stat
+  const prevMonthDate = subMonths(now, 1);
+  const prevMonth = getMonth(prevMonthDate);
+  const prevYear = getYear(prevMonthDate);
+
+  const prevMonthStat = monthlyStats?.find((stat) => {
+    const statDate = new Date(stat.month);
+    return getMonth(statDate) === prevMonth && getYear(statDate) === prevYear;
+  });
+
+  const monthlyRevenue = currentMonthStat?.revenue || 0;
+  const monthlyOrders = currentMonthStat?.orders || 0;
+  const prevMonthlyRevenue = prevMonthStat?.revenue || 0;
+  const prevMonthlyOrders = prevMonthStat?.orders || 0;
+
+  // Calculate percentage difference (avoid division by zero)
+  const revenueDiff =
+    prevMonthlyRevenue === 0
+      ? monthlyRevenue === 0
+        ? 0
+        : 100
+      : ((monthlyRevenue - prevMonthlyRevenue) / prevMonthlyRevenue) * 100;
+
+  const ordersDiff =
+    prevMonthlyOrders === 0
+      ? monthlyOrders === 0
+        ? 0
+        : 100
+      : ((monthlyOrders - prevMonthlyOrders) / prevMonthlyOrders) * 100;
 
   return (
     <div className="space-y-8">
@@ -128,11 +202,28 @@ export function DashboardOverview() {
             </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-start space-y-1">
             <div className="text-2xl font-bold">
               {formatCurrencyValue(monthlyRevenue || 0)}
             </div>
             <p className="text-xs text-muted-foreground">Current month</p>
+            <span
+              className={`font-semibold text-xs flex flex-row gap-1 items-center ${
+                revenueDiff > 0
+                  ? "text-green-600"
+                  : revenueDiff < 0
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {revenueDiff > 0 ? (
+                <ArrowUp className="h-3 w-3" />
+              ) : (
+                <ArrowDown className="h-3 w-3" />
+              )}
+              {ordersDiff > 0 ? "+" : "-"}
+              {revenueDiff.toFixed(1)}%
+            </span>
           </CardContent>
         </Card>
 
@@ -158,9 +249,26 @@ export function DashboardOverview() {
             </CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-start space-y-1">
             <div className="text-2xl font-bold">{monthlyOrders}</div>
             <p className="text-xs text-muted-foreground">Current month</p>
+            <span
+              className={`font-semibold text-xs flex flex-row items-center gap-1 ${
+                ordersDiff > 0
+                  ? "text-green-600"
+                  : ordersDiff < 0
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {ordersDiff > 0 ? (
+                <ArrowUp className="h-3 w-3" />
+              ) : (
+                <ArrowDown className="h-3 w-3" />
+              )}
+              {ordersDiff > 0 ? "+" : "-"}
+              {ordersDiff.toFixed(1)}%
+            </span>
           </CardContent>
         </Card>
 

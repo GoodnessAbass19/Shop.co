@@ -17,6 +17,7 @@ export async function GET() {
             },
           },
         },
+        status: "ACTIVE", // Only fetch active products
       },
       include: {
         discounts: {

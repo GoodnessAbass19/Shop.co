@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -21,6 +20,7 @@ import {
   Loader2,
   Search,
   XCircle,
+  Eye,
   Package,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,9 +33,19 @@ import {
   SubSubCategory,
 } from "@prisma/client";
 import Image from "next/image";
-import Link from "next/link"; // Assuming you have a product detail page
+import Link from "next/link";
+import { AddProductForm } from "./AddProductForm"; // Import the new AddProductForm
+import { EditProductForm } from "./EditProductForm"; // Import the new EditProductForm
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"; // Assuming shadcn/ui Dialog
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useSellerStore } from "@/Hooks/use-store-context";
+import { useRouter } from "next/navigation";
 
 // Extend Product type for data fetching
 type ProductWithRelations = Product & {
@@ -45,19 +55,10 @@ type ProductWithRelations = Product & {
   subSubCategory: SubSubCategory | null;
 };
 
-// Define the minimal structure of the store prop needed by this component
-interface ProductManagementProps {
-  store: {
-    id: string;
-    name: string;
-  };
-}
-
 // Function to fetch seller's products for a specific store
 const fetchSellerProducts = async (
   storeId: string
 ): Promise<ProductWithRelations[]> => {
-  // This API endpoint needs to be created/updated to accept storeId as a query param
   const res = await fetch(`/api/store/products?storeId=${storeId}`);
   if (!res.ok) {
     const errorData = await res.json();
@@ -66,7 +67,7 @@ const fetchSellerProducts = async (
   return res.json();
 };
 
-// Function to delete a product (assuming backend handles authorization by user/store)
+// Function to delete a product
 const deleteProduct = async (productId: string) => {
   const res = await fetch(`/api/store/products/${productId}`, {
     method: "DELETE",
@@ -81,8 +82,11 @@ const deleteProduct = async (productId: string) => {
 export function ProductManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState("");
   const { store } = useSellerStore(); // Get store data from context
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   const {
     data: products,
@@ -90,11 +94,11 @@ export function ProductManagement() {
     isError,
     error,
   } = useQuery<ProductWithRelations[], Error>({
-    queryKey: ["sellerProducts", store.id], // Query key now includes store.id
-    queryFn: () => fetchSellerProducts(store.id), // Pass store.id to the fetcher
+    queryKey: ["sellerProducts", store.id],
+    queryFn: () => fetchSellerProducts(store.id),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    enabled: !!store.id, // Only run query if store.id is available
+    enabled: !!store.id,
   });
 
   const deleteMutation = useMutation({
@@ -104,10 +108,10 @@ export function ProductManagement() {
         title: "Product Deleted",
         description: "Product has been successfully removed.",
       });
-      queryClient.invalidateQueries({ queryKey: ["sellerProducts", store.id] }); // Refetch products after deletion
+      queryClient.invalidateQueries({ queryKey: ["sellerProducts", store.id] });
       queryClient.invalidateQueries({
         queryKey: ["sellerDashboardSummary", store.id],
-      }); // Invalidate dashboard summary
+      });
     },
     onError: (err: any) => {
       toast({
@@ -170,14 +174,48 @@ export function ProductManagement() {
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-        <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+        <Button
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => router.push("/your/store/dashboard/products/new")}
+        >
           <PlusCircle className="h-5 w-5" /> Add New Product
         </Button>
-        {/* You might link this to your MultiStepStoreCreationForm or a simplified product creation form */}
         <Button variant="outline" className="flex items-center gap-2">
           <List className="h-5 w-5" /> View Product Categories
         </Button>
       </div>
+
+      {/* Add Product Dialog */}
+      {/* <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+          </DialogHeader>
+          <AddProductForm
+            onSuccess={() => setShowAddForm(false)}
+            onCancel={() => setShowAddForm(false)}
+          />
+        </DialogContent>
+      </Dialog> */}
+
+      {/* Edit Product Dialog */}
+      {/* {editingProductId && (
+        <Dialog
+          open={!!editingProductId}
+          onOpenChange={() => setEditingProductId(null)}
+        >
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+            </DialogHeader>
+            <EditProductForm
+              productId={editingProductId}
+              onSuccess={() => setEditingProductId(null)}
+              onCancel={() => setEditingProductId(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )} */}
 
       {/* Search Bar */}
       <div className="relative mb-6">
@@ -253,12 +291,32 @@ export function ProductManagement() {
                   </TableCell> */}
                   <TableCell>{formatCurrencyValue(product.price)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center whitespace-nowrap">
+                    <Link
+                      href={`/products/${product.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mr-1"
+                        title="View Product"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="mr-2"
+                      className="mr-1"
                       title="Edit Product"
+                      onClick={() =>
+                        // setEditingProductId(product.id)
+                        router.push(
+                          `/your/store/dashboard/products/${product.id}/edit`
+                        )
+                      }
                     >
                       <Edit className="h-4 w-4" />
                     </Button>

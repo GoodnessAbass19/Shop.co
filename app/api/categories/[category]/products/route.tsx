@@ -84,6 +84,7 @@ export async function GET(
         category: {
           slug: params.category,
         },
+        status: "ACTIVE", // Only count active products
       },
     });
 

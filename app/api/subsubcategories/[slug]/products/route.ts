@@ -36,6 +36,7 @@ export async function GET(
           subSubCategory: {
             slug: params.slug,
           },
+          status: "ACTIVE",
         },
         include: {
           variants: true,

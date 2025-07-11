@@ -22,6 +22,7 @@ export async function GET(request: Request) {
           contains: query,
           mode: "insensitive", // Case-insensitive search
         },
+        status: "ACTIVE", // Only fetch active products
       },
       take: 20, // Limit the number of results
       // Include necessary relations if you want to display more details on the frontend

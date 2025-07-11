@@ -27,7 +27,10 @@ export async function GET(request: Request) {
 
     // Fetch products with all necessary relations
     const products = await prisma.product.findMany({
-      where: whereClause,
+      where: whereClause && {
+        status: "ACTIVE", // Only fetch active products
+        ...whereClause, // Include any additional filters
+      },
       include: {
         category: {
           select: { id: true, name: true, slug: true },

@@ -34,15 +34,15 @@ import {
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { AddProductForm } from "./AddProductForm"; // Import the new AddProductForm
-import { EditProductForm } from "./EditProductForm"; // Import the new EditProductForm
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"; // Assuming shadcn/ui Dialog
+// import { AddProductForm } from "./AddProductForm"; // Import the new AddProductForm
+// import { EditProductForm } from "./EditProductForm"; // Import the new EditProductForm
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog"; // Assuming shadcn/ui Dialog
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { useRouter } from "next/navigation";
@@ -184,38 +184,6 @@ export function ProductManagement() {
           <List className="h-5 w-5" /> View Product Categories
         </Button>
       </div>
-
-      {/* Add Product Dialog */}
-      {/* <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-          </DialogHeader>
-          <AddProductForm
-            onSuccess={() => setShowAddForm(false)}
-            onCancel={() => setShowAddForm(false)}
-          />
-        </DialogContent>
-      </Dialog> */}
-
-      {/* Edit Product Dialog */}
-      {/* {editingProductId && (
-        <Dialog
-          open={!!editingProductId}
-          onOpenChange={() => setEditingProductId(null)}
-        >
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Product</DialogTitle>
-            </DialogHeader>
-            <EditProductForm
-              productId={editingProductId}
-              onSuccess={() => setEditingProductId(null)}
-              onCancel={() => setEditingProductId(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )} */}
 
       {/* Search Bar */}
       <div className="relative mb-6">

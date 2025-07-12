@@ -78,6 +78,7 @@ export async function POST(req: Request) {
           data: {
             status: OrderStatus.PAID, // Use the OrderStatus enum
             stripePaymentIntentId: paymentIntentId, // Save the PaymentIntent ID
+            paidAt: new Date(), // Set the payment date
             refundStatus: "NOT_APPLICABLE", // Initialize refund status for a completed order
           },
           include: {
@@ -187,6 +188,9 @@ export async function POST(req: Request) {
           data: {
             stripeRefundId: refund.id, // Store the Stripe Refund ID
             refundStatus: newRefundStatus, // Update your custom refund status
+            refundRequestedAt: refund.created
+              ? new Date(refund.created * 1000)
+              : null, // Store the refund request date
           },
         });
         console.log(

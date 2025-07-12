@@ -172,8 +172,9 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">
-        Dashboard Overview for {store.name}
+      <h2 className="text-2xl font-medium text-gray-900 mb-6">
+        <span className="text-gray-700 font-bold">Hey there,</span> here is a
+        resume of where {store.name} is at right now
       </h2>
 
       {/* Key Metrics Cards */}

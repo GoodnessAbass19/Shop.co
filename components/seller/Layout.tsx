@@ -46,6 +46,7 @@ interface SellerStoreData {
   logo: string | null;
   banners: string[];
   userId: string;
+  user: User;
   createdAt: Date;
   updatedAt: Date;
   products: (Product & {
@@ -82,17 +83,17 @@ const navItems = [
     href: "/your/store/dashboard/inventory",
   },
   { name: "Discounts", icon: Percent, href: "/your/store/dashboard/discounts" },
-  {
-    name: "Store Settings",
-    icon: Settings,
-    href: "/your/store/dashboard/settings",
-  },
-  {
-    name: "Messages",
-    icon: MessageSquare,
-    href: "/your/store/dashboard/messages",
-  },
-  { name: "Reviews", icon: Star, href: "/your/store/dashboard/reviews" },
+  // {
+  //   name: "Store Settings",
+  //   icon: Settings,
+  //   href: "/your/store/dashboard/settings",
+  // },
+  // {
+  //   name: "Messages",
+  //   icon: MessageSquare,
+  //   href: "/your/store/dashboard/messages",
+  // },
+  // { name: "Reviews", icon: Star, href: "/your/store/dashboard/reviews" },
 ];
 
 // Function to fetch seller's store data
@@ -186,7 +187,12 @@ export default function SellerDashboardLayout({
       {/* Provide store data to children */}
       <div className="flex min-h-screen bg-gray-100 font-inter">
         {/* Sidebar is now a separate component */}
-        <Sidebar storeName={sellerStore.name} navItems={navItems} />{" "}
+        <Sidebar
+          storeName={sellerStore.name}
+          navItems={navItems}
+          email={sellerStore.user.email}
+          logo={sellerStore.logo! || "https://via.placeholder.com/200"}
+        />{" "}
         {/* No setActivePage needed */}
         {/* Main Content Area */}
         {/* Adjusted padding-top (pt-20) for mobile fixed header */}

@@ -212,6 +212,7 @@ export async function GET(request: Request) {
     const sellerStore = await prisma.store.findUnique({
       where: { userId: user.id },
       include: {
+        user: true, // Include user details
         products: {
           orderBy: { createdAt: "desc" }, // Order products by newest first
           include: {

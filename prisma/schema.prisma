@@ -179,12 +179,16 @@ model Order {
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   deliveredAt           DateTime? // NEW: When the order was delivered
-  cancelledAt           DateTime? // NEW: When the order was cancelled
-  buyerId               String
-  buyer                 User        @relation("UserOrders", fields: [buyerId], references: [id])
-  items                 OrderItem[]
-  addressId             String? // NEW: Link to the specific Address used for this order
-  address               Address?    @relation(fields: [addressId], references: [id])
+  paidAt                DateTime? // NEW: When the order was paid
+  shippedAt             DateTime? // NEW: When the order was shipped
+  refundRequestedAt     DateTime? // NEW: When the refund was requested
+
+  cancelledAt DateTime? // NEW: When the order was cancelled
+  buyerId     String
+  buyer       User        @relation("UserOrders", fields: [buyerId], references: [id])
+  items       OrderItem[]
+  addressId   String? // NEW: Link to the specific Address used for this order
+  address     Address?    @relation(fields: [addressId], references: [id])
 }
 
 model OrderItem {

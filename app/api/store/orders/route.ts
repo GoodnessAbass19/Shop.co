@@ -1,6 +1,8 @@
+// app/api/seller/orders/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { OrderStatus, Role } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -9,50 +11,110 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Find the store owned by the current user
-    const store = await prisma.store.findFirst({
-      where: { userId: user.id },
-      select: { id: true },
-    });
+    const { searchParams } = new URL(request.url);
+    const storeId = searchParams.get("storeId");
+    const statusFilter = searchParams.get("status"); // e.g., "PAID", "PENDING", "SHIPPED"
+    const searchQuery = searchParams.get("search"); // Search by order ID
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
 
-    if (!store) {
-      return NextResponse.json({ error: "Store not found." }, { status: 404 });
+    if (!storeId) {
+      return NextResponse.json(
+        { error: "Store ID is required." },
+        { status: 400 }
+      );
     }
 
-    // Fetch orders for this store
-    const orders = await prisma.orderItem.findMany({
-      where: { storeId: store.id, order: { status: "PAID" } },
-      include: {
-        order: {
-          include: {
-            buyer: {
-              select: {
-                id: true,
-                name: true,
-                email: true, // Include buyer's email if needed
-              },
-            },
-          },
-        },
-        productVariant: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true, // Include product images if needed
-              },
-            },
-          },
+    // Verify user owns this store
+    const store = await prisma.store.findUnique({
+      where: { id: storeId, userId: user.id },
+      select: { id: true },
+    });
+    if (!store) {
+      return NextResponse.json(
+        { error: "Forbidden: Store not found or not owned by user." },
+        { status: 403 }
+      );
+    }
+
+    // Construct the WHERE clause for Prisma
+    const whereClause: any = {
+      items: {
+        some: {
+          storeId: storeId, // Ensure orders are related to this store
         },
       },
-    });
+    };
 
-    return NextResponse.json({ orders }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching store orders:", error);
+    if (
+      statusFilter &&
+      Object.values(OrderStatus).includes(statusFilter as OrderStatus)
+    ) {
+      whereClause.status = statusFilter as OrderStatus;
+    }
+
+    if (searchQuery) {
+      whereClause.id = {
+        contains: searchQuery, // Search by order ID (case-sensitive by default for MongoDB IDs)
+        mode: "insensitive", // For case-insensitive search on non-ID fields, but IDs are usually exact
+      };
+    }
+
+    // Calculate skip for offset pagination
+    const skip = (page - 1) * pageSize;
+
+    // Fetch orders and total count
+    const [orders, totalOrders] = await prisma.$transaction([
+      prisma.order.findMany({
+        where: whereClause,
+        include: {
+          buyer: {
+            select: { id: true, name: true, email: true }, // Include buyer details
+          },
+          address: true, // Include shipping address
+          items: {
+            include: {
+              productVariant: {
+                include: {
+                  product: {
+                    select: { name: true, images: true, slug: true }, // Include product name/image for order item display
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc", // Most recent orders first
+        },
+        skip: skip,
+        take: pageSize,
+      }),
+      prisma.order.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalOrders / pageSize);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
     return NextResponse.json(
-      { error: "Failed to fetch store orders." },
+      {
+        orders,
+        totalOrders,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        hasNextPage,
+        hasPreviousPage,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("API Error fetching seller orders:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch seller orders." },
       { status: 500 }
     );
   }

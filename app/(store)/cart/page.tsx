@@ -1,16 +1,3 @@
-// import Cart from "@/components/cart";
-
-// const CartPage = () => {
-//   return (
-//     <div className="">
-//       <Cart />
-//     </div>
-//   );
-// };
-
-// export default CartPage;
-
-// app/cart/page.tsx
 // app/cart/page.tsx
 "use client";
 
@@ -67,6 +54,10 @@ const CartPage = () => {
   const queryClient = useQueryClient();
   // const { data, error, isLoading, mutate } = useSWR("/api/cart", fetcher);
   const [isUpdating, setIsUpdating] = useState(false); // For showing loading on quantity update
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
+
   const router = useRouter();
   const {
     data: cart,
@@ -87,6 +78,20 @@ const CartPage = () => {
     },
     staleTime: 0, // Keep data fresh for cart
     refetchOnWindowFocus: true, // Always refetch cart on focus to ensure accuracy
+  });
+
+  const {
+    data: addresses,
+    isLoading: isLoadingAddresses,
+    isError: isAddressError,
+  } = useQuery({
+    queryKey: ["userAddresses"],
+    queryFn: async () => {
+      const res = await fetch("/api/me/address");
+      if (!res.ok) throw new Error("Failed to fetch addresses");
+      return res.json();
+    },
+    enabled: !!cart, // only fetch if cart is available
   });
 
   // --- NEW: useMutation for deleting a cart item ---
@@ -119,6 +124,7 @@ const CartPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ addressId: selectedAddressId }), // 👈 send address
         // No body needed here, as the backend fetches the cart from the user's session
       });
 
@@ -147,6 +153,10 @@ const CartPage = () => {
       alert(
         "Your cart is empty. Please add items before proceeding to checkout."
       );
+      if (!selectedAddressId) {
+        alert("Please select a delivery address before proceeding.");
+        return;
+      }
       return;
     }
     createCheckoutSessionMutation.mutate();
@@ -478,6 +488,62 @@ const CartPage = () => {
               <span>${finalTotal.toFixed(2)}</span>
             </div>
           </div>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">
+              Select Delivery Address
+            </h3>
+
+            {isLoadingAddresses ? (
+              <p>Loading addresses...</p>
+            ) : addresses?.length > 0 ? (
+              <div className="space-y-2">
+                {addresses.map((address: any) => (
+                  <label
+                    key={address.id}
+                    className={`block p-4 border rounded-md cursor-pointer ${
+                      selectedAddressId === address.id
+                        ? "border-blue-600 bg-blue-50"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="address"
+                      value={address.id}
+                      checked={selectedAddressId === address.id}
+                      onChange={() => setSelectedAddressId(address.id)}
+                      className="hidden"
+                    />
+                    <div className="text-sm">
+                      <div>
+                        {address.street}, {address.city}, {address.state}
+                      </div>
+                      <div>
+                        {address.country}, {address.postalCode}
+                      </div>
+                      {address.isDefault && (
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded ml-2">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                No saved addresses.{" "}
+                <Link
+                  href="/account/settings"
+                  className="text-blue-600 underline"
+                >
+                  Add one
+                </Link>
+              </p>
+            )}
+          </div>
+
           {/* --- NEW: Proceed to Checkout Button --- */}
           <Button
             className="w-full bg-gray-900 hover:bg-gray-800 text-white text-lg py-3 rounded-md shadow-lg transition-all duration-300 mt-8 transform hover:scale-105"

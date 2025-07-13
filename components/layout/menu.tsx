@@ -11,13 +11,14 @@ import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import UserButton from "./user-button";
-import useSWR from "swr";
+import useSWR, { preload } from "swr";
 import { Cart, CartItem } from "@prisma/client";
 import CategoryMenu from "./category-menu";
 import { useQuery } from "@tanstack/react-query";
 import MobileMenu from "./mobileMenu";
 
 const fetcher = async (url: string) => {
+  preload(url, fetch);
   const res = await fetch(url);
   const data = await res.json();
   if (!res.ok) {

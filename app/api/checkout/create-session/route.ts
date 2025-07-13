@@ -1,5 +1,5 @@
 // app/api/checkout/create-session/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -13,9 +13,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Define your base URL for success/cancel redirects (e.g., http://localhost:3000 or your Vercel URL)
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"; // Fallback for local dev
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest, request: Request) {
   try {
     const user = await getCurrentUser();
+    const { addressId } = await req.json();
+    if (!addressId) {
+      return NextResponse.json(
+        { error: "Delivery address is required" },
+        { status: 400 }
+      );
+    }
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -117,7 +124,7 @@ export async function POST(request: Request) {
 
     // 3. Create a PENDING order in your database
     const userAddress = await prisma.address.findFirst({
-      where: { userId: user.id, isDefault: true }, // Assuming a default address
+      where: { id: addressId }, // Assuming a default address
     });
 
     if (!userAddress) {

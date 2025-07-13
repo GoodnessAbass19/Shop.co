@@ -83,7 +83,7 @@ export function SalesAnalytics() {
     SalesAnalyticsData,
     Error
   >({
-    queryKey: ["sellerSalesAnalytics", store?.id],
+    queryKey: ["salesAnalytics", store?.id],
     queryFn: () => fetchSalesAnalytics(store?.id),
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
     refetchOnWindowFocus: false,
@@ -163,7 +163,7 @@ export function SalesAnalytics() {
             12 Months)
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-80 w-full">
+        <CardContent className="h-96 w-full">
           {salesChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart
@@ -180,14 +180,16 @@ export function SalesAnalytics() {
                   yAxisId="left"
                   stroke="#8884d8"
                   fontSize={12}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value) => `$${value.toFixed(0)}`}
                 />
                 <YAxis
                   yAxisId="right"
                   orientation="right"
                   stroke="#82ca9d"
                   fontSize={12}
+                  tickFormatter={(value) => `${value}`}
                 />
+
                 <Tooltip
                   formatter={(value: number, name: string) => {
                     if (name === "revenue")

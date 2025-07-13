@@ -168,7 +168,7 @@ export async function GET(request: Request) {
       where: {
         storeId,
         order: {
-          status: OrderStatus.DELIVERED,
+          status: { in: [OrderStatus.DELIVERED, OrderStatus.PAID] },
         },
       },
       select: { price: true, quantity: true },

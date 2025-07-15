@@ -19,17 +19,18 @@ import { useToast } from "@/Hooks/use-toast";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Heart, Loader2 } from "lucide-react";
-interface ProductCardItem {
-  id: string;
-  slug: string;
-  productName: string; // From API's mapping of product.name
-  images: { url: string }[]; // From API's mapping of product.images
-  price: number; // This is the 'lowestPrice' from API
-  discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
-  discountPercentage?: number | null; // The 'discountPercentage' from API
-}
+import { format } from "date-fns";
+// interface ProductCardItem {
+//   id: string;
+//   slug: string;
+//   productName: string; // From API's mapping of product.name
+//   images: { url: string }[]; // From API's mapping of product.images
+//   price: number; // This is the 'lowestPrice' from API
+//   discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
+//   discountPercentage?: number | null; // The 'discountPercentage' from API
+// }
 
-export type ProductFromApi = Product & {
+type ProductFromApi = Product & {
   category: Pick<Category, "id" | "name" | "slug">;
   subCategory: Pick<SubCategory, "id" | "name" | "slug">;
   subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
@@ -41,8 +42,6 @@ export type ProductFromApi = Product & {
   lowestPrice: number; // The lowest base price (from variants or product)
   discountedPrice: number | null; // The price after discount
   images: { url: string }[]; // Transformed image array
-  reviews: ProductReview[];
-  averageRating: number; // Average rating calculated from reviews
 };
 
 const checkWishlistStatus = async (
@@ -215,12 +214,16 @@ const ProductCard = ({
           )}
           {item?.discountedPrice !== null && (
             <span className="font-normal text-sm text-center text-black font-sans">
-              ({item?.discounts?.[0]?.percentage}% off)
-              {/* {percentageDifference(
-              // @ts-ignore
-              item?.price,
-              item?.discountedPrice
-            )} */}
+              <div className="mt-2 text-sm font-medium text-green-600">
+                {item.discounts[0].percentage
+                  ? `${item.discounts[0].percentage}% OFF`
+                  : `₦${item.discounts[0].amount} OFF`}
+                {item.discounts[0].expiresAt &&
+                  ` • Ends ${format(
+                    new Date(item.discounts[0].expiresAt),
+                    "PPP"
+                  )}`}
+              </div>
             </span>
           )}
         </div>

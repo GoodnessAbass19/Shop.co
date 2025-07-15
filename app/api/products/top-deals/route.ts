@@ -15,6 +15,9 @@ export async function GET() {
             expiresAt: {
               gte: new Date(), // And that the discount is still active
             },
+            startsAt: {
+              lte: new Date(), // And that the discount has started
+            },
           },
         },
         status: "ACTIVE", // Only fetch active products
@@ -63,7 +66,7 @@ export async function GET() {
 
       if (product.discounts && product.discounts.length > 0) {
         // Since we ordered discounts by percentage: "desc" in the include, the first one is the best
-        bestDiscountPercentage = product.discounts[0].percentage;
+        bestDiscountPercentage = product?.discounts[0]?.percentage!;
         if (bestDiscountPercentage > 0) {
           discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
         }

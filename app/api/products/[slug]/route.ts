@@ -42,6 +42,9 @@ export async function GET(
             expiresAt: {
               gte: new Date(), // Only active discounts
             },
+            startsAt: {
+              lte: new Date(), // Only discounts that have started
+            },
           },
           orderBy: {
             percentage: "desc", // Best discount first
@@ -76,8 +79,8 @@ export async function GET(
     let discountedPrice: number | null = null;
     if (product.discounts && product.discounts.length > 0) {
       const bestDiscountPercentage = product.discounts[0].percentage;
-      if (bestDiscountPercentage > 0) {
-        discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
+      if (bestDiscountPercentage! > 0) {
+        discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
       }
     }
 

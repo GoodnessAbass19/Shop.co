@@ -8,14 +8,19 @@ export default function Home() {
       {/* <Product /> */}
       <Sections
         title={"new arrivals"}
-        url="api/products/new-arrivals"
+        url="/api/products/new-arrivals"
         href="new-arrivals"
       />
       <Sections
         title={"top deals"}
-        url="api/products/top-deals"
+        url="/api/products/top-deals"
         href="top-deals"
       />
+      {/* <Sections
+        title={"top selling"}
+        url="/api/products/top-selling"
+        href="top-selling"
+      /> */}
     </div>
   );
 }

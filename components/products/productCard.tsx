@@ -205,7 +205,7 @@ const ProductCard = ({
         </h2>
         <div className="space-y-2">
           <span className="text-lg font-semibold">
-            {formatCurrencyValue(item?.discountedPrice || item?.price)}
+            {formatCurrencyValue(item?.price || item?.discountedPrice)}
           </span>
 
           {item?.discountedPrice && (

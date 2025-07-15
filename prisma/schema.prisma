@@ -68,6 +68,8 @@ model Store {
   orderItems  OrderItem[] @relation("StoreOrderItems")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  Discount Discount[]
 }
 
 model Product {
@@ -127,16 +129,43 @@ model ProductReview {
   reply     String? // Seller/admin reply
 }
 
+// model Discount {
+//   id            String    @id @default(uuid())
+//   code          String?   @unique // Optional for automatic discounts
+//   description   String
+//   percentage    Float // e.g., 10.0 means 10% off
+//   expiresAt     DateTime?
+//   productId     String
+//   product       Product   @relation(fields: [productId], references: [id])
+//   canBeCombined Boolean   @default(false) // Whether stackable
+//   createdAt     DateTime  @default(now())
+// }
+
 model Discount {
-  id            String    @id @default(uuid())
-  code          String?   @unique // Optional for automatic discounts
-  description   String
-  percentage    Float // e.g., 10.0 means 10% off
-  expiresAt     DateTime?
-  productId     String
-  product       Product   @relation(fields: [productId], references: [id])
-  canBeCombined Boolean   @default(false) // Whether stackable
-  createdAt     DateTime  @default(now())
+  id                String  @id @default(uuid())
+  code              String  @unique // e.g., "SUMMER20"
+  description       String?
+  percentage        Float? // e.g., 20.0 for 20%
+  amount            Float? // e.g., 10.00 for $10 off
+  minOrderAmount    Float? // Minimum order amount for discount to apply
+  maxDiscountAmount Float? // Maximum discount amount for percentage discounts
+
+  startsAt  DateTime
+  expiresAt DateTime
+  isActive  Boolean  @default(true) // Can be manually toggled or automatically based on dates
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  // Many-to-many relationship with Product if discounts can apply to specific products
+  products Product[] // Products that this discount applies to
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([code])
+  @@index([expiresAt])
 }
 
 model Category {

@@ -169,8 +169,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
             </Badge>
             {order.createdAt && (
               <p className="text-xs text-muted-foreground mt-1">
-                Paid on:{" "}
-                {format(new Date(order.createdAt), "MMM dd, yyyy HH:mm")}
+                Paid on: {format(new Date(order.paidAt!), "MMM dd, yyyy HH:mm")}
               </p>
             )}
           </CardContent>
@@ -215,14 +214,14 @@ export default function OrderDetailsPage({ params }: { params: string }) {
               <span className="font-medium">Name:</span>{" "}
               {order.buyer?.name || "Guest User"}
             </p>
-            <p>
+            {/* <p>
               <span className="font-medium">Email:</span>{" "}
               {order.buyer?.email || "N/A"}
             </p>
             <p>
               <span className="font-medium">User ID:</span>{" "}
               {order.buyer?.id || "N/A"}
-            </p>
+            </p> */}
           </CardContent>
         </Card>
 

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { OrderStatus } from "@prisma/client";
+import { getDateRange, DateRangeType } from "@/lib/date-filter"; // Assuming getDateRange is in @/lib/date-filter
+import { startOfMonth, endOfMonth, subMonths, format } from "date-fns"; // Import date-fns for chart date calculations
 
 export async function GET(request: Request) {
   try {
@@ -16,6 +18,20 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get("storeId");
+    // Default rangeType to "THIS_MONTH" if not provided
+    const rangeType = (searchParams.get("rangeType") ||
+      "THIS_MONTH") as DateRangeType;
+    const customStart = searchParams.get("startDate");
+    const customEnd = searchParams.get("endDate");
+
+    // Get the date range for overall metrics based on user selection
+    const { startDate, endDate } = getDateRange(
+      rangeType,
+      customStart || undefined, // Pass undefined if null for customStart
+      customEnd || undefined // Pass undefined if null for customEnd
+    );
+
+    // console.log(`Selected Period for Overall Metrics: ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
     if (!storeId) {
       console.log("Bad Request: Missing storeId for sales-analytics.");
@@ -30,6 +46,7 @@ export async function GET(request: Request) {
       where: { id: storeId, userId: user.id },
       select: { id: true },
     });
+
     if (!store) {
       console.log(
         `Forbidden: Store ${storeId} not found or not owned by user ${user.id}.`
@@ -40,31 +57,19 @@ export async function GET(request: Request) {
       );
     }
 
-    // --- Date calculations for current month and last 12 months ---
-    const now = new Date();
-    now.setDate(1);
-    now.setHours(0, 0, 0, 0);
-    const twelveMonthsAgo = new Date(now);
-    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
-    twelveMonthsAgo.setMilliseconds(0); // Ensure no ms issues
-
-    // console.log(`--- Sales Analytics Debugging for Store: ${storeId} ---`);
-    // console.log(`Current Server Time (UTC): ${now.toISOString()}`);
-    // console.log(
-    //   `Analytics Period Start (12 months ago): ${twelveMonthsAgo.toISOString()}`
-    // );
-
-    // --- 1. Overall Metrics ---
+    // --- Overall Metrics (filtered by selected rangeType) ---
     const allTimeCompletedOrderItems = await prisma.orderItem.findMany({
       where: {
         storeId: storeId,
         order: {
           status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED] },
-          paidAt: { not: null },
+          paidAt: {
+            gte: startDate, // Use the calculated startDate
+            lt: endDate, // Use the calculated endDate
+          },
         },
       },
       select: {
-        id: true, // Select ID for logging
         price: true,
         quantity: true,
       },
@@ -73,15 +78,14 @@ export async function GET(request: Request) {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    // console.log(
-    //   `Total All-Time Completed Order Items found: ${allTimeCompletedOrderItems.length}`
-    // );
-    // console.log(`Total Revenue (All Time): $${totalRevenue.toFixed(2)}`);
 
     const totalOrders = await prisma.order.count({
       where: {
         status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED] },
-        paidAt: { not: null },
+        paidAt: {
+          gte: startDate, // Use the calculated startDate
+          lt: endDate, // Use the calculated endDate
+        },
         items: {
           some: {
             storeId: storeId,
@@ -89,9 +93,16 @@ export async function GET(request: Request) {
         },
       },
     });
-    // console.log(`Total Orders (All Time) counted: ${totalOrders}`);
 
-    // --- 2. Monthly Sales Data for Chart (Last 12 Months) ---
+    // --- Monthly Sales Data for Chart (Always Last 12 Full Months) ---
+    const now = new Date(); // Current date and time
+    // Calculate the start of the month 11 months ago from the current month
+    const chartPeriodStart = startOfMonth(subMonths(now, 11));
+    // Calculate the end of the current month
+    const chartPeriodEnd = endOfMonth(now);
+
+    // console.log(`Chart Period: ${chartPeriodStart.toISOString()} to ${chartPeriodEnd.toISOString()}`);
+
     const salesData: { [key: string]: number } = {}; // Format: { "YYYY-MM": revenue }
     const ordersData: { [key: string]: number } = {}; // Format: { "YYYY-MM": orderCount }
 
@@ -101,53 +112,39 @@ export async function GET(request: Request) {
         order: {
           status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED] },
           paidAt: {
-            gte: twelveMonthsAgo,
-            not: null, // Explicitly ensure paidAt is not null
+            gte: chartPeriodStart, // Use chart specific start date
+            lt: chartPeriodEnd, // Use chart specific end date
           },
         },
       },
       select: {
-        id: true, // Include item ID for debugging
         price: true,
         quantity: true,
         order: {
-          select: { id: true, paidAt: true }, // Include order ID and paidAt for debugging
+          select: { paidAt: true },
         },
       },
       orderBy: {
         order: { paidAt: "asc" },
       },
     });
-    // console.log(
-    //   `Fetched ${monthlySalesItems.length} monthly sales items within the 12-month period for aggregation.`
-    // );
 
     // Aggregate monthly revenue
     monthlySalesItems.forEach((item) => {
       if (item.order.paidAt) {
-        const monthKey = item.order.paidAt.toISOString().substring(0, 7); // YYYY-MM
+        const monthKey = format(item.order.paidAt, "yyyy-MM"); // Use date-fns for consistent formatting
         salesData[monthKey] =
           (salesData[monthKey] || 0) + item.price * item.quantity;
-        console.log(
-          `Aggregating revenue: Order ${item.order.id} | Item ${
-            item.id
-          } | PaidAt: ${item.order.paidAt.toISOString()} -> monthKey ${monthKey}. Revenue added: $${(
-            item.price * item.quantity
-          ).toFixed(2)}. Current total for ${monthKey}: $${salesData[
-            monthKey
-          ].toFixed(2)}`
-        );
       }
     });
-    // console.log("Raw Monthly Revenue Data (salesData):", salesData);
 
     // For monthly order count, query distinct orders
     const monthlyOrderCounts = await prisma.order.findMany({
       where: {
         status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED] },
         paidAt: {
-          gte: twelveMonthsAgo,
-          not: null, // Explicitly ensure paidAt is not null
+          gte: chartPeriodStart, // Use chart specific start date
+          lt: chartPeriodEnd, // Use chart specific end date
         },
         items: {
           some: {
@@ -157,59 +154,46 @@ export async function GET(request: Request) {
       },
       select: {
         paidAt: true,
-        id: true, // To ensure distinct orders
       },
       orderBy: {
         paidAt: "asc",
       },
     });
-    // console.log(
-    //   `Fetched ${monthlyOrderCounts.length} distinct monthly orders within the 12-month period for aggregation.`
-    // );
 
     monthlyOrderCounts.forEach((order) => {
       if (order.paidAt) {
-        const monthKey = order.paidAt.toISOString().substring(0, 7); // YYYY-MM
+        const monthKey = format(order.paidAt, "yyyy-MM"); // Use date-fns for consistent formatting
         ordersData[monthKey] = (ordersData[monthKey] || 0) + 1;
-        console.log(
-          `Aggregating order count: Order ${
-            order.id
-          } | PaidAt: ${order.paidAt.toISOString()} -> monthKey ${monthKey}. Current count for ${monthKey}: ${
-            ordersData[monthKey]
-          }`
-        );
       }
     });
-    // console.log("Raw Monthly Orders Data (ordersData):", ordersData);
 
     // Fill in missing months with zero revenue/orders for the chart
     const chartData = [];
-    let currentMonth = new Date(twelveMonthsAgo);
-    while (currentMonth <= now) {
-      const monthKey = currentMonth.toISOString().substring(0, 7);
+    let currentMonthIterator = startOfMonth(chartPeriodStart); // Start from the beginning of the chart period
+    while (currentMonthIterator <= chartPeriodEnd) {
+      // Iterate until the end of the chart period
+      const monthKey = format(currentMonthIterator, "yyyy-MM");
+
       chartData.push({
-        name: currentMonth.toLocaleString("default", {
-          month: "short",
-          year: "2-digit",
-        }), // e.g., "Jul 24"
+        name: format(currentMonthIterator, "MMM yy"), // e.g., "Jul 25"
         revenue: salesData[monthKey] || 0,
         orders: ordersData[monthKey] || 0,
       });
-      currentMonth.setMonth(currentMonth.getMonth() + 1);
-    }
-    // console.log(
-    //   "Generated Sales Chart Data (final array for frontend):",
-    //   JSON.stringify(chartData, null, 2)
-    // );
 
-    // --- 3. Top Selling Products (by quantity sold) ---
+      currentMonthIterator = startOfMonth(subMonths(currentMonthIterator, -1)); // Move to the start of the next month
+    }
+
+    // --- Top Selling Products (by quantity sold, filtered by selected rangeType) ---
     const topSellingProductsRaw = await prisma.orderItem.groupBy({
       by: ["productVariantId"], // Group by variant to sum quantities
       where: {
         storeId: storeId,
         order: {
           status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED] },
-          paidAt: { not: null }, // Ensure paidAt is not null
+          paidAt: {
+            gte: startDate, // Use the calculated startDate
+            lt: endDate, // Use the calculated endDate
+          },
         },
       },
       _sum: {
@@ -222,10 +206,6 @@ export async function GET(request: Request) {
       },
       take: 5, // Top 5 products
     });
-    // console.log(
-    //   `Raw Top Selling Products Data (from groupBy):`,
-    //   topSellingProductsRaw
-    // );
 
     const topSellingProductIds = topSellingProductsRaw.map(
       (item) => item.productVariantId
@@ -247,10 +227,6 @@ export async function GET(request: Request) {
         },
       },
     });
-    // console.log(
-    //   `Details for Top Selling Products (from ProductVariant fetch):`,
-    //   topSellingProductsDetails
-    // );
 
     // Map top selling products with their total sold quantity
     const topSellingProducts = topSellingProductsDetails
@@ -263,8 +239,7 @@ export async function GET(request: Request) {
           productId: variant.product.id,
           productName: variant.product.name,
           productSlug: variant.product.slug,
-          // Corrected: Access the first image URL directly from the array
-          productImage: variant.product.images?.[0] || null,
+          productImage: variant.product.images?.[0] || null, // Access the first image URL
           totalSoldQuantity: totalSoldQuantity,
           variantName:
             `${variant.size ? `Size: ${variant.size}` : ""}${
@@ -273,10 +248,6 @@ export async function GET(request: Request) {
         };
       })
       .sort((a, b) => b.totalSoldQuantity - a.totalSoldQuantity); // Re-sort to ensure order
-    // console.log(
-    //   "Final Top Selling Products (mapped for frontend):",
-    //   topSellingProducts
-    // );
 
     return NextResponse.json(
       {

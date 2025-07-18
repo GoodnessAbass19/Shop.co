@@ -1,29 +1,31 @@
 // components/seller/SalesAnalytics.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Loader2,
-  LineChart,
-  BarChart2,
-  TrendingUp,
+  LineChart, // Keep LineChart icon for general analytics, or replace if desired
+  BarChart2, // Used for empty state, can also be used for actual chart if preferred
+  TrendingUp, // Not used but kept for context
   Package,
   DollarSign,
   ShoppingBag,
+  CalendarIcon,
+  LineChartIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ResponsiveContainer,
-  LineChart as RechartsLineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  BarChart as RechartsBarChart,
+  BarChart as RechartsBarChart, // Renamed to avoid conflict with BarChart2 icon
+  LineChart as RechartsLineChart,
   Bar,
+  Line,
 } from "recharts";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,6 +38,44 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useSellerStore } from "@/Hooks/use-store-context";
+import { format } from "date-fns";
+import { DateRange } from "react-day-picker"; // Importing DateRange type from react-day-picker
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils"; // Assuming this is for conditional class names
+import { Button } from "../ui/button";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
+
+// Define the types for the date range filter options
+type FilterType =
+  | "TODAY"
+  | "THIS_WEEK"
+  | "LAST_WEEK"
+  | "THIS_MONTH"
+  | "LAST_MONTH"
+  | "CUSTOM";
+
+// Define the options for the date range filter dropdown
+const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
+  // { label: "Today", value: "TODAY" },
+  { label: "This Week", value: "THIS_WEEK" },
+  { label: "Last Week", value: "LAST_WEEK" },
+  { label: "This Month", value: "THIS_MONTH" },
+  { label: "Last Month", value: "LAST_MONTH" },
+  { label: "Custom", value: "CUSTOM" },
+];
 
 // Define the shape of the data expected from the API
 interface SalesAnalyticsData {
@@ -56,19 +96,22 @@ interface SalesAnalyticsData {
   }>;
 }
 
-// Define the minimal structure of the store prop needed by this component
-interface SalesAnalyticsProps {
-  store: {
-    id: string;
-    name: string;
-  };
-}
-
-// Function to fetch sales analytics data
+// Function to fetch sales analytics with filters
 const fetchSalesAnalytics = async (
-  storeId: string
-): Promise<SalesAnalyticsData> => {
-  const res = await fetch(`/api/store/sales-analytics?storeId=${storeId}`);
+  storeId: string,
+  rangeType: FilterType,
+  date?: DateRange // DateRange from react-day-picker
+) => {
+  const params = new URLSearchParams();
+  params.set("storeId", storeId);
+  params.set("rangeType", rangeType);
+
+  if (rangeType === "CUSTOM" && date?.from && date?.to) {
+    params.set("startDate", date.from.toISOString());
+    params.set("endDate", date.to.toISOString());
+  }
+
+  const res = await fetch(`/api/store/sales-analytics?${params.toString()}`);
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.error || "Failed to fetch sales analytics data.");
@@ -79,15 +122,32 @@ const fetchSalesAnalytics = async (
 export function SalesAnalytics() {
   const { store } = useSellerStore();
 
+  const [range, setRange] = useState<FilterType>("THIS_MONTH");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  // customDate state uses DateRange type from 'react-day-picker'
+  const [customDate, setCustomDate] = useState<DateRange | undefined>();
+
+  const isCustomRange = range === "CUSTOM";
+  const isValidCustomDate = !!customDate?.from && !!customDate?.to;
+
+  const isQueryEnabled = !!store?.id && (!isCustomRange || isValidCustomDate);
+
   const { data, isLoading, isError, error } = useQuery<
     SalesAnalyticsData,
     Error
   >({
-    queryKey: ["salesAnalytics", store?.id],
-    queryFn: () => fetchSalesAnalytics(store?.id),
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
-    refetchOnWindowFocus: false,
-    enabled: !!store?.id,
+    queryKey: [
+      "salesAnalytics",
+      store?.id,
+      range,
+      customDate?.from?.toISOString(),
+      customDate?.to?.toISOString(),
+    ],
+    queryFn: () => {
+      if (!store?.id) throw new Error("Store ID is missing.");
+      return fetchSalesAnalytics(store.id, range, customDate);
+    },
+    enabled: isQueryEnabled,
   });
 
   if (isLoading) {
@@ -104,7 +164,9 @@ export function SalesAnalytics() {
     return (
       <div className="text-red-600 text-center py-8">
         Error loading sales analytics:{" "}
-        {error?.message || "An unknown error occurred."}
+        {typeof error?.message === "string"
+          ? error.message
+          : "An unknown error occurred."}
         <p className="text-sm mt-2">Please try refreshing the page.</p>
       </div>
     );
@@ -119,48 +181,113 @@ export function SalesAnalytics() {
     };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 md:p-8">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">
-        Sales & Analytics for {store.name}
+        Sales & Analytics for {store?.name || "Your Store"}
       </h2>
 
-      {/* Overall Metrics Cards */}
+      {/* Filter Dropdown and Custom Date Picker */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4">
+          <Select
+            value={range}
+            onValueChange={(val) => {
+              setRange(val as FilterType);
+              // Clear custom date when changing to a non-custom range
+              if (val !== "CUSTOM") {
+                setCustomDate(undefined);
+              }
+            }}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Select Range" />
+            </SelectTrigger>
+            <SelectContent>
+              {FILTER_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {range === "CUSTOM" && (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button // This Button acts as the trigger for the Popover
+                  variant={"outline"}
+                  role="combobox"
+                  aria-expanded={isPopoverOpen}
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !customDate?.from && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {customDate?.from ? (
+                    customDate.to ? (
+                      <>
+                        {format(customDate.from, "LLL dd, y")} -{" "}
+                        {format(customDate.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(customDate.from, "LLL dd, y") + " onwards"
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={customDate?.from}
+                  selected={customDate}
+                  onSelect={setCustomDate}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      </div>
+
+      {/* Metric Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Revenue (All Time)
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From all sales</p>
+            <div className="text-2xl font-bold">
+              {formatCurrencyValue(totalRevenue || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">From selected range</p>
           </CardContent>
         </Card>
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Orders (All Time)
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              All completed orders
-            </p>
+            <p className="text-xs text-muted-foreground">Completed orders</p>
           </CardContent>
         </Card>
-        {/* You can add more cards here for Monthly Revenue/Orders if desired, or get them from DashboardSummary */}
+        {/* You can add more metric cards here if needed */}
       </div>
 
       {/* Sales Trend Chart */}
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-lg font-semibold flex items-center">
-            <LineChart className="h-5 w-5 mr-2" /> Monthly Sales & Orders (Last
-            12 Months)
+            <LineChartIcon className="h-5 w-5 mr-2" /> Monthly Sales & Orders (
+            {FILTER_OPTIONS.find((f) => f.value === range)?.label ||
+              "Selected Range"}
+            )
           </CardTitle>
         </CardHeader>
         <CardContent className="h-96 w-full">
@@ -169,6 +296,7 @@ export function SalesAnalytics() {
               <RechartsLineChart
                 data={salesChartData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                barCategoryGap="20%"
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -248,7 +376,7 @@ export function SalesAnalytics() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topSellingProducts.map((product) => (
+                {topSellingProducts.map((product: any) => (
                   <TableRow key={product.productId}>
                     <TableCell>
                       <Link href={`/products/${product.productSlug}`}>
@@ -290,7 +418,13 @@ export function SalesAnalytics() {
           ) : (
             <div className="text-center py-10 text-gray-500">
               <BarChart2 className="w-16 h-16 mx-auto mb-4" />
-              <p className="text-lg">No top selling products data available.</p>
+              <p>
+                No sales data available for{" "}
+                {FILTER_OPTIONS.find(
+                  (f) => f.value === range
+                )?.label?.toLowerCase()}
+                .
+              </p>
             </div>
           )}
         </CardContent>

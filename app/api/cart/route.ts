@@ -33,6 +33,9 @@ export async function GET(request: Request) {
                         expiresAt: {
                           gte: new Date(), // Only include active discounts
                         },
+                        startsAt: {
+                          lte: new Date(), // Only include discounts that have started
+                        },
                       },
                       orderBy: {
                         percentage: "desc", // Order by percentage to easily pick best
@@ -74,7 +77,7 @@ export async function GET(request: Request) {
         for (const discount of applicableDiscounts) {
           // Note: If you have "canBeCombined" logic, you'd implement it more sophisticatedly here.
           // For now, we'll just pick the single best percentage if multiple exist for a product.
-          if (discount.percentage > bestDiscountPercentage) {
+          if (discount.percentage! > bestDiscountPercentage) {
             bestDiscountPercentage = discount.percentage;
           }
         }

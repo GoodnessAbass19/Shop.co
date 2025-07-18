@@ -101,15 +101,15 @@ export function DashboardOverview() {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="text-red-600 text-center py-8">
-        Error loading dashboard data:{" "}
-        {error?.message || "An unknown error occurred."}
-        <p className="text-sm mt-2">Please try refreshing the page.</p>
-      </div>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <div className="text-red-600 text-center py-8">
+  //       Error loading dashboard data:{" "}
+  //       {error?.message || "An unknown error occurred."}
+  //       <p className="text-sm mt-2">Please try refreshing the page.</p>
+  //     </div>
+  //   );
+  // }
 
   const {
     totalRevenue,

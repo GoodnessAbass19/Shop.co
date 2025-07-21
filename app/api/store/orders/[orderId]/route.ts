@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { orderId } = params;
+    const { orderId } = await params;
 
     if (!orderId) {
       return NextResponse.json(
@@ -88,3 +88,39 @@ export async function GET(
     );
   }
 }
+
+// export async function PATCH(
+//   req: Request,
+//   { params }: { params: { orderId: string } }
+// ) {
+//   function generateOTP(length = 6) {
+//     return Math.floor(Math.random() * Math.pow(10, length))
+//       .toString()
+//       .padStart(length, "0");
+//   }
+//   const { orderId } = params;
+//   const body = await req.json();
+//   const confirmationCode = generateOTP();
+
+//   const updatedItem = await prisma.orderItem.update({
+//     where: { id: orderId },
+//     data: {
+//       riderName: body.riderName,
+//       riderPhone: body.riderPhone,
+//       trackingUrl: body.trackingUrl || null,
+//       deliveryStatus: "ASSIGNED",
+//       assignedAt: new Date(),
+//       deliveryCode: confirmationCode, // Ensure deliveryCode is set if provided
+//     },
+//     include: {
+//       order: { include: { buyer: true } },
+//       productVariant: { include: { product: true } },
+//     },
+//   });
+
+//   // You can add SMS or email notification logic here.
+
+//   return NextResponse.json({ updatedItem });
+// }
+
+//

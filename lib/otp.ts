@@ -137,3 +137,50 @@ export async function verifyOtp(email: string, token: string) {
 
   await prisma.otpToken.delete({ where: { id: otpRecord.id } });
 }
+
+export const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST!,
+  port: Number(process.env.SMTP_PORT!),
+  secure: false, // true for 465, false for other ports
+  auth: {
+    type: "OAuth2",
+    user: process.env.EMAIL_USER,
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+  },
+});
+
+interface SendEmailParams {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export async function sendEmail({ to, subject, html }: SendEmailParams) {
+  return transporter.sendMail({
+    from: '"YourStore" <no-reply@yourstore.com>',
+    to,
+    subject,
+    html,
+  });
+}
+
+export function DeliveryCodeEmail({
+  name,
+  code,
+}: {
+  name: string;
+  code: string;
+}) {
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 20px;">
+      <h2>Hi ${name},</h2>
+      <p>Your order is out for delivery 🚚</p>
+      <p>Please give the delivery confirmation code below to the rider upon receiving your package:</p>
+      <h3 style="color: #111; background: #f0f0f0; padding: 10px; width: fit-content;">${code}</h3>
+      <p>Thank you for shopping with us!</p>
+      <p>- The YourStore Team</p>
+    </div>
+  `;
+}

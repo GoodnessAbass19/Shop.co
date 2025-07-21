@@ -231,8 +231,15 @@ model OrderItem {
   productVariantId String
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
 
-  storeId String
-  store   Store  @relation("StoreOrderItems", fields: [storeId], references: [id])
+  storeId        String
+  store          Store          @relation("StoreOrderItems", fields: [storeId], references: [id])
+  riderName      String?
+  riderPhone     String?
+  trackingUrl    String?
+  deliveryStatus DeliveryStatus @default(PENDING)
+  deliveredAt    DateTime?
+  deliveryCode   String? // nullable initially
+  assignedAt     DateTime? // When the rider is assigned
 }
 
 model OtpToken {
@@ -305,4 +312,10 @@ enum ProductStatus {
   DRAFT
   ARCHIVED
   OUT_OF_STOCK
+}
+
+enum DeliveryStatus {
+  PENDING
+  OUT_FOR_DELIVERY
+  DELIVERED
 }

@@ -38,10 +38,30 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AssignRiderForm } from "./AssignRiderForm";
+import { ConfirmDeliveryForm } from "./ConfirmOrderForm";
 
 // Define the full order structure including all relations
 type FullOrder = Order & {
-  buyer: Pick<PrismaUser, "id" | "name" | "email"> | null;
+  buyer: Pick<PrismaUser, "id" | "name" | "email" | "phone"> | null;
   address: Address | null;
   items: (OrderItem & {
     productVariant: ProductVariant & {
@@ -146,7 +166,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
         <h2 className="text-3xl font-bold text-gray-900">
           Order #{order.id.substring(0, 8)}...
         </h2>
-        <Link href="/dashboard/seller/orders">
+        <Link href="/your/store/dashboard/orders">
           <Button variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Orders
           </Button>
@@ -169,7 +189,24 @@ export default function OrderDetailsPage({ params }: { params: string }) {
             </Badge>
             {order.createdAt && (
               <p className="text-xs text-muted-foreground mt-1">
-                Paid on: {format(new Date(order.paidAt!), "MMM dd, yyyy HH:mm")}
+                {order.status === "DELIVERED" && (
+                  <span className="text-green-600">
+                    Delivered on:{" "}
+                    {format(new Date(order.deliveredAt!), "MMM dd, yyyy HH:mm")}
+                  </span>
+                )}
+                {order.status === "CANCELLED" && (
+                  <span className="text-red-600">
+                    Cancelled on:{" "}
+                    {format(new Date(order.cancelledAt!), "MMM dd, yyyy HH:mm")}
+                  </span>
+                )}
+                {order.status === "PAID" && order.paidAt && (
+                  <span className="text-blue-600">
+                    Paid on:{" "}
+                    {format(new Date(order.paidAt), "MMM dd, yyyy HH:mm")}
+                  </span>
+                )}
               </p>
             )}
           </CardContent>
@@ -214,14 +251,14 @@ export default function OrderDetailsPage({ params }: { params: string }) {
               <span className="font-medium">Name:</span>{" "}
               {order.buyer?.name || "Guest User"}
             </p>
-            {/* <p>
+            <p>
               <span className="font-medium">Email:</span>{" "}
               {order.buyer?.email || "N/A"}
             </p>
             <p>
-              <span className="font-medium">User ID:</span>{" "}
-              {order.buyer?.id || "N/A"}
-            </p> */}
+              <span className="font-medium">Phone:</span>{" "}
+              {order.buyer?.phone || "N/A"}
+            </p>
           </CardContent>
         </Card>
 
@@ -239,10 +276,6 @@ export default function OrderDetailsPage({ params }: { params: string }) {
             </p>
             <p>
               {order.address?.postalCode}, {order.address?.country}
-            </p>
-            <p>
-              <span className="font-medium">Phone:</span>{" "}
-              {order.address?.country || "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -266,6 +299,10 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                 <TableHead>Quantity</TableHead>
                 <TableHead className="text-right">Unit Price</TableHead>
                 <TableHead className="text-right">Subtotal</TableHead>
+                <TableHead className="text-right">Status</TableHead>
+                {order.status === OrderStatus.PAID && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -319,6 +356,97 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                   <TableCell className="text-right">
                     ${(item.price * item.quantity).toFixed(2)}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <Badge
+                      variant={
+                        item.deliveryStatus === "PENDING"
+                          ? "warning"
+                          : item.deliveryStatus === "OUT_FOR_DELIVERY"
+                          ? "info"
+                          : item.deliveryStatus === "DELIVERED"
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="text-xs px-2 py-1"
+                    >
+                      {item.deliveryStatus}
+                    </Badge>
+                  </TableCell>
+                  {item.deliveryStatus !== "DELIVERED" && (
+                    <TableCell className="text-right">
+                      {item.deliveryStatus === "PENDING" ? (
+                        <Dialog>
+                          <DialogTrigger className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
+                            Assign to Rider
+                          </DialogTrigger>
+
+                          <DialogContent>
+                            {/* <DialogHeader>
+                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone. Are you sure you
+                              want to permanently delete this file from our
+                              servers?
+                            </DialogDescription>
+                          </DialogHeader> */}
+                            <AssignRiderForm orderItemId={item.id} />
+
+                            {/* <DialogClose>
+                            <Button type="submit">Confirm</Button>
+                          </DialogClose> */}
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <Dialog>
+                          <DialogTrigger className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
+                            Confirm Delivery
+                          </DialogTrigger>
+
+                          <DialogContent>
+                            <ConfirmDeliveryForm orderItemId={item.id} />
+                            {/* <DialogHeader>
+                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone. Are you sure you
+                              want to permanently delete this file from our
+                              servers?
+                            </DialogDescription>
+                          </DialogHeader> */}
+                            {/* <DialogClose>Confirm</DialogClose> */}
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                      {/* <Dialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          // asChild
+                          className="focus:outline-none"
+                        >
+                          Change status
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>
+                            <DialogTrigger className="w-full text-left">
+                              Assign to Rider
+                            </DialogTrigger>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Are you absolutely sure?</DialogTitle>
+                          <DialogDescription>
+                            This action cannot be undone. Are you sure you want
+                            to permanently delete this file from our servers?
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogClose>
+                          <Button type="submit">Confirm</Button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog> */}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

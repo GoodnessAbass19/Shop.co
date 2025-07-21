@@ -213,7 +213,7 @@ const ProductCard = ({
             </span>
           )}
           {item?.discountedPrice !== null && (
-            <span className="font-normal text-sm text-center text-black font-sans">
+            <span className="font-normal text-xs text-center text-black font-sans">
               <div className="mt-2 text-sm font-medium text-green-600">
                 {item.discounts[0].percentage
                   ? `${item.discounts[0].percentage}% OFF`

@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="">
+    <main className="" suppressHydrationWarning>
       <SellerDashboardLayout children={children} />
     </main>
   );

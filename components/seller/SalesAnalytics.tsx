@@ -68,7 +68,7 @@ type FilterType =
   | "CUSTOM";
 
 // Define the options for the date range filter dropdown
-const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
+export const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
   // { label: "Today", value: "TODAY" },
   { label: "This Week", value: "THIS_WEEK" },
   { label: "Last Week", value: "LAST_WEEK" },
@@ -78,7 +78,7 @@ const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
 ];
 
 // Define the shape of the data expected from the API
-interface SalesAnalyticsData {
+export interface SalesAnalyticsData {
   totalRevenue: number;
   totalOrders: number;
   salesChartData: Array<{

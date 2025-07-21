@@ -27,6 +27,15 @@ import { Separator } from "@/components/ui/separator"; // Assuming shadcn/ui Sep
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { DeliveryTimeline } from "@/components/seller/DeliveryTimeline";
 
 // Extend types to match API response structure
 type OrderItemWithProductDetails = OrderItem & {
@@ -168,44 +177,6 @@ const OrderDetailsPage = () => {
       </section>
     );
   }
-  // useEffect(() => {
-  //   if (!orderId) {
-  //     setIsLoading(false);
-  //     setError("Order ID not provided.");
-  //     return;
-  //   }
-
-  //   const fetchOrderDetails = async () => {
-  //     setIsLoading(true);
-  //     setError(null);
-  //     try {
-  //       const res = await fetch(`/api/orders/${orderId}`);
-  //       const data = await res.json();
-
-  //       if (res.ok) {
-  //         setOrder(data.order);
-  //       } else {
-  //         // Handle specific errors like 404, 401
-  //         if (res.status === 401) {
-  //           router.push(`/sign-in?redirectUrl=/orders/${orderId}`);
-  //         } else if (res.status === 404) {
-  //           setError(
-  //             "Order not found or you don't have permission to view it."
-  //           );
-  //         } else {
-  //           setError(data.error || "Failed to fetch order details.");
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error("Network or parsing error:", err);
-  //       setError("Network error: Could not connect to the server.");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchOrderDetails();
-  // }, [orderId, router]);
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
@@ -313,7 +284,7 @@ const OrderDetailsPage = () => {
                     day: "numeric",
                   })}
                 </p>
-                {order.deliveredAt && (
+                {/* {order.deliveredAt && (
                   <p className="text-green-700">
                     <span className="font-semibold">Delivered On:</span>{" "}
                     {new Date(order.deliveredAt).toLocaleDateString("en-US", {
@@ -323,7 +294,7 @@ const OrderDetailsPage = () => {
                       day: "numeric",
                     })}
                   </p>
-                )}
+                )} */}
                 {order.cancelledAt && (
                   <p className="text-red-700">
                     <span className="font-semibold">Cancelled On:</span>{" "}
@@ -342,38 +313,80 @@ const OrderDetailsPage = () => {
                 <div className="space-y-4">
                   {order.items.map((item) => (
                     <div
+                      className="border-b border-gray-200 last:border-0 space-y-2"
                       key={item.id}
-                      className="flex items-start gap-4 p-3 border rounded-md bg-gray-50"
                     >
-                      {item.productVariant.product.images?.[0] && (
-                        <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                          <Image
-                            src={item.productVariant.product.images[0]}
-                            alt={item.productVariant.product.name}
-                            layout="fill"
-                            objectFit="cover"
-                          />
+                      <Badge
+                        variant={
+                          item.deliveryStatus === "PENDING"
+                            ? "warning"
+                            : item.deliveryStatus === "OUT_FOR_DELIVERY"
+                            ? "info"
+                            : item.deliveryStatus === "DELIVERED"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="text-xs px-2 py-1"
+                      >
+                        {item.deliveryStatus}
+                      </Badge>
+                      <div
+                        // key={item.id}
+                        className="flex items-start gap-4 p-3 border rounded-md bg-gray-50"
+                      >
+                        {item.productVariant.product.images?.[0] && (
+                          <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
+                            <Image
+                              src={item.productVariant.product.images[0]}
+                              alt={item.productVariant.product.name}
+                              layout="fill"
+                              objectFit="cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-grow">
+                          <p className="font-semibold text-lg text-gray-900">
+                            {item.productVariant.product.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Qty: {item.quantity}{" "}
+                            {item.productVariant.size &&
+                              ` - Size: ${item.productVariant.size}`}
+                            {item.productVariant.color &&
+                              ` - Color: ${item.productVariant.color}`}
+                          </p>
+                          <p className="text-md font-medium text-gray-800 mt-1">
+                            ${item.price.toFixed(2)} / item
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-grow">
-                        <p className="font-semibold text-lg text-gray-900">
-                          {item.productVariant.product.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Qty: {item.quantity}{" "}
-                          {item.productVariant.size &&
-                            ` - Size: ${item.productVariant.size}`}
-                          {item.productVariant.color &&
-                            ` - Color: ${item.productVariant.color}`}
-                        </p>
-                        <p className="text-md font-medium text-gray-800 mt-1">
-                          ${item.price.toFixed(2)} / item
-                        </p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-bold text-lg text-gray-900">
-                          ${(item.quantity * item.price).toFixed(2)}
-                        </p>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-bold text-lg text-gray-900">
+                            ${(item.quantity * item.price).toFixed(2)}
+                          </p>
+                          <Dialog>
+                            <DialogTrigger className="capitalize text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
+                              View status history
+                            </DialogTrigger>
+
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Package History</DialogTitle>
+                              </DialogHeader>
+                              <DeliveryTimeline
+                                deliveryStatus={item.deliveryStatus}
+                              />
+                              {/* <DialogHeader>
+                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone. Are you sure you
+                              want to permanently delete this file from our
+                              servers?
+                            </DialogDescription>
+                          </DialogHeader> */}
+                              {/* <DialogClose>Confirm</DialogClose> */}
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </div>
                     </div>
                   ))}

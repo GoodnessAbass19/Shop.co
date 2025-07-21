@@ -44,6 +44,8 @@ export async function GET(request: Request) {
           storeId: storeId, // Ensure orders are related to this store
         },
       },
+      // ALWAYS exclude PENDING orders from this API by default
+      // status: { not: OrderStatus.PENDING },
     };
 
     if (
@@ -66,7 +68,9 @@ export async function GET(request: Request) {
     // Fetch orders and total count
     const [orders, totalOrders] = await prisma.$transaction([
       prisma.order.findMany({
-        where: whereClause,
+        where: {
+          ...whereClause,
+        },
         include: {
           buyer: {
             select: { id: true, name: true, email: true }, // Include buyer details

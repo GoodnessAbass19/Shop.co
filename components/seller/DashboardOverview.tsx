@@ -14,27 +14,41 @@ import {
   ArrowDownRight,
   ArrowUp,
   ArrowDown,
+  Eye,
+  LineChartIcon,
+  BarChart2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format, getMonth, getYear, subMonths } from "date-fns";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
-
-// Define the shape of the data expected from the API
-// interface DashboardSummary {
-//   totalRevenue: number;
-//   monthlyRevenue: number;
-//   totalOrders: number;
-//   monthlyOrders: number;
-//   totalProducts: number;
-//   totalCustomers: number;
-//   recentActivities: Array<{
-//     id: string;
-//     type: "ORDER" | "STOCK_LOW" | "PAYOUT" | "REVIEW";
-//     message: string;
-//     timestamp: string;
-//   }>;
-// }
+import { OrdersApiResponse, OrderWithRelations } from "./OrderManagement";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import Link from "next/link";
+import { Button } from "../ui/button";
+import { OrderStatus } from "@prisma/client";
+import { FILTER_OPTIONS, SalesAnalyticsData } from "./SalesAnalytics";
+import Image from "next/image";
+import {
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart as RechartsBarChart, // Renamed to avoid conflict with BarChart2 icon
+  LineChart as RechartsLineChart,
+  Bar,
+  Line,
+} from "recharts";
 
 interface DashboardSummary {
   totalRevenue: number;
@@ -77,6 +91,33 @@ const fetchDashboardSummary = async (
   return res.json();
 };
 
+const fetchSellerOrders = async ({
+  queryKey,
+}: {
+  queryKey: (string | number | undefined)[];
+}): Promise<OrdersApiResponse> => {
+  const [_key, storeId, statusFilter, searchQuery, page, pageSize] = queryKey;
+  const queryParams = new URLSearchParams();
+
+  if (storeId) queryParams.append("storeId", storeId.toString());
+
+  const res = await fetch(`/api/store/orders?${queryParams.toString()}`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to fetch orders.");
+  }
+  return res.json();
+};
+
+const fetchSalesAnalytics = async (storeId: string) => {
+  const res = await fetch(`/api/store/sales-analytics?storeId=${storeId}`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to fetch sales analytics data.");
+  }
+  return res.json();
+};
+
 export function DashboardOverview() {
   const { store } = useSellerStore(); // Get store data from context
 
@@ -91,7 +132,31 @@ export function DashboardOverview() {
     }
   );
 
-  if (isLoading) {
+  const { data: sales, isLoading: salesLoading } = useQuery<
+    SalesAnalyticsData,
+    Error
+  >({
+    queryKey: ["salesAnalytics", store?.id],
+    queryFn: () => {
+      if (!store?.id) throw new Error("Store ID is missing.");
+      return fetchSalesAnalytics(store.id);
+    },
+    enabled: !!store.id,
+  });
+
+  const { data: order, isLoading: orderLoading } = useQuery<
+    OrdersApiResponse,
+    Error
+  >({
+    queryKey: ["sellerOrders", store.id],
+    queryFn: fetchSellerOrders as any, // Type assertion to ensure correct return type
+    staleTime: 60 * 1000, // 1 minute
+    refetchOnWindowFocus: false,
+    enabled: !!store.id, // Only run query if storeId is available
+  });
+  const orders = order?.orders || [];
+
+  if (isLoading || orderLoading) {
     return (
       <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -169,6 +234,39 @@ export function DashboardOverview() {
         ? 0
         : 100
       : ((monthlyOrders - prevMonthlyOrders) / prevMonthlyOrders) * 100;
+
+  const getStatusBadgeVariant = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.PAID:
+        return "success"; // Assuming you have a 'success' variant
+      case OrderStatus.PENDING:
+        return "warning"; // Assuming 'warning' variant
+      case OrderStatus.SHIPPED:
+        return "info"; // Assuming 'info' variant
+      case OrderStatus.DELIVERED:
+        return "default";
+      case OrderStatus.CANCELLED:
+        return "destructive";
+      case OrderStatus.REFUNDED:
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusDisplayName = (status: OrderStatus) => {
+    return status
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const { salesChartData, topSellingProducts } = sales || {
+    totalRevenue: 0,
+    totalOrders: 0,
+    salesChartData: [],
+    topSellingProducts: [],
+  };
 
   return (
     <div className="space-y-8">
@@ -274,7 +372,7 @@ export function DashboardOverview() {
         </Card>
 
         {/* Products Listed Card */}
-        <Card className="shadow-md">
+        {/* <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Products Listed
@@ -287,10 +385,10 @@ export function DashboardOverview() {
               Total products in store
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Customers Reached Card */}
-        <Card className="shadow-md">
+        {/* <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Customers Reached
@@ -301,11 +399,190 @@ export function DashboardOverview() {
             <div className="text-2xl font-bold">{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">Unique buyers</p>
           </CardContent>
+        </Card> */}
+      </div>
+
+      {/* Sales Graph    */}
+      <div className="grid grid-col-1 md:grid-cols-3 gap-6 mt-4 justify-center items-stretch">
+        <Card className="shadow-md w-full col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold flex items-center">
+              <LineChartIcon className="h-5 w-5 mr-2" /> Monthly Sales & Orders
+              Sale Graph
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-96 w-full">
+            {salesChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsLineChart
+                  data={salesChartData}
+                  margin={{ top: 5, bottom: 5 }}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#e0e0e0"
+                  />
+                  <XAxis dataKey="name" stroke="#666" fontSize={12} />
+                  <YAxis
+                    yAxisId="left"
+                    stroke="#8884d8"
+                    fontSize={12}
+                    tickFormatter={(value) => `$${value.toFixed(0)}`}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#82ca9d"
+                    fontSize={12}
+                    tickFormatter={(value) => `${value}`}
+                  />
+
+                  <Tooltip
+                    formatter={(value: number, name: string) => {
+                      if (name === "revenue")
+                        return [`$${value.toFixed(2)}`, "Revenue"];
+                      if (name === "orders") return [value, "Orders"];
+                      return value;
+                    }}
+                    labelFormatter={(label) => `Month: ${label}`}
+                  />
+                  <Legend />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#8884d8"
+                    activeDot={{ r: 8 }}
+                    name="Revenue"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="orders"
+                    stroke="#82ca9d"
+                    activeDot={{ r: 8 }}
+                    name="Orders"
+                    strokeWidth={2}
+                  />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <BarChart2 className="w-16 h-16 mb-4" />
+                <p>No sales data available for the last 12 months.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Selling Products */}
+        <Card className="shadow-md col-span-1 w-full">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold flex items-center">
+              <Package className="h-5 w-5 mr-2" /> Top 5 Selling Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topSellingProducts.length > 0 ? (
+              <div className="space-y-4">
+                {topSellingProducts.map((product) => (
+                  <div
+                    key={product.productId}
+                    className="flex items-center justify-between border-b last:border-b-0"
+                  >
+                    <div className="flex items-center gap-1 flex-1">
+                      <Image
+                        src={product.productImage || "/placeholder.png"}
+                        alt={product.productName}
+                        width={40}
+                        height={40}
+                        className="rounded-md"
+                      />
+                      <span className="font-medium line-clamp-1">
+                        {product.productName}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      {product.totalSoldQuantity} sold
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500">
+                <BarChart2 className="w-16 h-16 mx-auto mb-4" />
+                <p>
+                  No sales data available for{" "}
+                  <span className="font-semibold">top selling products</span> in
+                  the .
+                </p>
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
 
+      {/* Orders Table */}
+      <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto space-y-2">
+        <h3 className="text-xl font-semibold mb-4">Recent Orders</h3>
+        <hr className="border-gray-500" />
+        {orders.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">
+            <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
+            <p className="text-lg">No orders found matching your criteria.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.slice(0, 10).map((order: OrderWithRelations) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">
+                    {order.id.substring(0, 8)}...
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    {order.buyer?.name || order.buyer?.email || "Guest"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={getStatusBadgeVariant(order.status)}
+                      // className="w-full text-center flex justify-center items-center"
+                    >
+                      {getStatusDisplayName(order.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell className="text-center">
+                    <Link href={`/your/store/dashboard/orders/${order.id}`}>
+                      <Button variant="outline" size="sm" className="mr-2">
+                        <Eye className="h-4 w-4" /> View
+                      </Button>
+                    </Link>
+                    {/* Add Update Status button/modal here later */}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
       {/* Recent Activity Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      {/* <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-semibold mb-4 flex items-center">
           <Info className="h-5 w-5 mr-2 text-gray-700" /> Recent Activities
         </h3>
@@ -326,7 +603,7 @@ export function DashboardOverview() {
         ) : (
           <p className="text-gray-500">No recent activities to display.</p>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

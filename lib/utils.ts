@@ -74,3 +74,9 @@ export function separateStringByComma(string: string) {
     .map((word) => word.trim())
     .join(" ");
 }
+
+export function formatPhone(phone: string) {
+  if (phone.startsWith("0")) return phone.replace(/^0/, "+234");
+  if (phone.startsWith("234")) return `+${phone}`;
+  return phone;
+}

@@ -45,7 +45,7 @@ import { Badge } from "@/components/ui/badge"; // Assuming you have shadcn/ui Ba
 import { useSellerStore } from "@/Hooks/use-store-context";
 
 // Extend Order type for data fetching
-type OrderWithRelations = Order & {
+export type OrderWithRelations = Order & {
   buyer: Pick<User, "id" | "name" | "email"> | null;
   address: Address | null;
   items: (OrderItem & {
@@ -56,7 +56,7 @@ type OrderWithRelations = Order & {
 };
 
 // Define the shape of the data expected from the API
-interface OrdersApiResponse {
+export interface OrdersApiResponse {
   orders: OrderWithRelations[];
   totalOrders: number;
   totalPages: number;

@@ -105,19 +105,19 @@ const Sections = ({
           breakpoints={{
             0: {
               slidesPerView: 1.5,
-              spaceBetween: 5,
+              spaceBetween: 8,
             },
             540: {
               slidesPerView: 3,
-              spaceBetween: 5,
+              spaceBetween: 8,
             },
             1024: {
               slidesPerView: 4,
-              spaceBetween: 5,
+              spaceBetween: 8,
             },
             1280: {
               slidesPerView: 5,
-              spaceBetween: 5,
+              spaceBetween: 8,
             },
           }}
           modules={[FreeMode, Navigation]}

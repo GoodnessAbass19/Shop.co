@@ -83,7 +83,6 @@ const fetchOrderById = async (orderId: string): Promise<FullOrder> => {
 
 export default function OrderDetailsPage({ params }: { params: string }) {
   const orderId = params;
-  const { store } = useSellerStore(); // Access store context if needed for authorization or display
 
   const {
     data: order,
@@ -456,7 +455,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
 
       {/* Action Buttons (e.g., Update Status, Process Refund) */}
       <div className="flex justify-end space-x-4 mt-8">
-        {order.status === OrderStatus.PAID && (
+        {/* {order.status === OrderStatus.PAID && (
           <Button variant="secondary">Mark as Shipped</Button>
         )}
         {order.status === OrderStatus.SHIPPED && (
@@ -464,7 +463,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
         )}
         {order.status === OrderStatus.PAID && order.stripePaymentIntentId && (
           <Button variant="destructive">Initiate Refund</Button>
-        )}
+        )} */}
         {/* More actions based on order status */}
       </div>
     </div>

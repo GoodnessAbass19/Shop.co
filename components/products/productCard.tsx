@@ -183,7 +183,7 @@ const ProductCard = ({
   }
 
   return (
-    <div className="overflow-hidden relative shadow-md">
+    <div className="overflow-hidden relative shadow-xs rounded-md">
       <Link href={`/products/${item?.slug}`} className="w-full h-full">
         {/* {item.images[0]?.url && ( */}
         <Image
@@ -213,22 +213,22 @@ const ProductCard = ({
             </span>
           )}
           {item?.discountedPrice !== null && (
-            <span className="font-normal text-xs text-center text-black font-sans">
-              <div className="mt-2 text-sm font-medium text-green-600">
+            <span className="font-normal text-sm text-start text-white font-sans absolute top-1 right-1 bg-black rounded-full p-1">
+              <div className="">
                 {item.discounts[0].percentage
-                  ? `${item.discounts[0].percentage}% OFF`
-                  : `₦${item.discounts[0].amount} OFF`}
-                {item.discounts[0].expiresAt &&
+                  ? `-${item.discounts[0].percentage}%`
+                  : `-₦${item.discounts[0].amount}`}
+                {/* {item.discounts[0].expiresAt &&
                   ` • Ends ${format(
                     new Date(item.discounts[0].expiresAt),
                     "PPP"
-                  )}`}
+                  )}`} */}
               </div>
             </span>
           )}
         </div>
       </Link>
-      <Button
+      {/* <Button
         variant="ghost"
         size="icon"
         className={cn(
@@ -256,7 +256,7 @@ const ProductCard = ({
         ) : (
           <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
         )}
-      </Button>
+      </Button> */}
     </div>
   );
 };

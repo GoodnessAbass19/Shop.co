@@ -33,7 +33,7 @@ export async function PATCH(
   const remainingItems = await prisma.orderItem.findMany({
     where: {
       orderId: orderItem.orderId,
-      deliveryStatus: { not: "DELIVERED" },
+      deliveryStatus: { notIn: ["DELIVERED"] },
     },
   });
 

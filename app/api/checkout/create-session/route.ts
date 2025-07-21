@@ -48,6 +48,9 @@ export async function POST(req: NextRequest, request: Request) {
                         expiresAt: {
                           gte: new Date(), // Only active discounts
                         },
+                        startsAt: {
+                          lte: new Date(), // Only discounts that have started
+                        },
                       },
                       orderBy: {
                         percentage: "desc", // Get the best discount first
@@ -89,10 +92,11 @@ export async function POST(req: NextRequest, request: Request) {
 
       // --- Calculate the actual unit price after discount ---
       let unitPrice = variant.price;
+
       const bestDiscount = product.discounts?.[0]; // Access the first (best) discount
 
-      if (bestDiscount && bestDiscount.percentage > 0) {
-        unitPrice = unitPrice * (1 - bestDiscount.percentage / 100);
+      if (bestDiscount && bestDiscount.percentage! > 0) {
+        unitPrice = unitPrice * (1 - bestDiscount.percentage! / 100);
       }
 
       // Ensure unitPrice is not negative and rounded correctly for currency

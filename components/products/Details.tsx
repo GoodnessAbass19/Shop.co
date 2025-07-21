@@ -440,7 +440,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               )}
               {data?.product.discountedPrice && (
                 <span className="font-medium tracking-wide text-sm text-center text-white dark:text-black dark:bg-white bg-black/65 rounded-full p-1 px-1.5">
-                  {data?.product?.discounts?.[0]?.percentage}
+                  -{data?.product?.discounts?.[0]?.percentage}
                   {/* {percentageDifference(
                     // @ts-ignore
                     data?.product.price,

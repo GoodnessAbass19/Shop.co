@@ -81,9 +81,10 @@ export function ConfirmDeliveryForm({
         title: "Delivery Confirmed",
         description: "Order delivery has been successfully confirmed.",
       });
+      router.refresh();
       reset(); // Clear form fields on success
       onSuccess?.(); // Call the optional success callback
-      router.refresh(); // Refresh the page or data
+      // Refresh the page or data
       // Invalidate relevant queries if this action affects other data
       // e.g., queryClient.invalidateQueries(['orderDetails', orderItemId]);
     },
@@ -132,7 +133,7 @@ export function ConfirmDeliveryForm({
       </div>
 
       {/* Submit Button */}
-      <DialogClose onClick={handleSubmit(onSubmit)}>
+      <DialogClose>
         <Button
           type="submit"
           className="w-full bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"

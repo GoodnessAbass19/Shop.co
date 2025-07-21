@@ -39,7 +39,7 @@ export async function PATCH(
   });
 
   // Step 3: If none are remaining, update the full order
-  if (remainingItems.length === 0) {
+  if (remainingItems.length >= 0) {
     await prisma.order.update({
       where: { id: updatedItem.orderId },
       data: {
@@ -52,11 +52,11 @@ export async function PATCH(
   const buyerEmail = updatedItem.order.buyer.email;
   const buyerName = updatedItem.order.buyer.name || "Customer";
 
-  await sendEmail({
-    to: buyerEmail,
-    subject: "Your Order is on the Way!",
-    html: DeliveryCodeEmail({ name: buyerName, code: confirmationCode }),
-  });
+  // await sendEmail({
+  //   to: buyerEmail,
+  //   subject: "Your Order is on the Way!",
+  //   html: DeliveryCodeEmail({ name: buyerName, code: confirmationCode }),
+  // });
 
   return Response.json({ success: true });
   // You can add SMS or email notification logic here.

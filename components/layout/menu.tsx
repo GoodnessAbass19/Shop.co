@@ -103,80 +103,8 @@ const Menu = () => {
           <div className="lg:block hidden">
             <CategoryMenu />
           </div>
-
-          {/* <NavigationMenu className="hidden md:block">
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Shop</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid p-4 gap-5">
-                    {Shoplist.map((list) => (
-                      <div key={list.title} className="flex flex-col space-y-1">
-                        <NavigationMenuLink
-                          href={`${list.link}`}
-                          className="text-sm font-medium capitalize text-[#313133] text-ellipsis hover:text-gray-400"
-                        >
-                          {list.title}
-                        </NavigationMenuLink>
-                      </div>
-                    ))}
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href="/top-deals" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    On Sale
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link href="/new-arrivals" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    New Arrivals
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu> */}
         </div>
 
-        {/* <NavigationMenu className="hidden md:block uppercase text-center">
-          <NavigationMenuList>
-            <div className="flex flex-row gap-2">
-              {Shoplist.map((list) => (
-                <NavigationMenuItem
-                  key={list.title}
-                  className="uppercase hover:border-b-2 text-xs font-medium border-black"
-                >
-                  <Link href={`${list.link}`} legacyBehavior passHref>
-                    <NavigationMenuLink
-                      href={`${list.link}`}
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      {list.title}
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              ))}
-            </div>
-
-            <NavigationMenuItem className="hover:border-b-2 text-xs font-medium border-black">
-              <Link href="/top-deals" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  On Sale
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem className="hover:border-b-2 text-xs font-medium border-black">
-              <Link href="/new-arrivals" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  New Arrivals
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu> */}
         <div className="lg:flex-1 hidden lg:block">
           <div className="w-full relative">
             <div className="flex border border-gray-200 rounded-full px-2 justify-between items-center gap-2">

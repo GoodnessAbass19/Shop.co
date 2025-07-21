@@ -1,7 +1,7 @@
 // components/seller/OrderManagement.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react"; // Added useEffect
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -84,25 +84,59 @@ const fetchSellerOrders = async ({
   const queryParams = new URLSearchParams();
 
   if (storeId) queryParams.append("storeId", storeId.toString());
-  if (statusFilter) queryParams.append("status", statusFilter.toString());
+  // Only append status filter if it's not 'ALL'
+  if (statusFilter && statusFilter !== "ALL")
+    queryParams.append("status", statusFilter.toString());
   if (searchQuery) queryParams.append("search", searchQuery.toString());
   if (page) queryParams.append("page", page.toString());
   if (pageSize) queryParams.append("pageSize", pageSize.toString());
 
+  // Corrected API endpoint to match /api/seller/orders
   const res = await fetch(`/api/store/orders?${queryParams.toString()}`);
+
   if (!res.ok) {
-    const errorData = await res.json();
+    let errorData: any = {};
+    try {
+      errorData = await res.json(); // Try to parse JSON error
+    } catch (e) {
+      // If response is not JSON, or parsing fails, use status text
+      throw new Error(
+        `HTTP error! status: ${res.status}, message: ${res.statusText}`
+      );
+    }
     throw new Error(errorData.error || "Failed to fetch orders.");
   }
-  return res.json();
+
+  const data = await res.json();
+
+  // Explicitly check if data is null or undefined after parsing
+  // This prevents the "Query data cannot be undefined" error
+  if (data === null || data === undefined) {
+    throw new Error("Received empty or invalid data from the server.");
+  }
+
+  return data;
 };
 
 export function OrderManagement() {
   const { store } = useSellerStore();
   const [statusFilter, setStatusFilter] = useState<string>("ALL"); // 'ALL' or a specific OrderStatus
-  const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState(""); // State for the input value (controlled)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // State for the debounced search query
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10; // Items per page
+
+  // useEffect to debounce the search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(inputValue);
+      setCurrentPage(1); // Reset to first page on search query change
+    }, 300); // Debounce time
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [inputValue]); // Re-run effect when inputValue changes
 
   const { data, isLoading, isError, error } = useQuery<
     OrdersApiResponse,
@@ -112,11 +146,11 @@ export function OrderManagement() {
       "sellerOrders",
       store.id,
       statusFilter,
-      searchQuery,
+      debouncedSearchQuery, // Use the debounced search query here
       currentPage,
       pageSize,
     ],
-    queryFn: fetchSellerOrders as any, // Type assertion to ensure correct return type
+    queryFn: fetchSellerOrders as any,
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: false,
     enabled: !!store.id, // Only run query if storeId is available
@@ -130,16 +164,20 @@ export function OrderManagement() {
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
       case OrderStatus.PAID:
-        return "success"; // Assuming you have a 'success' variant
+        return "success";
       case OrderStatus.PENDING:
-        return "warning"; // Assuming 'warning' variant
+        return "warning";
       case OrderStatus.SHIPPED:
-        return "info"; // Assuming 'info' variant
+        return "info";
       case OrderStatus.DELIVERED:
         return "default";
       case OrderStatus.CANCELLED:
         return "destructive";
       case OrderStatus.REFUNDED:
+        return "destructive";
+        // case OrderStatus.RETURNED:
+        //   return "secondary";
+        // case OrderStatus.FAILED_DELIVERY:
         return "destructive";
       default:
         return "secondary";
@@ -173,7 +211,7 @@ export function OrderManagement() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 md:p-8">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">
         Order Management for {store.name}
       </h2>
@@ -184,11 +222,8 @@ export function OrderManagement() {
           <Input
             type="text"
             placeholder="Search by Order ID..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page on search
-            }}
+            value={inputValue} // Controlled by inputValue state
+            onChange={(e) => setInputValue(e.target.value)} // Update inputValue immediately
             className="pl-10 pr-4 py-2 border rounded-md w-full focus:ring-2 focus:ring-blue-500"
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -199,6 +234,7 @@ export function OrderManagement() {
             setCurrentPage(1); // Reset to first page on filter change
           }}
           defaultValue="ALL"
+          value={statusFilter} // Control the Select component's value
         >
           <SelectTrigger className="w-full sm:w-[180px]">
             <Filter className="h-4 w-4 mr-2 text-gray-500" />
@@ -248,10 +284,7 @@ export function OrderManagement() {
                   </TableCell>
                   <TableCell>${order.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={getStatusBadgeVariant(order.status)}
-                      // className="w-full text-center flex justify-center items-center"
-                    >
+                    <Badge variant={getStatusBadgeVariant(order.status)}>
                       {getStatusDisplayName(order.status)}
                     </Badge>
                   </TableCell>
@@ -259,12 +292,11 @@ export function OrderManagement() {
                     {format(new Date(order.createdAt), "MMM dd, yyyy")}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Link href={`/your/store/dashboard/orders/${order.id}`}>
+                    <Link href={`/dashboard/seller/orders/${order.id}`}>
                       <Button variant="outline" size="sm" className="mr-2">
                         <Eye className="h-4 w-4" /> View
                       </Button>
                     </Link>
-                    {/* Add Update Status button/modal here later */}
                   </TableCell>
                 </TableRow>
               ))}

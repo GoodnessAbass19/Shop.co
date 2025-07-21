@@ -88,7 +88,6 @@ export function AssignRiderForm({
         title: "Rider Assigned",
         description: "Rider details sent and buyer notified.",
       });
-      router.refresh();
       reset(); // Clear form fields on success
       onSuccess?.(); // Call the optional success callback
       // Invalidate relevant queries if this action affects other data
@@ -193,9 +192,12 @@ export function AssignRiderForm({
       </div>
 
       {/* Submit Button */}
-      <DialogClose onClick={handleSubmit(onSubmit)}>
+      <DialogClose>
         <Button
           type="submit"
+          onClick={() => {
+            router.refresh();
+          }}
           className="w-full bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
           disabled={isSubmitting}
         >

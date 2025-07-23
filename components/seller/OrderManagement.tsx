@@ -43,6 +43,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge"; // Assuming you have shadcn/ui Badge
 import { useSellerStore } from "@/Hooks/use-store-context";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Extend Order type for data fetching
 export type OrderWithRelations = Order & {
@@ -120,6 +121,7 @@ const fetchSellerOrders = async ({
 
 export function OrderManagement() {
   const { store } = useSellerStore();
+  const [active, setActive] = useState(false); // State to control prefetching
   const [statusFilter, setStatusFilter] = useState<string>("ALL"); // 'ALL' or a specific OrderStatus
   const [inputValue, setInputValue] = useState(""); // State for the input value (controlled)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(""); // State for the debounced search query
@@ -292,11 +294,15 @@ export function OrderManagement() {
                     {format(new Date(order.createdAt), "MMM dd, yyyy")}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Link href={`/dashboard/seller/orders/${order.id}`}>
+                    <HoverPrefetchLink
+                      // prefetch={active ? null : false}
+                      // onMouseEnter={() => setActive(true)}
+                      href={`/your/store/dashboard/orders/${order.id}`}
+                    >
                       <Button variant="outline" size="sm" className="mr-2">
                         <Eye className="h-4 w-4" /> View
                       </Button>
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                 </TableRow>
               ))}

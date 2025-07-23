@@ -12,6 +12,7 @@ import CategoryProductCard from "./CategoryProductCard";
 import { ProductFromApi } from "../products/productCard";
 import { SlidersHorizontal } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 interface SubCategory {
   id: string;
@@ -145,7 +146,7 @@ const SubCategory = ({ param }: { param: string }) => {
                 />
               ))
             : visibleItems.map((item) => (
-                <Link
+                <HoverPrefetchLink
                   href={`/c/${item.subCategory.category?.slug}/${subCategory?.slug}/${item.slug}`}
                   className="w-full transition-transform duration-300 basis-1/6 hover:underline"
                   key={item.id}
@@ -163,7 +164,7 @@ const SubCategory = ({ param }: { param: string }) => {
                   <h3 className="text-sm text-center font-medium font-sans capitalize mt-2">
                     {item.name}
                   </h3>
-                </Link>
+                </HoverPrefetchLink>
               ))}
         </section>
 

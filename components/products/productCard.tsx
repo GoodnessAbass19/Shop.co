@@ -20,6 +20,7 @@ import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Heart, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 // interface ProductCardItem {
 //   id: string;
 //   slug: string;
@@ -30,13 +31,15 @@ import { format } from "date-fns";
 //   discountPercentage?: number | null; // The 'discountPercentage' from API
 // }
 
-type ProductFromApi = Product & {
+export type ProductFromApi = Product & {
   category: Pick<Category, "id" | "name" | "slug">;
   subCategory: Pick<SubCategory, "id" | "name" | "slug">;
   subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
   variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
   store: Pick<Store, "id" | "name" | "slug">;
   discounts: Discount[]; // Include discounts
+  averageRating: number; // Average rating from reviews
+  reviews: ProductReview[]; // Include reviews
   // These are added by the API route's mapping:
   productName: string;
   lowestPrice: number; // The lowest base price (from variants or product)
@@ -184,7 +187,10 @@ const ProductCard = ({
 
   return (
     <div className="overflow-hidden relative shadow-xs rounded-md">
-      <Link href={`/products/${item?.slug}`} className="w-full h-full">
+      <HoverPrefetchLink
+        href={`/products/${item?.slug}`}
+        className="w-full h-full"
+      >
         {/* {item.images[0]?.url && ( */}
         <Image
           src={
@@ -227,7 +233,7 @@ const ProductCard = ({
             </span>
           )}
         </div>
-      </Link>
+      </HoverPrefetchLink>
       {/* <Button
         variant="ghost"
         size="icon"

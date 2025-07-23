@@ -2,8 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import ProductCard, { ProductFromApi } from "../products/productCard";
+import ProductCard from "../products/productCard";
 import { Skeleton } from "../ui/skeleton";
+import { ProductFromApi } from "../home/Sections";
 
 const fetchWishlist = async () => {
   const res = await fetch("/api/wishlist", {

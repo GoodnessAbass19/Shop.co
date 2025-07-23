@@ -28,7 +28,6 @@ import {
   Line,
 } from "recharts";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -57,6 +56,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils"; // Assuming this is for conditional class names
 import { Button } from "../ui/button";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the types for the date range filter options
 type FilterType =
@@ -379,7 +379,9 @@ export function SalesAnalytics() {
                 {topSellingProducts.map((product: any) => (
                   <TableRow key={product.productId}>
                     <TableCell>
-                      <Link href={`/products/${product.productSlug}`}>
+                      <HoverPrefetchLink
+                        href={`/products/${product.productSlug}`}
+                      >
                         {product.productImage ? (
                           <Image
                             src={product.productImage}
@@ -397,15 +399,15 @@ export function SalesAnalytics() {
                             No Img
                           </div>
                         )}
-                      </Link>
+                      </HoverPrefetchLink>
                     </TableCell>
                     <TableCell>
-                      <Link
+                      <HoverPrefetchLink
                         href={`/products/${product.productSlug}`}
                         className="font-medium text-blue-600 hover:underline"
                       >
                         {product.productName}
-                      </Link>
+                      </HoverPrefetchLink>
                     </TableCell>
                     <TableCell>{product.variantName}</TableCell>
                     <TableCell className="text-right font-bold">

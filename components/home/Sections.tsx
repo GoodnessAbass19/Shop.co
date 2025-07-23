@@ -19,8 +19,10 @@ import {
   SubCategory,
   SubSubCategory,
   Store,
-  Discount, // Import Discount type
+  Discount,
+  ProductReview, // Import Discount type
 } from "@prisma/client";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -40,6 +42,8 @@ export type ProductFromApi = Product & {
   variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
   store: Pick<Store, "id" | "name" | "slug">;
   discounts: Discount[]; // Include discounts
+  averageRating: number; // Average rating from reviews
+  reviews: ProductReview[]; // Include reviews
   // These are added by the API route's mapping:
   productName: string;
   lowestPrice: number; // The lowest base price (from variants or product)
@@ -146,12 +150,12 @@ const Sections = ({
 
       {!isLoading && (
         <div className="flex justify-center items-center w-[200px] mx-auto">
-          <Link
+          <HoverPrefetchLink
             href={`/${href}`}
             className="text-sm font-medium capitalize text-center rounded-full p-2 border border-black/50 w-full"
           >
             view all
-          </Link>
+          </HoverPrefetchLink>
         </div>
       )}
     </motion.div>

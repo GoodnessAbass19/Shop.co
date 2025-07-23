@@ -36,6 +36,7 @@ import {
 import { useToast } from "@/Hooks/use-toast";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { cn } from "@/lib/utils";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the shape of an inventory item (either product or variant)
 interface InventoryItem {
@@ -334,7 +335,7 @@ export function InventoryManagement() {
               {inventoryItems.map((item: InventoryItem) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <Link href={`/products/${item.productSlug}`}>
+                    <HoverPrefetchLink href={`/products/${item.productSlug}`}>
                       {item.productImage ? (
                         <Image
                           src={item.productImage}
@@ -352,15 +353,15 @@ export function InventoryManagement() {
                           No Img
                         </div>
                       )}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   <TableCell>
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${item.productSlug}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {item.productName}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   <TableCell>
                     {item.variantName !== "N/A" ? (

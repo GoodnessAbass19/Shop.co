@@ -26,6 +26,7 @@ import useSWR from "swr";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 // import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
 
 // --- Extended Types to match API response ---
@@ -327,12 +328,12 @@ const CartPage = () => {
           /> */}
           <EmptyCartIcon />
           <div className="mt-5 w-full flex justify-center">
-            <Link
+            <HoverPrefetchLink
               className="flex items-center justify-center w-full max-w-[170px] md:min-w-[157px] h-10 text-sm bg-black text-white dark:bg-white dark:text-black rounded trans-150"
               href={"/"}
             >
               Continue Shopping
-            </Link>
+            </HoverPrefetchLink>
           </div>
         </div>
       </section>
@@ -365,7 +366,7 @@ const CartPage = () => {
                 className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 p-4 border rounded-md shadow-sm bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
               >
                 {/* Product Image */}
-                <Link
+                <HoverPrefetchLink
                   href={`/products/${product.slug}`}
                   className="relative w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 rounded-md overflow-hidden border border-gray-200"
                 >
@@ -375,17 +376,17 @@ const CartPage = () => {
                     layout="fill"
                     objectFit="cover"
                   />
-                </Link>
+                </HoverPrefetchLink>
 
                 {/* Item Details */}
                 <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 w-full">
                   <div>
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${product.slug}`}
                       className="text-lg font-semibold text-gray-900 hover:text-blue-700 transition-colors line-clamp-2"
                     >
                       {product.name}
-                    </Link>
+                    </HoverPrefetchLink>
                     <p className="text-sm text-gray-600 mt-1">
                       {variant.color && `Color: ${variant.color}`}
                       {variant.size &&
@@ -534,12 +535,12 @@ const CartPage = () => {
             ) : (
               <p className="text-sm text-gray-500">
                 No saved addresses.{" "}
-                <Link
+                <HoverPrefetchLink
                   href="/account/settings"
                   className="text-blue-600 underline"
                 >
                   Add one
-                </Link>
+                </HoverPrefetchLink>
               </p>
             )}
           </div>
@@ -564,12 +565,12 @@ const CartPage = () => {
             )}
           </Button>
           <div className="mt-4 text-center">
-            <Link
+            <HoverPrefetchLink
               href="/"
               className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
             >
               Continue Shopping
-            </Link>
+            </HoverPrefetchLink>
           </div>
         </div>
       </div>

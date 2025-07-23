@@ -7,6 +7,7 @@ import { Package, XCircle, Clock, CheckCircle } from "lucide-react"; // Icons fo
 import Image from "next/image"; // For optimized images
 import Link from "next/link";
 import useSWR from "swr";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Extend the Order type to include relations fetched from the API
 type OrderWithDetails = Order & {
@@ -167,12 +168,12 @@ const OrdersPageContent = () => {
             <p className="text-gray-500">
               Looks like you haven't placed any orders. Start shopping now!
             </p>
-            <Link
+            <HoverPrefetchLink
               href="/"
               className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-300"
             >
               Go to Homepage
-            </Link>
+            </HoverPrefetchLink>
           </div>
         ) : (
           <Tabs defaultValue="ongoing" className="w-full mt-5">
@@ -396,12 +397,12 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
       {/* View Details Button */}
       <div className="mt-auto pt-4 border-t border-gray-100">
-        <Link
+        <HoverPrefetchLink
           href={`/me/orders/details/${order.id}`}
           className="block text-center bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-md font-medium transition duration-300"
         >
           View Order Details
-        </Link>
+        </HoverPrefetchLink>
       </div>
     </div>
   );

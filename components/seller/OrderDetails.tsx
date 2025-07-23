@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import Link from "next/link";
 import Image from "next/image";
 import {
   Order,
@@ -58,6 +57,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AssignRiderForm } from "./AssignRiderForm";
 import { ConfirmDeliveryForm } from "./ConfirmOrderForm";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the full order structure including all relations
 type FullOrder = Order & {
@@ -150,11 +150,11 @@ export default function OrderDetailsPage({ params }: { params: string }) {
       <div className="text-gray-600 text-center py-8">
         <XCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
         <p className="text-lg font-semibold">Order not found.</p>
-        <Link href="/your/store/dashboard/orders">
+        <HoverPrefetchLink href="/your/store/dashboard/orders">
           <Button variant="outline" className="mt-4">
             Back to Orders
           </Button>
-        </Link>
+        </HoverPrefetchLink>
       </div>
     );
   }
@@ -165,11 +165,11 @@ export default function OrderDetailsPage({ params }: { params: string }) {
         <h2 className="text-3xl font-bold text-gray-900">
           Order #{order.id.substring(0, 8)}...
         </h2>
-        <Link href="/your/store/dashboard/orders">
+        <HoverPrefetchLink href="/your/store/dashboard/orders">
           <Button variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Orders
           </Button>
-        </Link>
+        </HoverPrefetchLink>
       </div>
 
       {/* Order Summary Cards */}
@@ -308,7 +308,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
               {order.items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${item.productVariant.product.slug}`}
                     >
                       {item.productVariant.product.images &&
@@ -329,15 +329,15 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                           No Img
                         </div>
                       )}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   <TableCell>
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${item.productVariant.product.slug}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {item.productVariant.product.name}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   <TableCell>
                     {item.productVariant.size &&

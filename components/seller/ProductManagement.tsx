@@ -46,6 +46,7 @@ import Link from "next/link";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { useRouter } from "next/navigation";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Extend Product type for data fetching
 type ProductWithRelations = Product & {
@@ -223,7 +224,7 @@ export function ProductManagement() {
               {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <Link href={`/products/${product.slug}`}>
+                    <HoverPrefetchLink href={`/products/${product.slug}`}>
                       {product.images && product.images.length > 0 ? (
                         <Image
                           src={product.images[0]}
@@ -241,15 +242,15 @@ export function ProductManagement() {
                           No Img
                         </div>
                       )}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   <TableCell>
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${product.slug}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {product.name}
-                    </Link>
+                    </HoverPrefetchLink>
                   </TableCell>
                   {/* <TableCell>
                     {product.category.name}
@@ -260,7 +261,7 @@ export function ProductManagement() {
                   <TableCell>{formatCurrencyValue(product.price)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell className="text-center whitespace-nowrap">
-                    <Link
+                    <HoverPrefetchLink
                       href={`/products/${product.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -273,7 +274,7 @@ export function ProductManagement() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                    </Link>
+                    </HoverPrefetchLink>
                     <Button
                       variant="ghost"
                       size="sm"

@@ -16,6 +16,7 @@ import { Cart, CartItem } from "@prisma/client";
 import CategoryMenu from "./category-menu";
 import { useQuery } from "@tanstack/react-query";
 import MobileMenu from "./mobileMenu";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const fetcher = async (url: string) => {
   preload(url, fetch);
@@ -94,12 +95,12 @@ const Menu = () => {
             <MenuButton isOpen={isOpen} onClick={setIsOpen.toggle} />
           </div> */}
 
-          <Link
+          <HoverPrefetchLink
             href={"/"}
             className="text-black lg:text-3xl md:text-2xl text-xl font-extrabold uppercase"
           >
             shop.co
-          </Link>
+          </HoverPrefetchLink>
           <div className="lg:block hidden">
             <CategoryMenu />
           </div>
@@ -134,7 +135,7 @@ const Menu = () => {
                             setSearch("");
                           }}
                         >
-                          <Link
+                          <HoverPrefetchLink
                             href={`/products/${item.slug}`}
                             className="flex items-center gap-4"
                           >
@@ -154,7 +155,7 @@ const Menu = () => {
                                 {removeHyphens(item.name)}
                               </span>
                             </div>
-                          </Link>
+                          </HoverPrefetchLink>
 
                           <div className="ml-2 ">
                             <span className="text-lg font-semibold">
@@ -190,12 +191,12 @@ const Menu = () => {
             </DropdownMenu>
           </div> */}
 
-          <Link href={"/cart"} className="relative">
+          <HoverPrefetchLink href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
             {items?.cartItems?.length > 0 && (
               <div className="rounded-full bg-red-500 animate-bounce absolute top-0 right-0 size-2"></div>
             )}
-          </Link>
+          </HoverPrefetchLink>
 
           {/* <DropdownMenu>
             <DropdownMenuTrigger>
@@ -227,13 +228,13 @@ const Menu = () => {
               </SignedOut>
 
               <DropdownMenuItem>
-                <Link
+                <HoverPrefetchLink
                   href={""}
                   className="flex justify-start items-center gap-2 capitalize"
                 >
                   <UserRound className="w-6 h-6 text-black" />
                   my account
-                </Link>
+                </HoverPrefetchLink>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Link

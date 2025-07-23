@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link"; // Import Link for navigation
 import { useSellerStore } from "@/Hooks/use-store-context";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Extend Discount type for data fetching
 type DiscountWithProducts = Discount & {
@@ -163,11 +164,11 @@ export function DiscountManagement() {
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-        <Link href="/your/store/dashboard/discounts/add">
+        <HoverPrefetchLink href="/your/store/dashboard/discounts/add">
           <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
             <PlusCircle className="h-5 w-5" /> Create New Discount
           </Button>
-        </Link>
+        </HoverPrefetchLink>
       </div>
 
       {/* Discounts Table */}
@@ -229,7 +230,7 @@ export function DiscountManagement() {
                       <Badge variant={status.variant}>{status.text}</Badge>
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
-                      <Link
+                      <HoverPrefetchLink
                         href={`/your/store/dashboard/discounts/${discount.id}/edit`}
                       >
                         <Button
@@ -240,7 +241,7 @@ export function DiscountManagement() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                      </Link>
+                      </HoverPrefetchLink>
                       <Button
                         variant="destructive"
                         size="sm"

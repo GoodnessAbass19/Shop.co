@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the type for a navigation item
 interface NavItem {
@@ -103,12 +104,12 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
         </div>
         <nav className="mt-8 px-4 space-y-2">
           {navItems.map((item) => (
-            <Link
+            <HoverPrefetchLink
               key={item.name}
               href={item.href}
               className={cn(
                 "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
-                // Highlight active link based on pathname.startsWith for nested routes
+                // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
                 pathname === item.href
                   ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
                   : "text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -117,7 +118,7 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
             >
               <item.icon className="h-5 w-5 mr-3" />
               {item.name}
-            </Link>
+            </HoverPrefetchLink>
           ))}
         </nav>
         <div className="absolute bottom-6 left-0 w-full px-4">
@@ -145,12 +146,12 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
             </CollapsibleTrigger>
             <CollapsibleContent className="flex flex-col gap-2">
               {ProfileLinks.map((item) => (
-                <Link
+                <HoverPrefetchLink
                   key={item.name}
                   href={item.href}
                   className={cn(
                     "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
-                    // Highlight active link based on pathname.startsWith for nested routes
+                    // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
                     pathname === item.href
                       ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -159,7 +160,7 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
                 >
                   <item.icon className="h-5 w-5 mr-3" />
                   {item.name}
-                </Link>
+                </HoverPrefetchLink>
               ))}
               <Button
                 variant="ghost"

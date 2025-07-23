@@ -37,6 +37,7 @@ import {
 } from "@prisma/client";
 import { Sidebar } from "../dashboard/Sidebar";
 import { SellerStoreProvider } from "@/Hooks/use-store-context";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStoreData {
@@ -170,13 +171,13 @@ export default function SellerDashboardLayout({
           It looks like you don't have a store yet. Please create one to access
           the dashboard.
         </p>
-        <Link href="/create-store">
+        <HoverPrefetchLink href="/create-store">
           {" "}
           {/* Adjust this path to your store creation form */}
           <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
             Create Your Store
           </Button>
-        </Link>
+        </HoverPrefetchLink>
       </div>
     );
   }

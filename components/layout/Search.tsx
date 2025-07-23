@@ -19,6 +19,7 @@ import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { Data, ProductEdge, ProductsConnection } from "@/types";
 import { useRouter } from "next/navigation";
 import { useBoolean } from "@/Hooks/useBoolean";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const Search = () => {
   const [search, setSearch] = useState("");
@@ -92,7 +93,9 @@ const Search = () => {
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          <Link href={`/products/${item.node?.slug}`}>
+                          <HoverPrefetchLink
+                            href={`/products/${item.node?.slug}`}
+                          >
                             <Image
                               className="w-10 h-10 object-cover rounded"
                               src={item.node.images[0].url}
@@ -101,15 +104,17 @@ const Search = () => {
                               height={500}
                               priority
                             />
-                          </Link>
+                          </HoverPrefetchLink>
                         </div>
 
                         <div className="flex flex-col justify-between gap-4">
-                          <Link href={`/products/${item.node?.slug}`}>
+                          <HoverPrefetchLink
+                            href={`/products/${item.node?.slug}`}
+                          >
                             <span className="md:text-lg font-medium leading-tight line-clamp-1">
                               {item.node.productName}
                             </span>
-                          </Link>
+                          </HoverPrefetchLink>
                         </div>
                       </div>
 

@@ -36,6 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DeliveryTimeline } from "@/components/seller/DeliveryTimeline";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Extend types to match API response structure
 type OrderItemWithProductDetails = OrderItem & {
@@ -140,12 +141,12 @@ const OrderDetailsPage = () => {
         <div className="p-8 border border-red-300 rounded-lg bg-red-100 text-red-800 text-center shadow-md">
           <p className="text-xl font-semibold mb-3">Error:</p>
           {/* <p className="mb-4">{error.}</p> */}
-          <Link
+          <HoverPrefetchLink
             href="/orders"
             className="inline-flex items-center px-6 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Orders
-          </Link>
+          </HoverPrefetchLink>
         </div>
       </section>
     );
@@ -167,12 +168,12 @@ const OrderDetailsPage = () => {
             The order you are looking for does not exist or you do not have
             permission to view it.
           </p>
-          <Link
+          <HoverPrefetchLink
             href="/orders"
             className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to All Orders
-          </Link>
+          </HoverPrefetchLink>
         </div>
       </section>
     );
@@ -224,12 +225,12 @@ const OrderDetailsPage = () => {
             The order you are looking for does not exist or you do not have
             permission to view it.
           </p>
-          <Link
+          <HoverPrefetchLink
             href="/orders"
             className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to All Orders
-          </Link>
+          </HoverPrefetchLink>
         </div>
       </section>
     );
@@ -239,13 +240,13 @@ const OrderDetailsPage = () => {
     <section className="max-w-screen-2xl mx-auto mt-10 px-4 md:px-6 lg:px-8 pb-10">
       <div className="container mx-auto">
         <div className="flex items-center mb-6">
-          <Link
+          <HoverPrefetchLink
             href="/me/orders"
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             <span className="text-lg font-medium">Back to All Orders</span>
-          </Link>
+          </HoverPrefetchLink>
         </div>
 
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Order Details</h1>

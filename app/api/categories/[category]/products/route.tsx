@@ -169,13 +169,13 @@ export async function GET(
           : product.price || 0; // Fallback if no variants or base price
 
       let discountedPrice: number | null = null;
-      let bestDiscountPercentage = 0;
+      let bestDiscountPercentage: number | null = null;
 
       // Find the best single discount percentage for this product
       if (product.discounts && product.discounts.length > 0) {
         bestDiscountPercentage = product.discounts[0].percentage; // Already ordered by desc percentage
-        if (bestDiscountPercentage > 0) {
-          discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
+        if (bestDiscountPercentage! > 0) {
+          discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
         }
       }
 

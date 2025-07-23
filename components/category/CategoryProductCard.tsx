@@ -11,6 +11,7 @@ import React, { useCallback } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { ProductFromApi } from "../products/productCard";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const checkWishlistStatus = async (
   productId: string
@@ -133,7 +134,7 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
 
   return (
     <div className="relative overflow-hidden">
-      <Link
+      <HoverPrefetchLink
         href={`/products/${product.slug}`}
         key={product.id}
         className="rounded-lg space-y-1"
@@ -178,7 +179,7 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
             )}
           </div>
         </div>
-      </Link>
+      </HoverPrefetchLink>
       {/* <span className="font-light text-sm text-center text-black bg-white rounded-full p-2 absolute top-1 right-1">
           <Heart className="w-4 h-4" />
         </span> */}

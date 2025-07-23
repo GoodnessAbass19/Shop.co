@@ -49,6 +49,7 @@ import {
   Bar,
   Line,
 } from "recharts";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 interface DashboardSummary {
   totalRevenue: number;
@@ -568,11 +569,13 @@ export function DashboardOverview() {
                   </TableCell>
                   <TableCell>${order.total.toFixed(2)}</TableCell>
                   <TableCell className="text-center">
-                    <Link href={`/your/store/dashboard/orders/${order.id}`}>
+                    <HoverPrefetchLink
+                      href={`/your/store/dashboard/orders/${order.id}`}
+                    >
                       <Button variant="outline" size="sm" className="mr-2">
                         <Eye className="h-4 w-4" /> View
                       </Button>
-                    </Link>
+                    </HoverPrefetchLink>
                     {/* Add Update Status button/modal here later */}
                   </TableCell>
                 </TableRow>

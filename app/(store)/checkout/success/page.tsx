@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation"; // To get session_id
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
@@ -29,18 +30,18 @@ export default function CheckoutSuccessPage() {
       <p className="text-xl text-green-700 mb-8">
         Thank you for your purchase. Your order is being processed.
       </p>
-      <Link href="/orders" passHref>
+      <HoverPrefetchLink href="/orders" passHref>
         <Button className="bg-green-700 hover:bg-green-800 text-white text-lg px-8 py-3 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105">
           View My Orders
         </Button>
-      </Link>
-      <Link
+      </HoverPrefetchLink>
+      <HoverPrefetchLink
         href="/"
         passHref
         className="mt-4 text-green-600 hover:text-green-800"
       >
         <Button variant="link">Continue Shopping</Button>
-      </Link>
+      </HoverPrefetchLink>
     </div>
   );
 }

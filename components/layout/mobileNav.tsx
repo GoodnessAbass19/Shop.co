@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Shoplist } from "@/types";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const MobileNav = ({ onClose }: { onClose: () => void }) => {
   function removeHyphens(slug: string) {
@@ -43,9 +44,14 @@ const MobileNav = ({ onClose }: { onClose: () => void }) => {
             exit="exit"
             custom={"sales"}
           >
-            <Link href="/top-deals" onClick={onClose} legacyBehavior passHref>
+            <HoverPrefetchLink
+              href="/top-deals"
+              onClick={onClose}
+              legacyBehavior
+              passHref
+            >
               On Sale
-            </Link>
+            </HoverPrefetchLink>
           </motion.li>
           <motion.li
             className="list-none text-start text-black"
@@ -55,14 +61,14 @@ const MobileNav = ({ onClose }: { onClose: () => void }) => {
             exit="exit"
             custom={"new"}
           >
-            <Link
+            <HoverPrefetchLink
               href="/new-arrivals"
               onClick={onClose}
               legacyBehavior
               passHref
             >
               New Arrivals
-            </Link>
+            </HoverPrefetchLink>
           </motion.li>
           <motion.li
             className="list-none text-start text-black"
@@ -78,7 +84,9 @@ const MobileNav = ({ onClose }: { onClose: () => void }) => {
                 {Shoplist.map((list) => (
                   <div key={list.title} className="flex flex-col space-y-1">
                     <DropdownMenuLabel className="text-base font-semibold uppercase text-[#313133] text-ellipsis hover:text-gray-400">
-                      <Link href={`${list.link}`}>{list.title}</Link>
+                      <HoverPrefetchLink href={`${list.link}`}>
+                        {list.title}
+                      </HoverPrefetchLink>
                     </DropdownMenuLabel>
                     <hr className="bg-gray-900" />
                     <div className="space-y-1 flex flex-col justify-start items-start">
@@ -87,9 +95,9 @@ const MobileNav = ({ onClose }: { onClose: () => void }) => {
                           key={item}
                           className="text-sm capitalize text-[#75757a] text-ellipsis hover:text-black"
                         >
-                          <Link href={`${list.link}/${item}`}>
+                          <HoverPrefetchLink href={`${list.link}/${item}`}>
                             {removeHyphens(item)}
-                          </Link>
+                          </HoverPrefetchLink>
                         </DropdownMenuItem>
                       ))}
                     </div>

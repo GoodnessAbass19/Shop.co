@@ -13,6 +13,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 interface ProductCategory {
   id: string;
@@ -100,12 +101,12 @@ const CategoryMenu = () => {
 
           {/* Subcategory Grid */}
           <div className="col-span-3 pl-4 w-full">
-            <Link
+            <HoverPrefetchLink
               href={`/c/${activeCategory?.slug}`}
               className="flex gap-2 justify-start items-center font-semibold font-serif text-base capitalize hover:gap-2.5 transition-transform duration-500 ease-in-out"
             >
               all {activeCategory?.name} <ArrowRight className="w-5 h-5" />
-            </Link>
+            </HoverPrefetchLink>
 
             <div className="grid grid-cols-3 gap-2.5 overflow-y-scroll justify-between items-stretch w-full">
               {isLoading ? (
@@ -123,7 +124,7 @@ const CategoryMenu = () => {
                     {isLoading ? (
                       <div className="w-[200px] h-[200px] rounded-md overflow-hidden animate-pulse"></div>
                     ) : (
-                      <Link
+                      <HoverPrefetchLink
                         href={`/c/${activeCategory?.slug}/${item.slug}`}
                         className="text-center rounded-md p-1 hover:shadow-md flex flex-col items-center justify-center gap-1 w-full overflow-hidden"
                       >
@@ -141,7 +142,7 @@ const CategoryMenu = () => {
                         <span className="text-sm font-semibold font-sans line-clamp-1">
                           {item?.name}
                         </span>
-                      </Link>
+                      </HoverPrefetchLink>
                     )}
                   </div>
                 ))

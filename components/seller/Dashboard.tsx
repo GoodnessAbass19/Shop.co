@@ -49,6 +49,7 @@ import { DiscountManagement } from "./DiscountManagement";
 import { StoreSettings } from "./StoreSettings";
 import { CustomerMessages } from "./CustomerMessages";
 import { ProductReviews } from "./ProductReviews";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStore {
@@ -169,13 +170,13 @@ export function SellerDashboard() {
           It looks like you don't have a store yet. Please create one to access
           the dashboard.
         </p>
-        <Link href="/create-store">
+        <HoverPrefetchLink href="/create-store">
           {" "}
           {/* Adjust this path to your store creation form */}
           <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
             Create Your Store
           </Button>
-        </Link>
+        </HoverPrefetchLink>
       </div>
     );
   }
@@ -191,7 +192,7 @@ export function SellerDashboard() {
     <div
     // className="flex min-h-screen bg-gray-100 font-inter"
     >
-      <DashboardOverview store={sellerStore} />
+      <DashboardOverview />
     </div>
   );
 }

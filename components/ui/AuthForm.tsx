@@ -28,6 +28,7 @@ import {
 import Link from "next/link";
 import { useToast } from "@/Hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 type AuthFormProps = {
   type: "login" | "register";
@@ -440,22 +441,22 @@ export default function AuthForm({ type }: AuthFormProps) {
               {type === "login" ? (
                 <>
                   Don't have an account?{" "}
-                  <Link
+                  <HoverPrefetchLink
                     href="/sign-up"
                     className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Sign up
-                  </Link>
+                  </HoverPrefetchLink>
                 </>
               ) : (
                 <>
                   Already have an account?{" "}
-                  <Link
+                  <HoverPrefetchLink
                     href="/sign-in"
                     className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Login
-                  </Link>
+                  </HoverPrefetchLink>
                 </>
               )}
             </p>

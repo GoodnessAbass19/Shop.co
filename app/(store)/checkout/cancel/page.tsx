@@ -5,6 +5,7 @@ import Link from "next/link";
 import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation"; // To get orderId
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 export default function CheckoutCancelPage() {
   const searchParams = useSearchParams();
@@ -27,14 +28,18 @@ export default function CheckoutCancelPage() {
       {orderId && (
         <p className="text-sm text-red-700 mb-4">Order ID: {orderId}</p>
       )}
-      <Link href="/cart" passHref>
+      <HoverPrefetchLink href="/cart" passHref>
         <Button className="bg-red-700 hover:bg-red-800 text-white text-lg px-8 py-3 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105">
           Return to Cart
         </Button>
-      </Link>
-      <Link href="/" passHref className="mt-4 text-red-600 hover:text-red-800">
+      </HoverPrefetchLink>
+      <HoverPrefetchLink
+        href="/"
+        passHref
+        className="mt-4 text-red-600 hover:text-red-800"
+      >
         <Button variant="link">Continue Shopping</Button>
-      </Link>
+      </HoverPrefetchLink>
     </div>
   );
 }

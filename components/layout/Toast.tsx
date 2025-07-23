@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/Hooks/use-toast";
 import { createCartItem } from "@/lib/actions";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { useCartStore } from "@/store/cart-store";
 import { CartProduct } from "@/types";
 import { useUser } from "@clerk/nextjs";
@@ -34,7 +35,7 @@ export function AddToCartButton({
         : `${productName} added to cart`,
       action: (
         <ToastAction altText="Go to cart">
-          <Link href={"/cart"}>Go to cart</Link>
+          <HoverPrefetchLink href={"/cart"}>Go to cart</HoverPrefetchLink>
         </ToastAction>
       ),
     });

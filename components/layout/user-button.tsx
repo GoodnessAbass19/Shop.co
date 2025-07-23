@@ -30,6 +30,7 @@ import {
 import { User } from "@prisma/client";
 import LogoutButton from "./logout-button";
 import { ClipLoader } from "react-spinners";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const UserButton = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -80,9 +81,9 @@ const UserButton = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href={"/your/store/dashboard"}>
+              <HoverPrefetchLink href={"/your/store/dashboard"}>
                 <Store />
-              </Link>
+              </HoverPrefetchLink>
             </TooltipTrigger>
             <TooltipContent>
               <p className="capitalize">shop manager</p>
@@ -110,7 +111,7 @@ const UserButton = () => {
             {user ? (
               <>
                 <DropdownMenuItem>
-                  <Link
+                  <HoverPrefetchLink
                     href={""}
                     className="flex justify-between items-center gap-3 capitalize"
                   >
@@ -121,46 +122,46 @@ const UserButton = () => {
                       </span>
                       view your profile
                     </div>
-                  </Link>
+                  </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link
+                  <HoverPrefetchLink
                     href={"/me/orders"}
                     className="flex justify-start items-center gap-2 capitalize"
                   >
                     <ShoppingBagIcon className="w-5 h-5 text-black" />
                     orders
-                  </Link>
+                  </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link
+                  <HoverPrefetchLink
                     href={"/me/wishlist"}
                     className="flex justify-start items-center gap-2 capitalize"
                   >
                     <Heart className="w-5 h-5 text-black" />
                     wishlist
-                  </Link>
+                  </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {user.role !== "SELLER" && (
                   <>
                     <DropdownMenuItem>
-                      <Link
+                      <HoverPrefetchLink
                         href={"/orders"}
                         className="flex justify-start items-center gap-2 capitalize"
                       >
                         <Store className="w-5 h-5 text-black" />
                         sell on shop.co
-                      </Link>
+                      </HoverPrefetchLink>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
                 )}
 
                 <DropdownMenuItem>
-                  <Link
+                  <HoverPrefetchLink
                     href={"/me/account"}
                     className="flex justify-between items-center gap-3 capitalize"
                   >
@@ -168,7 +169,7 @@ const UserButton = () => {
                     <div className="flex flex-col justify-start items-start">
                       Account settings
                     </div>
-                  </Link>
+                  </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -182,9 +183,9 @@ const UserButton = () => {
               </>
             ) : (
               <DropdownMenuItem asChild>
-                <Link href="/sign-in">
+                <HoverPrefetchLink href="/sign-in">
                   <Button className="w-full bg-black text-white">Login</Button>
-                </Link>
+                </HoverPrefetchLink>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -192,12 +193,12 @@ const UserButton = () => {
       ) : (
         // <div className="flex justify-center items-center gap-1">
         //   <UserRound className="w-6 h-6 text-black" />
-        <Link
+        <HoverPrefetchLink
           href="/sign-in"
           className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block rounded-full hover:bg-gray-200 p-1"
         >
           sign in
-        </Link>
+        </HoverPrefetchLink>
 
         // </div>
       )}

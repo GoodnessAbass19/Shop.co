@@ -252,6 +252,7 @@ export function AddProductForm() {
       queryClient.invalidateQueries({ queryKey: ["sellerProducts"] }); // Invalidate product list
       queryClient.invalidateQueries({ queryKey: ["sellerDashboardSummary"] }); // Invalidate dashboard summary
       //   onSuccess?.(); // Call parent's success callback
+      router.prefetch("/your/store/dashboard/products");
       router.push("/your/store/dashboard/products");
     },
     onError: (error: any) => {

@@ -153,6 +153,8 @@ export function AddDiscountForm() {
         description: `Discount code '${data.discount.code}' added.`,
       });
       queryClient.invalidateQueries({ queryKey: ["sellerDiscounts", storeId] });
+      router.prefetch("/your/store/dashboard/discounts");
+      reset(); // Reset form after successful creation
       router.push("/your/store/dashboard/discounts"); // Navigate back to discount list
     },
     onError: (error: any) => {

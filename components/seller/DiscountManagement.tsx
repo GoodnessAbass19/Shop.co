@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link"; // Import Link for navigation
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { useRouter } from "next/navigation";
 
 // Extend Discount type for data fetching
 type DiscountWithProducts = Discount & {
@@ -57,6 +58,7 @@ export function DiscountManagement() {
   const queryClient = useQueryClient();
   const { store } = useSellerStore();
   const { id: storeId } = store;
+  const Router = useRouter();
 
   // Removed showFormModal and editingDiscount states
 
@@ -85,6 +87,7 @@ export function DiscountManagement() {
       queryClient.invalidateQueries({
         queryKey: ["sellerDashboardSummary", storeId],
       }); // If discounts affect summary
+      Router.refresh(); // Refresh the page to reflect changes
     },
     onError: (err: any) => {
       toast({

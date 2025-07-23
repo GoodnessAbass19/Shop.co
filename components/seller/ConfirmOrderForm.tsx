@@ -81,9 +81,10 @@ export function ConfirmDeliveryForm({
         title: "Delivery Confirmed",
         description: "Order delivery has been successfully confirmed.",
       });
-      router.refresh();
+
       reset(); // Clear form fields on success
       onSuccess?.(); // Call the optional success callback
+      router.refresh();
       // Refresh the page or data
       // Invalidate relevant queries if this action affects other data
       // e.g., queryClient.invalidateQueries(['orderDetails', orderItemId]);

@@ -67,7 +67,7 @@ async function main() {
     data: {
       email: "john.doe@example.com",
       token: "123456",
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // Expires in 5 minutes from now
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // Expires in 5 minutes from now
     },
   });
 

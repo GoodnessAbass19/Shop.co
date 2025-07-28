@@ -63,7 +63,7 @@ const ThumbnailGallery = ({
   const { data: wishlistStatus, isLoading: isCheckingWishlist } = useQuery({
     queryKey: ["wishlistStatus", id], // Unique key for this product's wishlist status
     queryFn: () => checkWishlistStatus(id),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 10 * 60 * 1000, // Cache for 5 minutes
     refetchOnWindowFocus: false,
     retry: false, // Don't retry on 401 (Unauthorized)
   });

@@ -52,7 +52,7 @@ const MobileMenu = () => {
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    staleTime: 10 * 60 * 1000, // Data considered fresh for 5 minutes
   });
   // const [activeCategory, setActiveCategory] = useState<
   //   ProductCategory | undefined

@@ -59,7 +59,7 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
   const { data: wishlistStatus, isLoading: isCheckingWishlist } = useQuery({
     queryKey: ["wishlistStatus", product.id], // Unique key for this product's wishlist status
     queryFn: () => checkWishlistStatus(product.id),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 10 * 60 * 1000, // Cache for 5 minutes
     refetchOnWindowFocus: false,
     retry: false, // Don't retry on 401 (Unauthorized)
   });
@@ -146,7 +146,7 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
           height={300}
           className="w-full h-[250px] object-cover object-center rounded-sm"
         />
-        <div className="px-1.5 leading-tight">
+        <div className="px-1.5 leading-none">
           <h4 className="text-base font-normal line-clamp-1">{product.name}</h4>
           <div>
             {product.reviews.length > 0 && (

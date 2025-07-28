@@ -38,7 +38,7 @@ export default function ProfilePage() {
   } = useQuery<FetchedUser, Error>({
     queryKey: ["currentUser"],
     queryFn: fetchCurrentUser,
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    staleTime: 10 * 60 * 1000, // Data considered fresh for 5 minutes
   });
 
   if (isLoading) {

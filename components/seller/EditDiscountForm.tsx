@@ -135,7 +135,7 @@ export function EditDiscountForm({ discountId }: EditDiscountFormProps) {
   } = useQuery<ProductForSelection[], Error>({
     queryKey: ["productsForDiscountSelection", storeId],
     queryFn: () => fetchSellerProductsForSelection(storeId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!storeId,
   });

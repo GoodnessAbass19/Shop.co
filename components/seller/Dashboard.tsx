@@ -110,7 +110,7 @@ export function SellerDashboard() {
   >({
     queryKey: ["sellerStore"],
     queryFn: fetchSellerStore,
-    staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
+    staleTime: 10 * 60 * 1000, // Data considered fresh for 5 minutes
     refetchOnWindowFocus: false,
     retry: 1, // Retry once if it fails
   });

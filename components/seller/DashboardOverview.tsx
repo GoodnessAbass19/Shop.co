@@ -126,7 +126,7 @@ export function DashboardOverview() {
     {
       queryKey: ["sellerDashboardSummary", store.id],
       queryFn: () => fetchDashboardSummary(store.id),
-      staleTime: 5 * 60 * 1000,
+      staleTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       // No 'enabled' needed here because if this component renders, store.id is guaranteed
       // to be available from the layout's data fetch.

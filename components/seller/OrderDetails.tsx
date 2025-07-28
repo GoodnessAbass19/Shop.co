@@ -371,14 +371,9 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                           </DialogTrigger>
 
                           <DialogContent>
-                            {/* <DialogHeader>
-                            <DialogTitle>Are you absolutely sure?</DialogTitle>
-                            <DialogDescription>
-                              This action cannot be undone. Are you sure you
-                              want to permanently delete this file from our
-                              servers?
-                            </DialogDescription>
-                          </DialogHeader> */}
+                            <DialogHeader>
+                              <DialogTitle>Assign a rider</DialogTitle>
+                            </DialogHeader>
                             <AssignRiderForm orderItemId={item.id} />
 
                             {/* <DialogClose>
@@ -393,6 +388,9 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                           </DialogTrigger>
 
                           <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirm Delivery</DialogTitle>
+                            </DialogHeader>
                             <ConfirmDeliveryForm orderItemId={item.id} />
                             {/* <DialogHeader>
                             <DialogTitle>Are you absolutely sure?</DialogTitle>
@@ -406,35 +404,6 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                           </DialogContent>
                         </Dialog>
                       )}
-                      {/* <Dialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          // asChild
-                          className="focus:outline-none"
-                        >
-                          Change status
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            <DialogTrigger className="w-full text-left">
-                              Assign to Rider
-                            </DialogTrigger>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Are you absolutely sure?</DialogTitle>
-                          <DialogDescription>
-                            This action cannot be undone. Are you sure you want
-                            to permanently delete this file from our servers?
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogClose>
-                          <Button type="submit">Confirm</Button>
-                        </DialogClose>
-                      </DialogContent>
-                    </Dialog> */}
                     </TableCell>
                   )}
                 </TableRow>

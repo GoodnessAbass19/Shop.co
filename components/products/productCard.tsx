@@ -99,7 +99,7 @@ const ProductCard = ({
   const { data: wishlistStatus, isLoading: isCheckingWishlist } = useQuery({
     queryKey: ["wishlistStatus", item.id], // Unique key for this item's wishlist status
     queryFn: () => checkWishlistStatus(item.id),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 10 * 60 * 1000, // Cache for 5 minutes
     refetchOnWindowFocus: false,
     retry: false, // Don't retry on 401 (Unauthorized)
   });

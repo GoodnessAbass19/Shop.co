@@ -52,11 +52,11 @@ export async function PATCH(
   const buyerEmail = updatedItem.order.buyer.email;
   const buyerName = updatedItem.order.buyer.name || "Customer";
 
-  // await sendEmail({
-  //   to: buyerEmail,
-  //   subject: "Your Order is on the Way!",
-  //   html: DeliveryCodeEmail({ name: buyerName, code: confirmationCode }),
-  // });
+  await sendEmail({
+    to: buyerEmail,
+    subject: "Your Order is on the Way!",
+    html: DeliveryCodeEmail({ name: buyerName, code: confirmationCode }),
+  });
 
   return Response.json({ success: true });
   // You can add SMS or email notification logic here.

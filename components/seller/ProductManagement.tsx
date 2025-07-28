@@ -97,7 +97,7 @@ export function ProductManagement() {
   } = useQuery<ProductWithRelations[], Error>({
     queryKey: ["sellerProducts", store.id],
     queryFn: () => fetchSellerProducts(store.id),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!store.id,
   });

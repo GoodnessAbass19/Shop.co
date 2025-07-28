@@ -89,7 +89,7 @@ const SubCategory = ({ param }: { param: string }) => {
     queryKey: ["category", param],
     queryFn: ({ queryKey }) =>
       fetchSubCategory({ subcategory: queryKey[1] as string }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Query products using selected sort
@@ -107,7 +107,7 @@ const SubCategory = ({ param }: { param: string }) => {
         limit,
       }),
     enabled: !!subCategory?.slug,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   const handleSortChange = (value: string) => {

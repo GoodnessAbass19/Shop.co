@@ -102,7 +102,7 @@ export async function GET(request: Request) {
     const totalPages = Math.ceil(totalOrders / pageSize);
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
-    console.log(orders);
+    // console.log(orders);
     return NextResponse.json(
       {
         orders,

@@ -89,6 +89,7 @@ export function AssignRiderForm({
         description: "Rider details sent and buyer notified.",
       });
       reset(); // Clear form fields on success
+      router.refresh(); // Refresh the page or relevant data
       onSuccess?.(); // Call the optional success callback
       // Invalidate relevant queries if this action affects other data
       // e.g., queryClient.invalidateQueries(['orderDetails', orderItemId]);
@@ -105,6 +106,8 @@ export function AssignRiderForm({
   // Handle form submission
   const onSubmit = (data: AssignRiderFormData) => {
     assignRiderMutation.mutate({ orderItemId, ...data });
+    router.refresh(); // Refresh the page or relevant data
+    reset(); // Clear form fields after submission
   };
 
   return (

@@ -103,11 +103,13 @@ export function ConfirmDeliveryForm({
   // Handle form submission
   const onSubmit = (data: ConfirmDeliveryFormData) => {
     confirmDeliveryMutation.mutate({ orderItemId, ...data });
+    router.refresh(); // Refresh the page after submission
+    reset(); // Reset form fields after submission
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
-      <h3 className="text-lg font-semibold text-gray-800">Confirm Delivery</h3>
+      {/* <h3 className="text-lg font-semibold text-gray-800">Confirm Delivery</h3> */}
 
       {/* Confirmation Code Input */}
       <div>

@@ -100,7 +100,7 @@ const Category = ({ param }: { param: string }) => {
     queryKey: ["category", param],
     queryFn: ({ queryKey }) =>
       fetchCategory({ category: queryKey[1] as string }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Query products using selected sort
@@ -118,7 +118,7 @@ const Category = ({ param }: { param: string }) => {
         limit,
       }),
     enabled: !!category?.slug,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   const handleSortChange = (value: string) => {

@@ -55,7 +55,7 @@ const SubSubCategory = ({ param }: { param: string }) => {
         limit,
       }),
     enabled: !!param,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   const handleSortChange = (value: string) => {

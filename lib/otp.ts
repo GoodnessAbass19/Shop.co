@@ -139,9 +139,7 @@ export async function verifyOtp(email: string, token: string) {
 }
 
 export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST!,
-  port: Number(process.env.SMTP_PORT!),
-  secure: false, // true for 465, false for other ports
+  service: "gmail",
   auth: {
     type: "OAuth2",
     user: process.env.EMAIL_USER,

@@ -20,6 +20,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   // 1. Get the raw body of the request for Stripe signature verification
   // Next.js App Router uses req.arrayBuffer() to get the raw body.
+  // console.log(req);
   const buf = await req.arrayBuffer();
   // Convert ArrayBuffer to Node.js Buffer, as Stripe's constructEvent expects a Buffer.
   const rawBody = Buffer.from(buf);

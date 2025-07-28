@@ -32,7 +32,7 @@ const Wishlist = () => {
   } = useQuery({
     queryKey: ["wishlist-products"],
     queryFn: fetchWishlist,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   return (

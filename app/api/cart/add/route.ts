@@ -48,7 +48,15 @@ export async function POST(request: Request) {
     // 3. Check stock availability
     const productVariant = await prisma.productVariant.findUnique({
       where: { id: productVariantId },
-      select: { stock: true, productId: true }, // Select productId to link to product
+      select: {
+        stock: true,
+        productId: true,
+        product: {
+          include: {
+            store: true,
+          },
+        },
+      }, // Select productId to link to product
     });
 
     if (!productVariant) {

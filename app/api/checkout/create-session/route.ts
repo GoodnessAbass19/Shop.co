@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { OrderStatus } from "@prisma/client"; // Import OrderStatus enum
+import { OrderStatus, NotificationType, Role } from "@prisma/client"; // Import NotificationType, UserRole
+import { createAndSendNotification } from "@/lib/create-notification"; // Import the notification utility
 
 // Initialize Stripe outside the handler for efficiency
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest, request: Request) {
     let totalOrderAmount = 0;
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     const orderItemsData: any[] = []; // To store data for creating OrderItems
+    const involvedStoreIds = new Set<string>(); // To track unique store IDs for notifications
 
     for (const cartItem of cart.cartItems) {
       const variant = cartItem.productVariant;
@@ -124,6 +126,9 @@ export async function POST(req: NextRequest, request: Request) {
       });
 
       totalOrderAmount += unitPrice * cartItem.quantity;
+
+      // Add storeId to the set for later notification
+      involvedStoreIds.add(product.storeId);
     }
 
     // 3. Create a PENDING order in your database
@@ -154,6 +159,43 @@ export async function POST(req: NextRequest, request: Request) {
     });
     console.log(`Created PENDING order: ${newOrder.id}`);
 
+    // --- Notifications ---
+    // Notify the buyer about their new order
+    await createAndSendNotification({
+      userId: user.id,
+      userRole: Role.BUYER,
+      type: NotificationType.ORDER_CONFIRMATION,
+      title: `Order #${newOrder.id.substring(0, 8)}... Confirmed!`,
+      message: `Thank you for your purchase! Your order is now pending payment.`,
+      link: `/buyer/orders/${newOrder.id}`, // Link to buyer's order details page
+      // relatedEntityId: newOrder.id,
+      // relatedEntityType: "ORDER",
+    });
+
+    // Notify each involved seller about the new order
+    for (const storeId of involvedStoreIds) {
+      const sellerStore = await prisma.store.findUnique({
+        where: { id: storeId },
+        select: { userId: true, name: true },
+      });
+
+      if (sellerStore && sellerStore.userId) {
+        await createAndSendNotification({
+          userId: sellerStore.userId,
+          userRole: Role.SELLER,
+          type: NotificationType.NEW_ORDER,
+          title: `New Order! #${newOrder.id.substring(0, 8)}...`,
+          message: `You have a new order from ${
+            user.name || user.email || "a customer"
+          } containing items from your store (${sellerStore.name}).`,
+          link: `/dashboard/seller/orders/${newOrder.id}`, // Link to seller's order details page
+          // relatedEntityId: newOrder.id,
+          // relatedEntityType: "ORDER",
+        });
+      }
+    }
+    // --- End Notifications ---
+
     // 4. Create the Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"], // Add other payment methods as needed
@@ -179,6 +221,7 @@ export async function POST(req: NextRequest, request: Request) {
     await prisma.cart.delete({
       where: { id: cart.id },
     });
+
     console.log(
       `Cart for user ${user.id} cleared after checkout session created.`
     );

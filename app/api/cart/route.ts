@@ -77,8 +77,8 @@ export async function GET(request: Request) {
         for (const discount of applicableDiscounts) {
           // Note: If you have "canBeCombined" logic, you'd implement it more sophisticatedly here.
           // For now, we'll just pick the single best percentage if multiple exist for a product.
-          if (discount.percentage! > bestDiscountPercentage) {
-            bestDiscountPercentage = discount.percentage;
+          if (discount.percentage! > bestDiscountPercentage!) {
+            bestDiscountPercentage = discount.percentage!;
           }
         }
 

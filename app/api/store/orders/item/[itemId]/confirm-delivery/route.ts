@@ -1,3 +1,5 @@
+import { getCurrentUser } from "@/lib/auth";
+import { createAndSendNotification } from "@/lib/create-notification";
 import prisma from "@/lib/prisma";
 
 export async function PATCH(
@@ -7,9 +9,19 @@ export async function PATCH(
   const body = await req.json();
   const { code } = body;
   const { itemId } = await params;
+  const user = getCurrentUser();
 
   const orderItem = await prisma.orderItem.findUnique({
     where: { id: itemId },
+    include: {
+      productVariant: {
+        include: {
+          product: true,
+        },
+      },
+      order: true,
+      store: true,
+    },
   });
 
   if (!orderItem) {
@@ -47,6 +59,14 @@ export async function PATCH(
       },
     });
   }
+
+  await createAndSendNotification({
+    userId: orderItem.store.userId,
+    type: "DELIVERY_CONFIRMATION",
+    title: "Delivery Completed",
+    message: `Order #${orderItem.order.id} was delivered successfully.`,
+    userRole: "SELLER",
+  });
 
   return Response.json({ success: true });
 }

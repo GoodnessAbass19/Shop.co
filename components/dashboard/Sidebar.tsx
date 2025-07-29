@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import NotificationBell from "../seller/NotificationBell";
 
 // Define the type for a navigation item
 interface NavItem {
@@ -120,6 +121,7 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
               {item.name}
             </HoverPrefetchLink>
           ))}
+          <NotificationBell />
         </nav>
         <div className="absolute bottom-6 left-0 w-full px-4">
           <Collapsible

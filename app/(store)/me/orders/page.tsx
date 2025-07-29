@@ -102,6 +102,7 @@ const OrdersPageContent = () => {
   const { data, error, isLoading } = useSWR("/api/orders", fetcher);
 
   if (error && error.status === 401) {
+    router.prefetch("/sign-in?redirect_url=/orders");
     router.push("/sign-in?redirect_url=/orders");
     return null;
   }

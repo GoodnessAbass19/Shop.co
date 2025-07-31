@@ -222,17 +222,14 @@ export function AddDiscountForm() {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+    <div className="space-y-8 p-6 rounded-lg shadow-md">
+      <h2 className="text-3xl font-bold mb-6 text-center">
         Create New Discount
       </h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Discount Code */}
         <div>
-          <Label
-            htmlFor="code"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <Label htmlFor="code" className="block text-sm font-medium mb-1">
             Discount Code <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -256,7 +253,7 @@ export function AddDiscountForm() {
         <div>
           <Label
             htmlFor="discountType"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium mb-1"
           >
             Discount Type
           </Label>
@@ -286,7 +283,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="percentage"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Percentage Off (%)
             </Label>
@@ -326,10 +323,7 @@ export function AddDiscountForm() {
 
         {discountType === "amount" && (
           <div>
-            <Label
-              htmlFor="amount"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <Label htmlFor="amount" className="block text-sm font-medium mb-1">
               Fixed Amount Off ($)
             </Label>
             <Input
@@ -370,7 +364,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="percentage"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Percentage Off (%)
             </Label>
@@ -409,7 +403,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="amount"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Fixed Amount Off ($)
             </Label>
@@ -451,7 +445,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="minOrderAmount"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Minimum Order Amount ($)
             </Label>
@@ -480,7 +474,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="maxDiscountAmount"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Maximum Discount Amount ($)
             </Label>
@@ -513,7 +507,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="startsAt"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Starts At <span className="text-red-500">*</span>
             </Label>
@@ -558,7 +552,7 @@ export function AddDiscountForm() {
           <div>
             <Label
               htmlFor="expiresAt"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium mb-1"
             >
               Expires At <span className="text-red-500">*</span>
             </Label>
@@ -619,7 +613,7 @@ export function AddDiscountForm() {
 
         {/* Product Selection for Discount */}
         <div>
-          <Label className="block text-sm font-medium text-gray-700 mb-1">
+          <Label className="block text-sm font-medium mb-1">
             Apply to Specific Products (Optional)
           </Label>
           <ProductMultiSelect

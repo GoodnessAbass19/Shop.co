@@ -267,7 +267,7 @@ export function InventoryManagement() {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+      <h2 className="text-3xl font-bold mb-6">
         Inventory Management for {store.name}
       </h2>
 
@@ -284,7 +284,7 @@ export function InventoryManagement() {
             }}
             className="pl-10 pr-4 py-2 border rounded-md w-full focus:ring-2 focus:ring-blue-500"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" />
         </div>
         <Select
           onValueChange={(value) => {
@@ -307,7 +307,7 @@ export function InventoryManagement() {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+      <div className="p-6 rounded-lg shadow-md overflow-x-auto">
         <h3 className="text-xl font-semibold mb-4">
           Your Inventory ({data?.totalItems || 0} Products)
         </h3>
@@ -349,7 +349,7 @@ export function InventoryManagement() {
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-xs">
+                        <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs">
                           No Img
                         </div>
                       )}
@@ -358,7 +358,7 @@ export function InventoryManagement() {
                   <TableCell>
                     <HoverPrefetchLink
                       href={`/products/${item.productSlug}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium hover:text-blue-600 hover:underline"
                     >
                       {item.productName}
                     </HoverPrefetchLink>
@@ -367,11 +367,11 @@ export function InventoryManagement() {
                     {item.variantName !== "N/A" ? (
                       item.variantName
                     ) : (
-                      <span className="text-gray-500">N/A</span>
+                      <span className="">N/A</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {item.sku || <span className="text-gray-500">N/A</span>}
+                    {item.sku || <span className="">N/A</span>}
                   </TableCell>
                   <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
                   <TableCell className="text-center">
@@ -391,7 +391,7 @@ export function InventoryManagement() {
                       <span
                         className={cn(
                           "font-bold text-lg cursor-pointer hover:text-blue-600 transition-colors flex items-center justify-center",
-                          item.isLowStock ? "text-red-600" : "text-gray-800"
+                          item.isLowStock ? "text-red-600" : ""
                         )}
                         onClick={() => handleEditClick(item)}
                         title="Click to edit stock"

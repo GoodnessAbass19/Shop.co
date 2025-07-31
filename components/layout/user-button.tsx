@@ -31,6 +31,7 @@ import { User } from "@prisma/client";
 import LogoutButton from "./logout-button";
 import { ClipLoader } from "react-spinners";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import UserNotificationBell from "./notification";
 
 const UserButton = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -132,6 +133,15 @@ const UserButton = () => {
                   >
                     <ShoppingBagIcon className="w-5 h-5 text-black" />
                     orders
+                  </HoverPrefetchLink>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <HoverPrefetchLink
+                    href={"/me/orders"}
+                    className="flex justify-start items-center gap-2 capitalize"
+                  >
+                    <UserNotificationBell />
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

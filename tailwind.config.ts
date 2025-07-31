@@ -59,6 +59,8 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          //   "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          //   "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
         },
       },
       borderRadius: {
@@ -67,7 +69,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
-        "style-formal": "url('/images/image 13.png')",
+        "style-formal": "url(`/images/image 13.png`)",
       },
     },
   },

@@ -214,7 +214,7 @@ export function OrderManagement() {
 
   return (
     <div className="space-y-8 p-4 md:p-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+      <h2 className="text-3xl font-bold mb-6">
         Order Management for {store.name}
       </h2>
 
@@ -254,7 +254,7 @@ export function OrderManagement() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+      <div className="p-6 rounded-lg shadow-md overflow-x-auto">
         <h3 className="text-xl font-semibold mb-4">
           Your Orders ({data?.totalOrders || 0})
         </h3>

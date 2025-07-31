@@ -22,7 +22,7 @@ interface SalesBarChartProps {
 
 export function SalesBarChart({ data }: SalesBarChartProps) {
   return (
-    <div className="w-full h-[400px] bg-white p-4 rounded-lg shadow-md">
+    <div className="w-full h-[400px] p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4">Sales Overview</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>

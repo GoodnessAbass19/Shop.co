@@ -38,6 +38,9 @@ import {
 import { Sidebar } from "../dashboard/Sidebar";
 import { SellerStoreProvider } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
+import { AppSidebar } from "../dashboard/NewSidebar";
+// import { cookies } from "next/headers";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStoreData {
@@ -84,17 +87,6 @@ const navItems = [
     href: "/your/store/dashboard/inventory",
   },
   { name: "Discounts", icon: Percent, href: "/your/store/dashboard/discounts" },
-  // {
-  //   name: "Store Settings",
-  //   icon: Settings,
-  //   href: "/your/store/dashboard/settings",
-  // },
-  // {
-  //   name: "Messages",
-  //   icon: MessageSquare,
-  //   href: "/your/store/dashboard/messages",
-  // },
-  // { name: "Reviews", icon: Star, href: "/your/store/dashboard/reviews" },
 ];
 
 // Function to fetch seller's store data
@@ -142,24 +134,24 @@ export default function SellerDashboardLayout({
   }
 
   // Handle error state for the main store data
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-8 text-center">
-        <X className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Error Loading Dashboard</h2>
-        <p className="mb-4">
-          {error?.message ||
-            "An unknown error occurred while fetching your store data."}
-        </p>
-        <Button
-          onClick={() => window.location.reload()}
-          className="bg-red-600 hover:bg-red-700 text-white"
-        >
-          Try Again
-        </Button>
-      </div>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-8 text-center">
+  //       <X className="w-16 h-16 text-red-500 mb-4" />
+  //       <h2 className="text-2xl font-bold mb-2">Error Loading Dashboard</h2>
+  //       <p className="mb-4">
+  //         {error?.message ||
+  //           "An unknown error occurred while fetching your store data."}
+  //       </p>
+  //       <Button
+  //         onClick={() => window.location.reload()}
+  //         className="bg-red-600 hover:bg-red-700 text-white"
+  //       >
+  //         Try Again
+  //       </Button>
+  //     </div>
+  //   );
+  // }
 
   // Handle case where no store is found for the user
   if (!sellerStore) {
@@ -182,28 +174,43 @@ export default function SellerDashboardLayout({
     );
   }
 
+  // const cookieStore = await cookies();
+  // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+
   return (
     <SellerStoreProvider store={sellerStore}>
-      {" "}
+      <SidebarProvider defaultOpen={true}>
+        <AppSidebar
+          storeName={sellerStore.name}
+          email={sellerStore.user.email}
+          logo={sellerStore.logo! || "https://via.placeholder.com/200"}
+        />
+
+        <SidebarInset>
+          <SidebarTrigger className="-ml-1" />
+
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        </SidebarInset>
+      </SidebarProvider>
       {/* Provide store data to children */}
-      <div className="flex min-h-screen bg-gray-100 font-inter">
-        {/* Sidebar is now a separate component */}
-        <Sidebar
+      {/* <div className="flex min-h-screen bg-gray-100 font-inter"> */}
+      {/* Sidebar is now a separate component */}
+      {/* <Sidebar
           storeName={sellerStore.name}
           navItems={navItems}
           email={sellerStore.user.email}
           logo={sellerStore.logo! || "https://via.placeholder.com/200"}
-        />{" "}
-        {/* No setActivePage needed */}
-        {/* Main Content Area */}
-        {/* Adjusted padding-top (pt-20) for mobile fixed header */}
-        <main className="flex-1 p-4 md:p-8 pt-20 md:pt-4 overflow-y-auto">
+        />{" "} */}
+      {/* No setActivePage needed */}
+      {/* Main Content Area */}
+      {/* Adjusted padding-top (pt-20) for mobile fixed header */}
+      {/* <main className="flex-1 p-4 md:p-8 pt-20 md:pt-4 overflow-y-auto">
           <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-40px)]">
             {children}{" "}
-            {/* This is where the specific page content will be rendered */}
+            This is where the specific page content will be rendered
           </div>
-        </main>
-      </div>
+        </main> */}
+      {/* </div> */}
     </SellerStoreProvider>
   );
 }

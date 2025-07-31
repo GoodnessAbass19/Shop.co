@@ -21,7 +21,7 @@ type Notification = {
 // Function to fetch seller notifications
 const fetchSellerNotifications = async (): Promise<Notification[]> => {
   // Assuming your backend /api/notifications endpoint handles filtering by 'role'
-  const res = await axios.get("/api/notifications?role=SELLER");
+  const res = await axios.get("/api/notifications?role=BUYER");
   return res.data.notifications; // Adjust based on your API response structure
 };
 
@@ -32,7 +32,7 @@ const markNotificationAsRead = async (id: string) => {
   return res.data; // The updated notification
 };
 
-export default function SellerNotifications() {
+export default function BuyerNotifications() {
   const queryClient = useQueryClient();
 
   // Use useQuery to fetch notifications
@@ -94,7 +94,7 @@ export default function SellerNotifications() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48 rounded-lg shadow p-6">
+      <div className="flex justify-center items-center h-48 bg-white rounded-lg shadow p-6">
         <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
         <p className="ml-2 text-gray-600">Loading notifications...</p>
       </div>
@@ -103,7 +103,7 @@ export default function SellerNotifications() {
 
   if (isError) {
     return (
-      <div className="rounded-lg shadow p-6 text-red-600 text-center">
+      <div className="bg-white rounded-lg shadow p-6 text-red-600 text-center">
         <p>Error loading notifications: {error?.message}</p>
         <p className="text-sm mt-2">Please try again later.</p>
       </div>
@@ -115,8 +115,8 @@ export default function SellerNotifications() {
   );
 
   return (
-    <div className="rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">Seller Notifications</h2>
+    <div className="max-w-screen-xl mx-auto mt-10 px-4 md:px-6 lg:px-8">
+      <h2 className="text-xl font-semibold mb-4">Inbox</h2>
       {sortedNotifications && sortedNotifications.length === 0 ? (
         <p className="text-gray-500">No notifications yet.</p>
       ) : (
@@ -133,9 +133,9 @@ export default function SellerNotifications() {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-medium">{n.title}</p>
-                  <p className="text-sm  mt-1">{n.message}</p>
-                  <p className="text-xs mt-1">
+                  <p className="font-medium text-gray-900">{n.title}</p>
+                  <p className="text-sm text-gray-700 mt-1">{n.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {formatDistanceToNow(new Date(n.createdAt), {
                       addSuffix: true,
                     })}

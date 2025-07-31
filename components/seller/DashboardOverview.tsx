@@ -271,9 +271,9 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-medium text-gray-900 mb-6">
-        <span className="text-gray-700 font-bold">Hey there,</span> here is a
-        resume of where {store.name} is at right now
+      <h2 className="text-2xl font-medium mb-6">
+        <span className="font-bold">Hey there,</span> here is a resume of where{" "}
+        {store.name} is at right now
       </h2>
 
       {/* Key Metrics Cards */}
@@ -527,11 +527,11 @@ export function DashboardOverview() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto space-y-2">
+      <div className="p-6 rounded-lg shadow-md overflow-x-auto space-y-2">
         <h3 className="text-xl font-semibold mb-4">Recent Orders</h3>
         <hr className="border-gray-500" />
         {orders.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-10">
             <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
             <p className="text-lg">No orders found matching your criteria.</p>
           </div>

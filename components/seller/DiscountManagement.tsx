@@ -161,7 +161,7 @@ export function DiscountManagement() {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+      <h2 className="text-3xl font-bold mb-6">
         Discount Management for {store.name}
       </h2>
 
@@ -175,7 +175,7 @@ export function DiscountManagement() {
       </div>
 
       {/* Discounts Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+      <div className="p-6 rounded-lg shadow-md overflow-x-auto">
         <h3 className="text-xl font-semibold mb-4">
           Your Discounts ({discounts?.length || 0})
         </h3>

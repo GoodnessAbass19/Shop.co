@@ -182,7 +182,7 @@ export function SalesAnalytics() {
 
   return (
     <div className="space-y-8 p-4 md:p-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+      <h2 className="text-3xl font-bold mb-6">
         Sales & Analytics for {store?.name || "Your Store"}
       </h2>
 
@@ -303,7 +303,7 @@ export function SalesAnalytics() {
                   vertical={false}
                   stroke="#e0e0e0"
                 />
-                <XAxis dataKey="name" stroke="#666" fontSize={12} />
+                <XAxis dataKey="name" stroke="#8884d8" fontSize={12} />
                 <YAxis
                   yAxisId="left"
                   stroke="#8884d8"
@@ -404,7 +404,7 @@ export function SalesAnalytics() {
                     <TableCell>
                       <HoverPrefetchLink
                         href={`/products/${product.productSlug}`}
-                        className="font-medium text-blue-600 hover:underline"
+                        className="font-medium hover:text-blue-600 hover:underline"
                       >
                         {product.productName}
                       </HoverPrefetchLink>

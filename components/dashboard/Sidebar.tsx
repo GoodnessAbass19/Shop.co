@@ -11,6 +11,8 @@ import {
   X,
   Store as StoreIcon,
   User2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Collapsible,
@@ -123,13 +125,18 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
           ))}
           <NotificationBell />
         </nav>
-        <div className="absolute bottom-6 left-0 w-full px-4">
+        <div className="absolute bottom-6 left-0 w-full px-2">
           <Collapsible
             open={isOpen}
             onOpenChange={setIsOpen}
             className="flex flex-col gap-2"
           >
-            <CollapsibleTrigger asChild>
+            <CollapsibleTrigger
+              asChild
+              className={cn(
+                isOpen ? "text-gray-300 bg-gray-700 p-1 rounded-md" : ""
+              )}
+            >
               <div className=" flex justify-between items-center gap-2">
                 <Image
                   src={logo}
@@ -139,11 +146,17 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
                   className="w-8 h-8 rounded-full object-cover object-center"
                 />
                 <div className="flex-1 space-y-1 flex flex-col justify-start items-start">
-                  <h3 className="font-semibold capitalize text-sm">
+                  <h3 className="font-medium capitalize text-sm">
                     {storeName}
                   </h3>
-                  <span className="text-xs font-normal">{email}</span>
+                  <span className="text-[10px] font-normal">{email}</span>
                 </div>
+
+                {isOpen ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="flex flex-col gap-2">
@@ -152,7 +165,7 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
+                    "w-full flex justify-start items-center px-1 py-2 rounded-lg text-base font-medium transition-colors duration-200",
                     // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
                     pathname === item.href
                       ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
@@ -160,7 +173,7 @@ export function Sidebar({ storeName, navItems, logo, email }: SidebarProps) {
                   )}
                   // Removed onClick={() => setActivePage(item.name)}
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
+                  <item.icon className="h-5 w-5 mr-2" />
                   {item.name}
                 </HoverPrefetchLink>
               ))}

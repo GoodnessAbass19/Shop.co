@@ -70,7 +70,7 @@ export default function NotificationBell() {
             // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
             pathname === "/your/store/dashboard/notifications"
               ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white"
+              : ""
           )}
         >
           <Bell className="h-5 w-5 mr-1" /> Notification

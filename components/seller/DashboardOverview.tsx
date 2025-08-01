@@ -409,7 +409,7 @@ export function DashboardOverview() {
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center">
               <LineChartIcon className="h-5 w-5 mr-2" /> Monthly Sales & Orders
-              Sale Graph
+              chart
             </CardTitle>
           </CardHeader>
           <CardContent className="h-96 w-full">

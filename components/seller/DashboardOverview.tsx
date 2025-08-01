@@ -482,8 +482,9 @@ export function DashboardOverview() {
         {/* Top Selling Products */}
         <Card className="shadow-md col-span-1 w-full">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center">
-              <Package className="h-5 w-5 mr-2" /> Top 5 Selling Products
+            <CardTitle className="text-base font-semibold flex items-center capitalize">
+              <Package className="h-5 w-5 mr-2" /> Top Selling Products this
+              month
             </CardTitle>
           </CardHeader>
           <CardContent>

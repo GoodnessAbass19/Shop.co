@@ -299,15 +299,12 @@ export function AddProductForm() {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">Add New Product</h2>
+    <div className="space-y-8 p-6  rounded-lg shadow-md">
+      <h2 className="text-3xl font-bold mb-6">Add New Product</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Product Name */}
         <div>
-          <Label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <Label htmlFor="name" className="block text-sm font-medium  mb-1">
             Product Name <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -331,7 +328,7 @@ export function AddProductForm() {
         <div>
           <Label
             htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium  mb-1"
           >
             Description (Optional)
           </Label>
@@ -346,10 +343,7 @@ export function AddProductForm() {
 
         {/* Product Price (Base) */}
         <div>
-          <Label
-            htmlFor="price"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <Label htmlFor="price" className="block text-sm font-medium  mb-1">
             Base Price <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -377,10 +371,7 @@ export function AddProductForm() {
 
         {/* Product Stock (Overall) */}
         <div>
-          <Label
-            htmlFor="stock"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <Label htmlFor="stock" className="block text-sm font-medium  mb-1">
             Overall Stock <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -409,7 +400,7 @@ export function AddProductForm() {
         <div>
           <Label
             htmlFor="subSubCategoryId"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium  mb-1"
           >
             Product Category <span className="text-red-500">*</span>
           </Label>
@@ -467,14 +458,14 @@ export function AddProductForm() {
 
         {/* Product Images Upload */}
         <div>
-          <Label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label className="block text-sm font-medium  mb-2">
             Upload Product Images (Up to 5){" "}
             <span className="text-red-500">*</span>
           </Label>
           <div
             {...getImageRootProps()}
             className={cn(
-              "dropzone flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200",
+              "dropzone flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
               getErrorMessage("images")
                 ? "border-red-500"
                 : "border-blue-400 hover:border-blue-600"
@@ -484,19 +475,15 @@ export function AddProductForm() {
             {uploadingImage ? (
               <div className="flex flex-col items-center p-4">
                 <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
-                <p className="text-gray-700 text-lg font-medium">
-                  Uploading Image...
-                </p>
+                <p className=" text-lg font-medium">Uploading Image...</p>
               </div>
             ) : (
               <div className="text-center">
                 <ImageIcon className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                <p className="text-lg font-semibold text-gray-800 mb-1">
+                <p className="text-lg font-semibold  mb-1">
                   Drag 'n' drop product images here
                 </p>
-                <p className="text-sm text-gray-600 mb-3">
-                  or click to select files
-                </p>
+                <p className="text-sm mb-3">or click to select files</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -504,7 +491,7 @@ export function AddProductForm() {
                 >
                   Choose Files
                 </Button>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs  mt-2">
                   Supported formats: PNG, JPEG, JPG (Max 5MB each, up to 5
                   files)
                 </p>
@@ -519,7 +506,7 @@ export function AddProductForm() {
 
           {currentImages && currentImages.length > 0 && (
             <div className="mt-4">
-              <Label className="block text-sm font-medium text-gray-700 mb-2">
+              <Label className="block text-sm font-medium  mb-2">
                 Images Preview
               </Label>
               <div className="flex flex-wrap gap-3 p-3 border border-gray-200 rounded-md bg-gray-50">
@@ -558,16 +545,16 @@ export function AddProductForm() {
         </div>
 
         {/* Product Variants Section */}
-        <div className="mt-8 border p-6 rounded-lg bg-blue-50 border-blue-200">
-          <h4 className="text-lg font-semibold text-blue-800 mb-4">
+        <div className="mt-8 border p-6 rounded-lg  border-blue-200">
+          <h4 className="text-lg font-semibold mb-4">
             Product Variants (Optional)
           </h4>
           {variantFields.map((variant, variantIndex) => (
             <div
               key={variant.id}
-              className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-blue-100 rounded-md bg-white shadow-sm relative"
+              className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-blue-100 rounded-md shadow-sm relative"
             >
-              <h5 className="text-md font-medium text-gray-700 col-span-full">
+              <h5 className="text-md font-medium  col-span-full">
                 Variant #{variantIndex + 1}
               </h5>
               {variantFields.length > 1 && (
@@ -587,7 +574,7 @@ export function AddProductForm() {
               <div>
                 <Label
                   htmlFor={`variants.${variantIndex}.size`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium  mb-1"
                 >
                   Size (Optional)
                 </Label>
@@ -603,7 +590,7 @@ export function AddProductForm() {
               <div>
                 <Label
                   htmlFor={`variants.${variantIndex}.color`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium  mb-1"
                 >
                   Color (Optional)
                 </Label>
@@ -619,7 +606,7 @@ export function AddProductForm() {
               <div>
                 <Label
                   htmlFor={`variants.${variantIndex}.price`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium  mb-1"
                 >
                   Price <span className="text-red-500">*</span>
                 </Label>
@@ -653,7 +640,7 @@ export function AddProductForm() {
               <div>
                 <Label
                   htmlFor={`variants.${variantIndex}.stock`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium  mb-1"
                 >
                   Stock <span className="text-red-500">*</span>
                 </Label>
@@ -683,7 +670,7 @@ export function AddProductForm() {
               <div className="col-span-full">
                 <Label
                   htmlFor={`variants.${variantIndex}.sku`}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium  mb-1"
                 >
                   SKU (Optional)
                 </Label>
@@ -710,10 +697,7 @@ export function AddProductForm() {
         {/* Is Featured Checkbox */}
         <div className="flex items-center space-x-2 mt-4">
           <Checkbox id="isFeatured" {...register("isFeatured")} />
-          <Label
-            htmlFor="isFeatured"
-            className="text-sm font-medium text-gray-700"
-          >
+          <Label htmlFor="isFeatured" className="text-sm font-medium ">
             Mark as Featured Product
           </Label>
         </div>

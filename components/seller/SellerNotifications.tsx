@@ -94,10 +94,11 @@ export default function SellerNotifications() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48 rounded-lg shadow p-6">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-        <p className="ml-2 text-gray-600">Loading notifications...</p>
-      </div>
+      <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2"></div>
+        </div>
+      </section>
     );
   }
 
@@ -116,7 +117,7 @@ export default function SellerNotifications() {
 
   return (
     <div className="rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">Seller Notifications</h2>
+      <h2 className="text-xl font-semibold mb-4">Notifications</h2>
       {sortedNotifications && sortedNotifications.length === 0 ? (
         <p className="text-gray-500">No notifications yet.</p>
       ) : (
@@ -126,9 +127,7 @@ export default function SellerNotifications() {
               key={n.id}
               className={clsx(
                 "p-4 border rounded-lg transition-colors duration-200",
-                n.read
-                  ? "bg-gray-50 border-gray-200"
-                  : "bg-blue-50 border-blue-200"
+                n.read ? "border-gray-200" : " border-blue-200"
               )}
             >
               <div className="flex justify-between items-start">

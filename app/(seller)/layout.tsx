@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/components/layout/theme-provider";
 import SellerDashboardLayout from "@/components/seller/Layout";
 import Link from "next/link";
 
@@ -8,7 +9,14 @@ export default function DashboardLayout({
 }>) {
   return (
     <main className="" suppressHydrationWarning>
-      <SellerDashboardLayout children={children} />
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <SellerDashboardLayout children={children} />
+      </ThemeProvider>
     </main>
   );
 }

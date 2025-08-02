@@ -31,6 +31,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -127,11 +128,12 @@ interface SidebarProps {
 
 export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
   const { setTheme, theme } = useTheme();
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
+  const { open } = useSidebar();
   // Close sidebar on route change for mobile
   //   useEffect(() => {
   //     if (isSidebarOpen) {
@@ -216,34 +218,65 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <div className="flex justify-between items-center px-3.5">
-                    {/* <div className="flex justify-start items-center gap-1"> */}
-                    {theme === "dark" ? (
-                      <div className="flex justify-start items-center gap-1">
-                        <Moon
-                          className="w-5 h-5 mr-2 text-gray-700 dark:text-gray-300"
-                          fill="none"
-                          stroke="currentColor"
-                        />
-                        Dark mode
-                      </div>
-                    ) : (
-                      <div className="flex justify-start items-center gap-1">
-                        <Sun
-                          className="w-5 h-5 mr-2 text-yellow-500"
-                          fill="#eab308"
-                          stroke="currentColor"
-                        />
-                        Dark mode
-                      </div>
-                    )}
+                  {open ? (
+                    <div className="flex justify-between items-center px-3.5">
+                      {/* <div className="flex justify-start items-center gap-1"> */}
+                      {theme === "dark" ? (
+                        <div className="flex justify-start items-center gap-1">
+                          <Moon
+                            className="w-5 h-5 mr-2 text-gray-700 dark:text-gray-300"
+                            fill="none"
+                            stroke="currentColor"
+                          />
+                          Dark mode
+                        </div>
+                      ) : (
+                        <div className="flex justify-start items-center gap-1">
+                          <Sun
+                            className="w-5 h-5 mr-2 text-yellow-500"
+                            fill="#eab308"
+                            stroke="currentColor"
+                          />
+                          Dark mode
+                        </div>
+                      )}
 
-                    {/* </div> */}
-                    <Switch
-                      checked={theme === "dark"} // The switch is 'checked' if the theme is 'dark'
-                      onCheckedChange={toggleTheme} // Calls the toggleTheme function when the switch state changes
-                    />
-                  </div>
+                      {/* </div> */}
+                      <Switch
+                        checked={theme === "dark"} // The switch is 'checked' if the theme is 'dark'
+                        onCheckedChange={toggleTheme} // Calls the toggleTheme function when the switch state changes
+                        className={cn()}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      {theme === "dark" ? (
+                        <button
+                          onClick={() => {
+                            setTheme("light");
+                          }}
+                          className="bg-none outline-none rounded-none"
+                        >
+                          <Moon
+                            className="w-5 h-5 text-gray-700 dark:text-gray-300"
+                            fill="none"
+                            stroke="currentColor"
+                          />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setTheme("dark")}
+                          className="bg-none outline-none rounded-none"
+                        >
+                          <Sun
+                            className="w-5 h-5 text-yellow-500"
+                            fill="#eab308"
+                            stroke="currentColor"
+                          />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

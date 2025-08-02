@@ -7,11 +7,8 @@ import {
   DollarSign,
   ShoppingBag,
   Package,
-  Users,
-  Loader2,
-  Info,
-  ArrowUpRight,
-  ArrowDownRight,
+  TrendingUp,
+  TrendingDown,
   ArrowUp,
   ArrowDown,
   Eye,
@@ -317,11 +314,11 @@ export function DashboardOverview() {
               }`}
             >
               {revenueDiff > 0 ? (
-                <ArrowUp className="h-3 w-3" />
+                <TrendingUp className="h-3 w-3" />
               ) : (
-                <ArrowDown className="h-3 w-3" />
+                <TrendingDown className="h-3 w-3" />
               )}
-              {ordersDiff > 0 ? "+" : "-"}
+              {ordersDiff > 0 ? "+" : ""}
               {revenueDiff.toFixed(1)}%
             </span>
           </CardContent>
@@ -362,11 +359,11 @@ export function DashboardOverview() {
               }`}
             >
               {ordersDiff > 0 ? (
-                <ArrowUp className="h-3 w-3" />
+                <TrendingUp className="h-3 w-3" />
               ) : (
-                <ArrowDown className="h-3 w-3" />
+                <TrendingDown className="h-3 w-3" />
               )}
-              {ordersDiff > 0 ? "+" : "-"}
+              {ordersDiff > 0 ? "+" : ""}
               {ordersDiff.toFixed(1)}%
             </span>
           </CardContent>
@@ -441,6 +438,11 @@ export function DashboardOverview() {
                   />
 
                   <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#f0f0f0",
+                      border: "1px solid #ccc",
+                      color: "black",
+                    }}
                     formatter={(value: number, name: string) => {
                       if (name === "revenue")
                         return [`$${value.toFixed(2)}`, "Revenue"];

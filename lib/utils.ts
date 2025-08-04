@@ -1,8 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import prisma from "./prisma";
-import { NotificationType, Role } from "@prisma/client";
-import { transporter } from "./otp";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

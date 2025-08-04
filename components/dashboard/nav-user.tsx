@@ -5,6 +5,7 @@ import {
   Bell,
   ChevronsUpDown,
   CreditCard,
+  DoorOpen,
   LogOut,
   Sparkles,
   User,
@@ -122,6 +123,13 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="hover:text-red-600 "
+            >
+              <DoorOpen />
+              Exit Store
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleLogout}
               className="hover:text-red-600 "

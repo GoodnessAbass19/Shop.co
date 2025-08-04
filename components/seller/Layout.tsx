@@ -40,6 +40,7 @@ import { SellerStoreProvider } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../dashboard/NewSidebar";
+import { usePathname, useRouter } from "next/navigation";
 // import { cookies } from "next/headers";
 
 // Define the structure of the SellerStore data expected from the API
@@ -67,28 +68,6 @@ interface SellerStoreData {
   })[];
 }
 
-// Define navigation items (moved here from Sidebar for centralized control)
-const navItems = [
-  {
-    name: "Dashboard",
-    icon: StoreIcon,
-    href: "/your/store/dashboard",
-  }, // Using StoreIcon for general dashboard
-  { name: "Products", icon: Package, href: "/your/store/dashboard/products" },
-  { name: "Orders", icon: ShoppingBag, href: "/your/store/dashboard/orders" },
-  {
-    name: "Sales & Analytics",
-    icon: BarChart,
-    href: "/your/store/dashboard/sales-analytics",
-  },
-  {
-    name: "Inventory",
-    icon: Warehouse,
-    href: "/your/store/dashboard/inventory",
-  },
-  { name: "Discounts", icon: Percent, href: "/your/store/dashboard/discounts" },
-];
-
 // Function to fetch seller's store data
 const fetchSellerStore = async (): Promise<{ store: SellerStoreData }> => {
   const res = await fetch("/api/store"); // Your API endpoint
@@ -99,14 +78,13 @@ const fetchSellerStore = async (): Promise<{ store: SellerStoreData }> => {
   return res.json();
 };
 
-// Initialize QueryClient outside the component
-const queryClient = new QueryClient();
-
 // Main Layout Component
 export default function SellerDashboardLayout({
   children, // This is where your page.tsx content will be rendered
+  defaultOpen,
 }: {
   children: React.ReactNode;
+  defaultOpen: boolean;
 }) {
   // Fetch seller's store data
   const { data, isLoading, isError, error } = useQuery<
@@ -121,7 +99,8 @@ export default function SellerDashboardLayout({
   });
 
   const sellerStore = data?.store;
-
+  const pathname = usePathname();
+  const router = useRouter();
   // Handle loading state for the main store data
   if (isLoading) {
     return (
@@ -154,6 +133,12 @@ export default function SellerDashboardLayout({
   // }
 
   // Handle case where no store is found for the user
+  if (pathname === "/your/store/create" && !sellerStore) {
+    router.prefetch(`/sign-in`);
+    router.push(`/sign-in`);
+    return null;
+  }
+
   if (!sellerStore) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-50 text-yellow-800 p-8 text-center">
@@ -163,7 +148,7 @@ export default function SellerDashboardLayout({
           It looks like you don't have a store yet. Please create one to access
           the dashboard.
         </p>
-        <HoverPrefetchLink href="/create-store">
+        <HoverPrefetchLink href="/your/store/create">
           {" "}
           {/* Adjust this path to your store creation form */}
           <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
@@ -174,12 +159,9 @@ export default function SellerDashboardLayout({
     );
   }
 
-  // const cookieStore = await cookies();
-  // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
-
   return (
     <SellerStoreProvider store={sellerStore}>
-      <SidebarProvider defaultOpen={true}>
+      <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar
           storeName={sellerStore.name}
           email={sellerStore.user.email}

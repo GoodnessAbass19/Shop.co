@@ -305,7 +305,7 @@ enum Role {
   BUYER
   SELLER
   // ADMIN
-  // DISPATCH
+  RIDER
 }
 
 enum ProductStatus {

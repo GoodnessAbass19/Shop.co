@@ -357,6 +357,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     selectedVariant.stock === 0 ||
     quantity === 0 ||
     addToCartMutation.isPending;
+
   if (isLoading) {
     return (
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
@@ -653,13 +654,13 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <TabsList className="max-w-screen-2xl mx-auto w-full grid grid-cols-2 justify-between items-start bg-gray-200">
             <TabsTrigger
               value="details"
-              className="text-lg font-medium capitalize text-center"
+              className="text-lg font-medium capitalize text-center data-[state=active]:text-[#4A90E2] data-[state=active]:bg-white data-[state=active]:border-b-2 border-b-[#4A90E2]"
             >
               product details
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="text-lg font-medium capitalize text-center"
+              className="text-lg font-medium capitalize text-center data-[state=active]:text-[#4A90E2] data-[state=active]:bg-white data-[state=active]:border-b-2 border-b-[#4A90E2]"
             >
               Reviews
             </TabsTrigger>

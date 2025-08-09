@@ -57,20 +57,25 @@ model Address {
 }
 
 model Store {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  slug        String      @unique // Slug for SEO-friendly URLs
-  description String?
-  logo        String?
-  banner      String[]
-  userId      String      @unique
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products    Product[]
-  orderItems  OrderItem[] @relation("StoreOrderItems")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  Discount Discount[]
+  id           String      @id @default(cuid())
+  name         String      @unique
+  slug         String      @unique // Slug for SEO-friendly URLs
+  description  String?
+  accountType  AccountType @default(INDIVIDUAL) // e.g., "individual", "business"
+  country      String?
+  state        String?
+  contactEmail String?     @unique
+  contactPhone String?
+  isActive     Boolean     @default(false) // Whether the store is active or not
+  logo         String?
+  banner       String[]
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products     Product[]
+  orderItems   OrderItem[] @relation("StoreOrderItems")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Discount     Discount[]
 }
 
 model Product {
@@ -363,4 +368,10 @@ enum NotificationType {
   REFUND_PROCESSED_BUYER_SIDE
   ORDER_CANCELLED_BY_SELLER
   // Add other types as needed
+}
+
+enum AccountType {
+  INDIVIDUAL
+  BUSINESS
+  // Add other account types as needed
 }

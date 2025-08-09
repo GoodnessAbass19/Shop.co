@@ -12,18 +12,12 @@ import {
   Order,
   User,
   Address,
+  Store,
 } from "@prisma/client";
 
 // Define the structure of the SellerStore data
 interface SellerStoreData {
-  id: string;
-  name: string;
-  description: string | null;
-  logo: string | null;
-  banners: string[];
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  store: Store;
   products: (Product & {
     variants: ProductVariant[];
     category: Category;

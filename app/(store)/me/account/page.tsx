@@ -7,7 +7,12 @@ const page = () => {
     <div className="mt-5 max-w-screen-lg mx-auto px-4">
       <Tabs defaultValue="account" className="mb-4">
         <TabsList className="grid w-full grid-cols-4 capitalize font-semibold text-lg">
-          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger
+            value="account"
+            className="data-[state=active]:text-[#4A90E2] data-[state=active]:bg-white data-[state=active]:border-b-2 border-b-[#4A90E2]"
+          >
+            Account
+          </TabsTrigger>
           <TabsTrigger value="addresses">Addresses</TabsTrigger>
         </TabsList>
         <TabsContent value="account">

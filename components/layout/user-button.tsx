@@ -159,7 +159,7 @@ const UserButton = () => {
                   <>
                     <DropdownMenuItem>
                       <HoverPrefetchLink
-                        href={"/orders"}
+                        href={"/your/store/create"}
                         className="flex justify-start items-center gap-2 capitalize"
                       >
                         <Store className="w-5 h-5 text-black" />

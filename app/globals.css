@@ -106,3 +106,7 @@ body {
 ::-webkit-scrollbar-track {
   background-color: #f1f1f1;
 }
+
+/* .input-phone {
+  @apply mt-2 h-12 rounded-md px-3 text-sm border bg-gray-200 placeholder:text-gray-200 border-gray-300 !important;
+} */

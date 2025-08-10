@@ -218,6 +218,8 @@ export async function GET(request: Request) {
             subSubCategory: true,
           },
         },
+        contact: true, // Include contact details
+        customerCare: true, // Include customer care details
         orderItems: {
           include: {
             order: {
@@ -242,6 +244,128 @@ export async function GET(request: Request) {
     console.error("API Error fetching seller dashboard data:", error);
     return NextResponse.json(
       { error: "Failed to fetch seller dashboard data." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const user = await getCurrentUser();
+
+    // Check for user authentication
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await request.json();
+
+    // Correctly de-structure the incoming request body
+    const {
+      storeName,
+      contactName,
+      contactEmail,
+      contactPhoneNumber,
+      customerCareName,
+      customerCareEmail,
+      customerCarePhone,
+      customerCareAddress1,
+      customerCareAddress2,
+      state,
+      city,
+      postalCode,
+      country,
+      phoneNumber,
+    } = body;
+
+    // Basic validation for required fields
+    if (!storeName || !contactName || !contactEmail || !contactPhoneNumber) {
+      return NextResponse.json(
+        { error: "Store name, contact name, email, and phone are required." },
+        { status: 400 }
+      );
+    }
+
+    // Find the store associated with the current user.
+    // We include `contact` and `customerCare` to check for their existence.
+    const store = await prisma.store.findUnique({
+      where: { userId: user.id },
+      include: {
+        contact: true,
+        customerCare: true,
+      },
+    });
+
+    if (!store) {
+      return NextResponse.json({ error: "Store not found." }, { status: 404 });
+    }
+
+    // Use a transaction to ensure all operations are atomic.
+    const [updatedStore, updatedContact, updatedCustomerCare] =
+      await prisma.$transaction([
+        // First, update the store's name
+        prisma.store.update({
+          where: { id: store.id },
+          data: { name: storeName, contactPhone: phoneNumber },
+        }),
+
+        // Then, either update or create the contact record
+        prisma.contact.upsert({
+          where: { storeId: store.id },
+          update: {
+            name: contactName,
+            email: contactEmail,
+            phone: contactPhoneNumber,
+          },
+          create: {
+            storeId: store.id,
+            name: contactName,
+            email: contactEmail,
+            phone: contactPhoneNumber,
+          },
+        }),
+
+        // Lastly, either update or create the customerCare record
+        prisma.customerCare.upsert({
+          where: { storeId: store.id },
+          update: {
+            name: customerCareName,
+            email: customerCareEmail,
+            phone: customerCarePhone,
+            address1: customerCareAddress1,
+            address2: customerCareAddress2,
+            state: state,
+            city: city,
+            postalCode: postalCode,
+            country: country,
+          },
+          create: {
+            storeId: store.id,
+            name: customerCareName,
+            email: customerCareEmail,
+            phone: customerCarePhone,
+            address1: customerCareAddress1,
+            address2: customerCareAddress2,
+            state: state,
+            city: city,
+            postalCode: postalCode,
+            country: country,
+          },
+        }),
+      ]);
+
+    return NextResponse.json(
+      {
+        success: true,
+        store: updatedStore,
+        contact: updatedContact,
+        customerCare: updatedCustomerCare,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("API Error updating store:", error);
+    return NextResponse.json(
+      { error: "Failed to update store." },
       { status: 500 }
     );
   }

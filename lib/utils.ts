@@ -367,3 +367,12 @@ export const nigerianStates = [
   "Zamfara",
   "Federal Capital Territory (FCT)",
 ];
+
+export function splitPhoneNumber(phoneNumber: string) {
+  if (!phoneNumber.startsWith("+") || phoneNumber.length < 5) {
+    return { countryCode: "", number: "" };
+  }
+  const countryCode = phoneNumber.substring(1, 4);
+  const number = phoneNumber.substring(4);
+  return { countryCode, number };
+}

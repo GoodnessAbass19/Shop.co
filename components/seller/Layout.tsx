@@ -34,7 +34,8 @@ import {
   OrderItem,
   Order,
   Address,
-  Store,
+  Contact,
+  CustomerCare,
 } from "@prisma/client";
 import { Sidebar } from "../dashboard/Sidebar";
 import { SellerStoreProvider } from "@/Hooks/use-store-context";
@@ -46,9 +47,20 @@ import { usePathname, useRouter } from "next/navigation";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStoreData {
-  store: Store & {
-    user: User;
-  };
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  banners: string[];
+  contactEmail: string;
+  country: string;
+  contactPhone: string;
+  accountType: string;
+  contact: Contact;
+  customerCare: CustomerCare;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
   products: (Product & {
     variants: ProductVariant[];
     category: Category;
@@ -160,9 +172,9 @@ export default function SellerDashboardLayout({
     <SellerStoreProvider store={sellerStore}>
       <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar
-          storeName={sellerStore.store.name}
-          email={sellerStore.store.contactEmail!}
-          logo={sellerStore.store.logo! || "https://via.placeholder.com/200"}
+          storeName={sellerStore.name}
+          email={sellerStore.contactEmail}
+          logo={sellerStore.logo! || "https://via.placeholder.com/200"}
         />
 
         <SidebarInset>

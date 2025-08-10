@@ -57,25 +57,51 @@ model Address {
 }
 
 model Store {
-  id           String      @id @default(cuid())
-  name         String      @unique
-  slug         String      @unique // Slug for SEO-friendly URLs
+  id           String        @id @default(cuid())
+  name         String        @unique
+  slug         String        @unique // Slug for SEO-friendly URLs
   description  String?
-  accountType  AccountType @default(INDIVIDUAL) // e.g., "individual", "business"
+  accountType  AccountType   @default(INDIVIDUAL) // e.g., "individual", "business"
   country      String?
   state        String?
-  contactEmail String?     @unique
+  contactEmail String?       @unique
   contactPhone String?
-  isActive     Boolean     @default(false) // Whether the store is active or not
+  isActive     Boolean       @default(false) // Whether the store is active or not
   logo         String?
   banner       String[]
-  userId       String      @unique
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   products     Product[]
-  orderItems   OrderItem[] @relation("StoreOrderItems")
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]   @relation("StoreOrderItems")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   Discount     Discount[]
+  customerCare CustomerCare?
+  contact      Contact?
+}
+
+model CustomerCare {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  email      String? @unique
+  phone      String?
+  storeId    String  @unique
+  store      Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  address1   String
+  address2   String
+  city       String
+  state      String
+  postalCode String?
+  country    String
+}
+
+model Contact {
+  id      String @id @default(cuid())
+  name    String @unique
+  email   String @unique
+  phone   String
+  storeId String @unique
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 model Product {

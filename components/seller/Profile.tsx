@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import ShopInfo from "../store/ShopInfo";
+import BusinessInfo from "../store/BusinessInfo";
 
 const StoreProfile = () => {
   const { store } = useSellerStore();
@@ -22,7 +23,7 @@ const StoreProfile = () => {
         defaultValue="shop-information"
         className="max-w-screen-2xl mx-auto w-full space-y-10"
       >
-        <Card className="bg-white shadow-lg rounded-lg">
+        <Card className="shadow-lg rounded-lg">
           <CardHeader className="space-y-1 capitalize">
             <CardTitle className="font-semibold text-2xl">
               Profile Details
@@ -115,21 +116,15 @@ const StoreProfile = () => {
 
         <TabsContent
           value="shop-information"
-          className="p-4 bg-white rounded-lg shadow-lg"
+          className="p-4 rounded-lg shadow-lg"
         >
           <ShopInfo />
         </TabsContent>
-        <TabsContent value="business-information">
-          <div className="p-4 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">
-              Business Information
-            </h2>
-            <p>
-              This section allows you to provide details about your business,
-              such as registration number, tax information, and business type.
-            </p>
-            {/* Additional content can be added here */}
-          </div>
+        <TabsContent
+          value="business-information"
+          className="p-4 rounded-lg shadow-lg"
+        >
+          <BusinessInfo />
         </TabsContent>
         <TabsContent value="shipping-information">
           <div className="p-4 bg-white rounded-lg shadow-md">

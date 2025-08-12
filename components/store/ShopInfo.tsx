@@ -21,26 +21,11 @@ import { CountryCode, E164Number } from "libphonenumber-js/core";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "@/Hooks/use-toast";
+import { ShopInfoSchema } from "@/lib/form-schema";
 
 // Zod schema for form validation
-const FormDataSchema = z.object({
-  storeName: z.string().min(1, "Store name is required"),
-  country: z.string().min(1, "Country is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  contactName: z.string().min(1, "Contact name is required"),
-  contactEmail: z.string().email("Invalid email format"),
-  contactPhoneNumber: z.string().min(10, "Phone number is required"),
-  customerCareName: z.string().min(1, "Customer care name is required"),
-  customerCareEmail: z.string().email("Invalid email format"),
-  customerCarePhoneNumber: z.string().min(10, "Phone number is required"),
-  customerCareAddress1: z.string().min(1, "Address line 1 is required"),
-  customerCareAddress2: z.string().min(1, "Address line 2 is required"),
-  state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
-  postalCode: z.string().min(1, "Postal code is required").optional(),
-});
 
-type Inputs = z.infer<typeof FormDataSchema>;
+type Inputs = z.infer<typeof ShopInfoSchema>;
 
 const ShopInfo = () => {
   const { store } = useSellerStore();
@@ -53,11 +38,11 @@ const ShopInfo = () => {
     setValue,
     formState: { errors },
   } = useForm<Inputs>({
-    resolver: zodResolver(FormDataSchema),
+    resolver: zodResolver(ShopInfoSchema),
     // Use defaultValues to initialize the form with data from the store
     defaultValues: {
       storeName: store?.name || "",
-      country: store?.country || "",
+      country: store?.customerCare.country || "",
       phoneNumber: store?.contactPhone || "",
       contactName: store?.contact?.name || "",
       contactEmail: store?.contact?.email || "",
@@ -126,6 +111,7 @@ const ShopInfo = () => {
 
   return (
     <form onSubmit={handleSubmit(processForm)} className="space-y-12 p-4">
+      {/* Account Details */}
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium text-gray-800">
@@ -205,6 +191,7 @@ const ShopInfo = () => {
 
       <hr />
 
+      {/* Shop Details */}
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium text-gray-800">Shop Details</h2>
@@ -238,6 +225,7 @@ const ShopInfo = () => {
 
       <hr />
 
+      {/* Communication Details */}
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium text-gray-800">
@@ -259,6 +247,7 @@ const ShopInfo = () => {
             <Input
               id="contact_name"
               {...register("contactName")}
+              placeholder="John Doe"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.contactName ? "border-red-400" : ""
@@ -280,6 +269,7 @@ const ShopInfo = () => {
             <Input
               id="contact_email"
               {...register("contactEmail")}
+              placeholder="john@example.com"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.contactEmail ? "border-red-400" : ""
@@ -291,7 +281,7 @@ const ShopInfo = () => {
               </p>
             )}
           </div>
-          <div className="space-y-2 col-span-1 h-full">
+          <div className="space-y-2 h-full">
             <Label
               htmlFor="contact_phone"
               className="block text-sm font-medium text-gray-700"
@@ -323,6 +313,7 @@ const ShopInfo = () => {
 
       <hr />
 
+      {/* Customer Care Details */}
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium text-gray-800">
@@ -345,6 +336,7 @@ const ShopInfo = () => {
             <Input
               id="customer_care_name"
               {...register("customerCareName")}
+              placeholder="Center name or representative name"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.customerCareName ? "border-red-400" : ""
@@ -366,6 +358,7 @@ const ShopInfo = () => {
             <Input
               id="customer_care_email"
               {...register("customerCareEmail")}
+              placeholder="Account email"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.customerCareEmail ? "border-red-400" : ""
@@ -414,6 +407,7 @@ const ShopInfo = () => {
             <Input
               id="customer_care_address_1"
               {...register("customerCareAddress1")}
+              placeholder="Floor, House/Apartment no., Building"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.customerCareAddress1 ? "border-red-400" : ""
@@ -435,6 +429,7 @@ const ShopInfo = () => {
             <Input
               id="customer_care_address_2"
               {...register("customerCareAddress2")}
+              placeholder="Street, Area, Locality"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.customerCareAddress2 ? "border-red-400" : ""
@@ -456,6 +451,7 @@ const ShopInfo = () => {
             <Input
               id="customer_care_city"
               {...register("city")}
+              placeholder="City or town"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.city ? "border-red-400" : ""
@@ -475,6 +471,7 @@ const ShopInfo = () => {
             <Input
               id="state"
               {...register("state")}
+              placeholder="State or province"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.state ? "border-red-400" : ""
@@ -496,6 +493,7 @@ const ShopInfo = () => {
             <Input
               id="postal_code"
               {...register("postalCode")}
+              placeholder="Postal code"
               className={cn(
                 "disabled:bg-gray-100 text-gray-700",
                 errors.postalCode ? "border-red-400" : ""
@@ -509,13 +507,12 @@ const ShopInfo = () => {
           </div>
           <div className="space-y-2">
             <Label
-              htmlFor="country_select"
+              htmlFor="country"
               className="text-sm font-medium text-gray-700 capitalize"
             >
               Country
             </Label>
             <Select
-              defaultValue={store?.country}
               value={watch("country")}
               onValueChange={(value) => setValue("country", value)}
             >

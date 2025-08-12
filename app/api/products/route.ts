@@ -29,6 +29,9 @@ export async function GET(request: Request) {
     const products = await prisma.product.findMany({
       where: whereClause && {
         status: "ACTIVE", // Only fetch active products
+        store: {
+          isActive: true, // Fetch products from active store
+        },
         ...whereClause, // Include any additional filters
       },
       include: {

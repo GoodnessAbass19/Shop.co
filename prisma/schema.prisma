@@ -78,6 +78,7 @@ model Store {
   Discount     Discount[]
   customerCare CustomerCare?
   contact      Contact?
+  businessInfo BusinessInfo?
 }
 
 model CustomerCare {
@@ -102,6 +103,27 @@ model Contact {
   phone   String
   storeId String @unique
   store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model BusinessInfo {
+  id           String  @id @default(cuid())
+  storeId      String  @unique
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  fullName     String
+  idType       IdType // e.g., NATIONAL_ID, PASSPORT, etc.
+  idNumber     String // e.g., National ID number, Passport number, etc.
+  idImageFront String // Optional, e.g., image of the ID document
+  idImageBack  String // Optional, e.g., image of the back of the ID document
+  vatNumber    String? // Optional, e.g., for businesses that need to provide a VAT number
+  taxId        String // Optional, e.g., for businesses that need to provide a tax ID
+  taxIdImage   String // Optional, e.g., image of the tax ID document
+  address1     String
+  address2     String?
+  city         String
+  state        String
+  postalCode   String?
+  country      String
+  isComplete   Boolean @default(false) // Whether all required business info is provided
 }
 
 model Product {
@@ -400,4 +422,11 @@ enum AccountType {
   INDIVIDUAL
   BUSINESS
   // Add other account types as needed
+}
+
+enum IdType {
+  NATIONAL_ID
+  PASSPORT
+  DRIVER_LICENSE
+  VOTER_ID
 }

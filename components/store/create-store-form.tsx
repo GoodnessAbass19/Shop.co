@@ -35,26 +35,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { AccountType } from "@prisma/client";
-
-export const FormDataSchema = z.object({
-  storeName: z.string().min(1, "store is required"),
-  country: z.string().min(1, "Country is required"),
-  terms: z
-    .boolean()
-    .default(false)
-    .refine((value) => value === true, {
-      message: "You must agree to the terms and conditon in order to proceed",
-    }),
-  account_type: z.enum(["INDIVIDUAL", "BUSINESS"]),
-  state: z.string().min(1, "State is required"),
-  email: z.string().min(1, "Contact email is required"),
-  phone: z
-    .string()
-    .refine(
-      (phone) => /^\+\d{10,15}$/.test(phone),
-      "Contact Phone is required"
-    ),
-});
+import { FormDataSchema } from "@/lib/form-schema";
 
 type Inputs = z.infer<typeof FormDataSchema>;
 

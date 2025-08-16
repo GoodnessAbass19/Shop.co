@@ -1,3 +1,4 @@
+import { add } from "date-fns";
 import { z } from "zod";
 
 export const userSchema = z.object({
@@ -54,4 +55,29 @@ export const ShopInfoSchema = z.object({
   state: z.string().min(1, "State is required"),
   city: z.string().min(1, "City is required"),
   postalCode: z.string().min(1, "Postal code is required").optional(),
+});
+
+export const BusinessInfoSchema = z.object({
+  representativeName: z
+    .string()
+    .min(1, "Legal representative name is required"),
+  idType: z.enum(["VOTER_ID", "DRIVER_LICENSE", "PASSPORT", "NATIONAL_ID"]),
+  idNumber: z.string().min(1, "ID number is required"),
+  idImageFront: z.string().url(),
+  idImageBack: z.string().url(),
+  // .instanceof(File)
+  // .refine((file) => file.size > 0, "ID image back is required"),
+  taxIdentificationNumber: z
+    .string()
+    .min(1, "Tax identification number is required"),
+  taxIdImage: z.string().url(),
+  // .instanceof(File)
+  // .refine((file) => file.size > 0, "Tax ID image is required"),
+  vatNumber: z.string().optional(),
+  address1: z.string().min(1, "Business address line 1 is required"),
+  address2: z.string().optional(),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
+  postalCode: z.string().min(1, "Postal code is required").optional(),
+  country: z.string().min(1, "Country is required"),
 });

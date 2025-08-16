@@ -189,7 +189,7 @@ export default function AuthForm({ type }: AuthFormProps) {
     }
 
     try {
-      const res = await fetch("/api/auth/initiate-auth", {
+      const res = await fetch("/api/initial-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

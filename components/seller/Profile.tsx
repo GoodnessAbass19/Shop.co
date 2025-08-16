@@ -2,7 +2,13 @@
 
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { CreditCard, ShoppingBag, TrendingUp, Truck } from "lucide-react";
+import {
+  CircleEllipsis,
+  CreditCard,
+  ShoppingBag,
+  TrendingUp,
+  Truck,
+} from "lucide-react";
 import { CheckBadgeIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import {
   Card,
@@ -63,8 +69,13 @@ const StoreProfile = () => {
                       Business Information
                     </h3>
                     <span className="text-xs text-black flex items-center mt-2 gap-2">
-                      <CheckCircleIcon className="w-6 h-6 text-blue-500" />
-                      COMPLETED
+                      {store.businessInfo?.isComplete ? (
+                        <CheckCircleIcon className="w-6 h-6 text-blue-500" />
+                      ) : (
+                        <CircleEllipsis className="w-6 h-6 text-gray-500" />
+                      )}
+
+                      {store.businessInfo?.isComplete ? "COMPLETED" : "PENDING"}
                     </span>
                   </div>
                   <div className="p-2 bg-blue-100 rounded-full">

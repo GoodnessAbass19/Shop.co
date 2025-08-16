@@ -42,7 +42,7 @@ const ShopInfo = () => {
     // Use defaultValues to initialize the form with data from the store
     defaultValues: {
       storeName: store?.name || "",
-      country: store?.customerCare.country || "",
+      country: store?.customerCare?.country || "",
       phoneNumber: store?.contactPhone || "",
       contactName: store?.contact?.name || "",
       contactEmail: store?.contact?.email || "",
@@ -114,38 +114,28 @@ const ShopInfo = () => {
       {/* Account Details */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-medium text-gray-800">
-            Account Details
-          </h2>
-          <p className="text-sm text-gray-600">
-            Your seller account information.
-          </p>
+          <h2 className="text-2xl font-medium">Account Details</h2>
+          <p className="text-sm">Your seller account information.</p>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
           <div className="space-y-2">
-            <Label
-              htmlFor="account_email"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="account_email" className="text-sm font-medium">
               Account Email
             </Label>
             <Input
               id="account_email"
               value={store.contactEmail}
               readOnly
-              className="read-only:bg-gray-100 text-gray-700"
+              className="read-only:bg-gray-100 dark:read-only:bg-gray-800 text-gray-700 dark:text-gray-300"
             />
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="account_phone"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="account_phone" className="text-sm font-medium">
               Account Phone
             </Label>
             <PhoneInput
-              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "US"}
+              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "NG"}
               placeholder="123-456-7890"
               value={watch("phoneNumber") as E164Number | undefined}
               international
@@ -155,35 +145,29 @@ const ShopInfo = () => {
                 setValue("phoneNumber", value ?? "");
                 // Optionally extract and set country code if needed
               }}
-              className="w-full rounded-md p-1 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+              className="w-full rounded-md p-1 text-sm border border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
             />
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="country_of_reg"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="country_of_reg" className="text-sm font-medium">
               Country of Registration
             </Label>
             <Input
               id="country_of_reg"
               value={store.country}
               readOnly
-              className="read-only:bg-gray-100 text-gray-700"
+              className="read-only:bg-gray-100 dark:read-only:bg-gray-800 text-gray-700 dark:text-gray-300"
             />
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="account_type"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="account_type" className="text-sm font-medium ">
               Account Type
             </Label>
             <Input
               id="account_type"
               value={store.accountType.toLowerCase()}
               readOnly
-              className="read-only:bg-gray-100 text-gray-700"
+              className="read-only:bg-gray-100 dark:read-only:bg-gray-800 text-gray-700 dark:text-gray-300"
             />
           </div>
         </div>
@@ -194,23 +178,20 @@ const ShopInfo = () => {
       {/* Shop Details */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-medium text-gray-800">Shop Details</h2>
-          <p className="text-sm text-gray-600">Manage your shop from below</p>
+          <h2 className="text-2xl font-medium">Shop Details</h2>
+          <p className="text-sm">Manage your shop from below</p>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
           <div className="space-y-2">
-            <Label
-              htmlFor="storeName"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="storeName" className="text-sm font-medium">
               Shop Name
             </Label>
             <Input
               id="storeName"
               {...register("storeName")}
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.storeName ? "border-red-400" : ""
               )}
             />
@@ -228,20 +209,15 @@ const ShopInfo = () => {
       {/* Communication Details */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-medium text-gray-800">
-            Communication Details
-          </h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-medium">Communication Details</h2>
+          <p className="text-sm">
             We'll send communications and contact you on the details below
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5 gap-y-7">
           <div className="space-y-2">
-            <Label
-              htmlFor="contact_name"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="contact_name" className="text-sm font-medium">
               Contact Name
             </Label>
             <Input
@@ -249,7 +225,7 @@ const ShopInfo = () => {
               {...register("contactName")}
               placeholder="John Doe"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.contactName ? "border-red-400" : ""
               )}
             />
@@ -260,10 +236,7 @@ const ShopInfo = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="contact_email"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="contact_email" className="text-sm font-medium">
               Contact Email
             </Label>
             <Input
@@ -271,7 +244,7 @@ const ShopInfo = () => {
               {...register("contactEmail")}
               placeholder="john@example.com"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.contactEmail ? "border-red-400" : ""
               )}
             />
@@ -284,12 +257,12 @@ const ShopInfo = () => {
           <div className="space-y-2 h-full">
             <Label
               htmlFor="contact_phone"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium"
             >
               Contact Phone
             </Label>
             <PhoneInput
-              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "US"}
+              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "NG"}
               placeholder="123-456-7890"
               value={watch("contactPhoneNumber") as E164Number | undefined}
               international
@@ -299,7 +272,7 @@ const ShopInfo = () => {
                 setValue("contactPhoneNumber", value ?? "");
                 // Optionally extract and set country code if needed
               }}
-              className="rounded-md p-1 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+              className="rounded-md p-1 text-sm border placeholder:text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
             />
 
             {errors.contactPhoneNumber && (
@@ -316,10 +289,8 @@ const ShopInfo = () => {
       {/* Customer Care Details */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-medium text-gray-800">
-            Customer Care Details
-          </h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-medium">Customer Care Details</h2>
+          <p className="text-sm">
             Please provide details of your customer support. These details will
             be used to address product issues by customers
           </p>
@@ -327,10 +298,7 @@ const ShopInfo = () => {
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5 gap-y-7">
           <div className="space-y-2">
-            <Label
-              htmlFor="customer_care_name"
-              className="text-sm font-medium text-gray-700"
-            >
+            <Label htmlFor="customer_care_name" className="text-sm font-medium">
               Customer Care Name
             </Label>
             <Input
@@ -338,7 +306,7 @@ const ShopInfo = () => {
               {...register("customerCareName")}
               placeholder="Center name or representative name"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.customerCareName ? "border-red-400" : ""
               )}
             />
@@ -351,7 +319,7 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="customer_care_email"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium"
             >
               Customer Care Email
             </Label>
@@ -360,7 +328,7 @@ const ShopInfo = () => {
               {...register("customerCareEmail")}
               placeholder="Account email"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.customerCareEmail ? "border-red-400" : ""
               )}
             />
@@ -373,12 +341,12 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="customer_care_phone_number"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium"
             >
               Customer Care Phone
             </Label>
             <PhoneInput
-              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "US"}
+              defaultCountry={(sellerCountry[0]?.value as CountryCode) || "NG"}
               placeholder="123-456-7890"
               value={watch("customerCarePhoneNumber") as E164Number | undefined}
               international
@@ -388,7 +356,7 @@ const ShopInfo = () => {
                 setValue("customerCarePhoneNumber", value ?? "");
                 // Optionally extract and set country code if needed
               }}
-              className="w-full rounded-md p-1 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+              className="w-full rounded-md p-1 text-sm border placeholder:text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-base"
             />
 
             {errors.customerCarePhoneNumber ? (
@@ -400,7 +368,7 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="customer_care_address_1"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium"
             >
               Address Line 1
             </Label>
@@ -409,7 +377,7 @@ const ShopInfo = () => {
               {...register("customerCareAddress1")}
               placeholder="Floor, House/Apartment no., Building"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.customerCareAddress1 ? "border-red-400" : ""
               )}
             />
@@ -422,7 +390,7 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="customer_care_address_2"
-              className="text-sm font-medium text-gray-700 capitalize"
+              className="text-sm font-medium capitalize"
             >
               Address line 2
             </Label>
@@ -431,7 +399,7 @@ const ShopInfo = () => {
               {...register("customerCareAddress2")}
               placeholder="Street, Area, Locality"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.customerCareAddress2 ? "border-red-400" : ""
               )}
             />
@@ -444,7 +412,7 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="customer_care_city"
-              className="text-sm font-medium text-gray-700 capitalize"
+              className="text-sm font-medium capitalize"
             >
               City / town
             </Label>
@@ -453,7 +421,7 @@ const ShopInfo = () => {
               {...register("city")}
               placeholder="City or town"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.city ? "border-red-400" : ""
               )}
             />
@@ -462,10 +430,7 @@ const ShopInfo = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="state"
-              className="text-sm font-medium text-gray-700 capitalize"
-            >
+            <Label htmlFor="state" className="text-sm font-medium capitalize">
               State / province
             </Label>
             <Input
@@ -473,7 +438,7 @@ const ShopInfo = () => {
               {...register("state")}
               placeholder="State or province"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.state ? "border-red-400" : ""
               )}
             />
@@ -486,7 +451,7 @@ const ShopInfo = () => {
           <div className="space-y-2">
             <Label
               htmlFor="postal_code"
-              className="text-sm font-medium text-gray-700 capitalize"
+              className="text-sm font-medium capitalize"
             >
               Zip / postal code
             </Label>
@@ -495,7 +460,7 @@ const ShopInfo = () => {
               {...register("postalCode")}
               placeholder="Postal code"
               className={cn(
-                "disabled:bg-gray-100 text-gray-700",
+                "disabled:bg-gray-100",
                 errors.postalCode ? "border-red-400" : ""
               )}
             />
@@ -506,10 +471,7 @@ const ShopInfo = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label
-              htmlFor="country"
-              className="text-sm font-medium text-gray-700 capitalize"
-            >
+            <Label htmlFor="country" className="text-sm font-medium capitalize">
               Country
             </Label>
             <Select

@@ -9,7 +9,11 @@ import {
   TrendingUp,
   Truck,
 } from "lucide-react";
-import { CheckBadgeIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
+import {
+  CheckBadgeIcon,
+  CheckCircleIcon,
+  EllipsisHorizontalCircleIcon,
+} from "@heroicons/react/24/solid";
 import {
   Card,
   CardContent,
@@ -19,6 +23,7 @@ import {
 } from "../ui/card";
 import ShopInfo from "../store/ShopInfo";
 import BusinessInfo from "../store/BusinessInfo";
+import ShippingInfo from "../store/ShippingInfo";
 
 const StoreProfile = () => {
   const { store } = useSellerStore();
@@ -72,7 +77,7 @@ const StoreProfile = () => {
                       {store.businessInfo?.isComplete ? (
                         <CheckCircleIcon className="w-6 h-6 text-blue-500" />
                       ) : (
-                        <CircleEllipsis className="w-6 h-6 text-gray-500" />
+                        <EllipsisHorizontalCircleIcon className="w-6 h-6 text-gray-500" />
                       )}
 
                       {store.businessInfo?.isComplete ? "COMPLETED" : "PENDING"}
@@ -93,8 +98,13 @@ const StoreProfile = () => {
                       Shipping Information
                     </h3>
                     <span className="text-xs text-black flex items-center mt-2 gap-2">
-                      <CheckCircleIcon className="w-6 h-6 text-blue-500" />
-                      COMPLETED
+                      {store.shippingInfo?.isComplete ? (
+                        <CheckCircleIcon className="w-6 h-6 text-blue-500" />
+                      ) : (
+                        <EllipsisHorizontalCircleIcon className="w-6 h-6 text-gray-500" />
+                      )}
+
+                      {store.shippingInfo?.isComplete ? "COMPLETED" : "PENDING"}
                     </span>
                   </div>
                   <div className="p-2 bg-blue-100 rounded-full">
@@ -137,17 +147,11 @@ const StoreProfile = () => {
         >
           <BusinessInfo />
         </TabsContent>
-        <TabsContent value="shipping-information">
-          <div className="p-4 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">
-              Shipping Information
-            </h2>
-            <p>
-              Here you can set up your shipping options, including rates,
-              carriers, and delivery times.
-            </p>
-            {/* Additional content can be added here */}
-          </div>
+        <TabsContent
+          value="shipping-information"
+          className="p-4 rounded-lg shadow-lg"
+        >
+          <ShippingInfo />
         </TabsContent>
         <TabsContent value="payment-information">
           <div className="p-4 bg-white rounded-lg shadow-md">

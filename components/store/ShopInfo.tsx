@@ -115,7 +115,9 @@ const ShopInfo = () => {
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium">Account Details</h2>
-          <p className="text-sm">Your seller account information.</p>
+          <p className="text-base font-sans">
+            Your seller account information.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
@@ -179,7 +181,7 @@ const ShopInfo = () => {
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium">Shop Details</h2>
-          <p className="text-sm">Manage your shop from below</p>
+          <p className="text-base font-sans">Manage your shop from below</p>
         </div>
 
         <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
@@ -210,7 +212,7 @@ const ShopInfo = () => {
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium">Communication Details</h2>
-          <p className="text-sm">
+          <p className="text-base font-sans">
             We'll send communications and contact you on the details below
           </p>
         </div>
@@ -290,7 +292,7 @@ const ShopInfo = () => {
       <div className="space-y-4">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium">Customer Care Details</h2>
-          <p className="text-sm">
+          <p className="text-base font-sans">
             Please provide details of your customer support. These details will
             be used to address product issues by customers
           </p>

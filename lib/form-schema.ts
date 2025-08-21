@@ -30,7 +30,7 @@ export const FormDataSchema = z.object({
       message: "You must agree to the terms and conditon in order to proceed",
     }),
   account_type: z.enum(["INDIVIDUAL", "BUSINESS"]),
-  state: z.string().min(1, "State is required"),
+  state: z.string().min(3, "State is required"),
   email: z.string().min(1, "Contact email is required"),
   phone: z
     .string()
@@ -53,7 +53,7 @@ export const ShopInfoSchema = z.object({
   customerCareAddress1: z.string().min(1, "Address line 1 is required"),
   customerCareAddress2: z.string().min(1, "Address line 2 is required"),
   state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
+  city: z.string().min(5, "City is required"),
   postalCode: z.string().min(1, "Postal code is required").optional(),
 });
 
@@ -77,7 +77,23 @@ export const BusinessInfoSchema = z.object({
   address1: z.string().min(1, "Business address line 1 is required"),
   address2: z.string().optional(),
   state: z.string().min(1, "State is required"),
-  city: z.string().min(1, "City is required"),
-  postalCode: z.string().min(1, "Postal code is required").optional(),
+  city: z.string().min(5, "City is required"),
+  postalCode: z.string().optional(),
   country: z.string().min(1, "Country is required"),
+});
+
+export const ShippingInfoSchema = z.object({
+  shippingZone: z.string().min(1, "Shipping zone is required"),
+  shippingAddress1: z.string().min(1, "address is required"),
+  shippingAddress2: z.string().optional(),
+  shippingCity: z.string().min(5, "city is required"),
+  shippingState: z.string().min(1, "state is required"),
+  shippingCountry: z.string().min(1, "country is required"),
+  shippingPostalCode: z.string().optional(),
+  returnAddress1: z.string().min(1, "address is required"),
+  returnAddress2: z.string().optional(),
+  returnCity: z.string().min(5, "city is required"),
+  returnState: z.string().min(1, "state is required"),
+  returnCountry: z.string().min(1, "country is required"),
+  returnPostalCode: z.string().optional(),
 });

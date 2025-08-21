@@ -79,6 +79,7 @@ model Store {
   customerCare CustomerCare?
   contact      Contact?
   businessInfo BusinessInfo?
+  shippingInfo ShippingInfo?
 }
 
 model CustomerCare {
@@ -124,6 +125,26 @@ model BusinessInfo {
   postalCode   String?
   country      String
   isComplete   Boolean @default(false) // Whether all required business info is provided
+}
+
+model ShippingInfo {
+  id                 String  @id @default(cuid())
+  shippingZone       String
+  shippingAddress1   String
+  shippingAddress2   String?
+  shippingCity       String
+  shippingState      String
+  shippingCountry    String
+  shippingPostalCode String?
+  returnAddress1     String
+  returnAddress2     String?
+  returnCity         String
+  returnState        String
+  returnCountry      String
+  returnPostalCode   String?
+  isComplete         Boolean @default(false) // Whether all required business info is provided
+  storeId            String  @unique
+  store              Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 model Product {

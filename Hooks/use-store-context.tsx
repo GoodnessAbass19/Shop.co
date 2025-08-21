@@ -15,6 +15,7 @@ import {
   Contact,
   CustomerCare,
   BusinessInfo,
+  ShippingInfo,
 } from "@prisma/client";
 
 // Define the structure of the SellerStore data
@@ -26,11 +27,13 @@ interface SellerStoreData {
   banners: string[];
   contactEmail: string;
   country: string;
+  state: string;
   contactPhone: string;
   accountType: string;
   contact: Contact;
   customerCare: CustomerCare;
   businessInfo: BusinessInfo | null;
+  shippingInfo: ShippingInfo;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

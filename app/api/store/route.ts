@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { generateUniqueSlug } from "@/utils/generate-slug";
 import { Role } from "@prisma/client";
-import { uploadImage } from "@/lib/upload-image";
 import { countries } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -220,6 +219,7 @@ export async function GET(request: Request) {
         },
         contact: true, // Include contact details
         customerCare: true, // Include customer care details
+        businessInfo: true,
         orderItems: {
           include: {
             order: {

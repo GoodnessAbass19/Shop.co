@@ -14,16 +14,21 @@ import { toast } from "@/Hooks/use-toast";
 import { Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSellerStore } from "@/Hooks/use-store-context";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BusinessInfoSchema } from "@/lib/form-schema";
 import { z } from "zod";
 import { Button } from "../ui/button";
+import { uploadToCloudinary } from "@/lib/cloudinary";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Inputs = z.infer<typeof BusinessInfoSchema>;
 
 const BusinessInfo = () => {
   const { store } = useSellerStore();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -48,12 +53,38 @@ const BusinessInfo = () => {
       state: store?.businessInfo?.state || "",
       postalCode: store?.businessInfo?.postalCode || "",
       country: store?.country || "NIGERIA", // Default to Nigeria
+      idNumber: store?.businessInfo?.idNumber || "",
     },
   });
 
-  const idType = watch("idType");
+  const handleFileUpload = async (files: File[], field: keyof Inputs) => {
+    if (!files.length) return;
+    try {
+      const result = await uploadToCloudinary(files[0]);
+      // Assuming result.url is the uploaded file URL
+      setValue(field, result);
+      toast({
+        title: "Upload successful",
+        description: "File uploaded successfully.",
+        variant: "default",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
-  const { getRootProps: getImageRootProps, getInputProps: getImageInputProps } =
+  const idType = watch("idType");
+  const frontImage = watch("idImageFront");
+  const backImage = watch("idImageBack");
+  const taxImage = watch("taxIdImage");
+
+  // For ID Front
+  const { getRootProps: getFrontRootProps, getInputProps: getFrontInputProps } =
     useDropzone({
       accept: {
         "image/jpeg": [],
@@ -63,29 +94,98 @@ const BusinessInfo = () => {
       },
       multiple: false,
       maxFiles: 1,
-      maxSize: 5 * 1024 * 1024, // 5MB per file
-      onDropRejected: (fileRejections: any[]) => {
-        toast({
-          title: "Image Files Rejected",
-          description: fileRejections
-            .map((r) =>
-              r.errors.map((e: { message: any }) => e.message).join(", ")
-            )
-            .join("; "),
-          variant: "destructive",
-        });
+      maxSize: 5 * 1024 * 1024,
+      onDrop: (acceptedFiles) =>
+        handleFileUpload(acceptedFiles, "idImageFront"),
+      onDropRejected: (fileRejections) => {
+        /* ...existing toast... */
       },
     });
 
+  // For ID Back
+  const { getRootProps: getBackRootProps, getInputProps: getBackInputProps } =
+    useDropzone({
+      accept: {
+        "image/jpeg": [],
+        "image/png": [],
+        "application/pdf": [],
+        "image/jpg": [],
+      },
+      multiple: false,
+      maxFiles: 1,
+      maxSize: 5 * 1024 * 1024,
+      onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, "idImageBack"),
+      onDropRejected: (fileRejections) => {
+        /* ...existing toast... */
+      },
+    });
+
+  // For Tax ID Image
+  const { getRootProps: getTaxRootProps, getInputProps: getTaxInputProps } =
+    useDropzone({
+      accept: {
+        "image/jpeg": [],
+        "image/png": [],
+        "application/pdf": [],
+        "image/jpg": [],
+      },
+      multiple: false,
+      maxFiles: 1,
+      maxSize: 5 * 1024 * 1024,
+      onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, "taxIdImage"),
+      onDropRejected: (fileRejections) => {
+        /* ...existing toast... */
+      },
+    });
+
+  // Mutation to create or update store information
+  const updateStoreMutation = useMutation({
+    mutationFn: async (formData: Inputs) => {
+      const res = await fetch("/api/store/businessInfo", {
+        method: store.businessInfo?.id ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to update business info.");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      router.refresh();
+      toast({
+        title: "Business info updated successfully",
+        description: "Your business information has been updated.",
+        variant: "default",
+      });
+      reset(); // Reset the form after successful submission
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating store",
+        description:
+          error.message || "An error occurred while updating the store.",
+        variant: "destructive",
+      });
+      console.error("Store creation failed:", error.message);
+    },
+  });
+
+  const processForm: SubmitHandler<Inputs> = (data) => {
+    updateStoreMutation.mutate(data);
+    // reset();
+  };
+
   return (
-    <form className="space-y-12 p-4">
+    <form onSubmit={handleSubmit(processForm)} className="space-y-12 p-4">
       {/* Legal Representative Details */}
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium capitalize">
             legal representative details
           </h2>
-          <p className="text-sm">
+          <p className="text-base font-sans">
             Please provide the following details of the owner / legal
             representative of your business
           </p>
@@ -122,13 +222,16 @@ const BusinessInfo = () => {
               <span className="text-xs">Required</span>
             </Label>
             <Select
-              value={watch("idType")}
+              value={watch("idType") || ""}
               onValueChange={(value) =>
                 setValue("idType", value as Inputs["idType"])
               }
             >
               <SelectTrigger
-                className={cn("w-full", errors.country ? "border-red-400" : "")}
+                className={cn("w-full", errors.idType ? "border-red-400" : "")}
+                id="id_type"
+                aria-invalid={!!errors.idType}
+                aria-describedby={errors.idType ? "idType-error" : undefined}
               >
                 <SelectValue placeholder="Select ID Type" />
               </SelectTrigger>
@@ -140,7 +243,7 @@ const BusinessInfo = () => {
               </SelectContent>
             </Select>
             {errors.idType && (
-              <p className="mt-2 text-sm text-red-400">
+              <p id="idType-error" className="mt-2 text-sm text-red-400">
                 {errors.idType.message}
               </p>
             )}
@@ -148,7 +251,7 @@ const BusinessInfo = () => {
         </div>
 
         {idType && (
-          <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5 gap-y-7 ease-linear transition-all">
+          <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-start gap-5 gap-y-7 ease-linear transition-all">
             <div className="space-y-2">
               <Label
                 htmlFor="idNumber"
@@ -165,6 +268,7 @@ const BusinessInfo = () => {
               <Input
                 type="text"
                 id="idNumber"
+                {...register("idNumber")}
                 placeholder="ID Number"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
@@ -184,46 +288,60 @@ const BusinessInfo = () => {
                 <span className="text-xs">Required</span>
               </Label>
               <div className="grid md:grid-cols-2 justify-between items-center gap-5">
-                <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center">
-                  <div
-                    // // readOnly
-                    // placeholder="upload .jpeg, .jpg, .png, .pdf"
-                    className="flex-1 text-muted text-start"
-                  >
-                    <p className="text-sm text-gray-500">Frontside</p>
+                <div>
+                  <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center">
+                    <div
+                      aria-disabled
+                      className="flex-1 text-start text-sm text-gray-500 line-clamp-1 overflow-hidden"
+                    >
+                      {frontImage ? `${frontImage}` : "Frontside"}
+                    </div>
+                    {/* // ID Front */}
+                    <div {...getFrontRootProps()}>
+                      <Input {...getFrontInputProps()} />
+                      <Paperclip className="h-4 w-4 text-gray-500" />
+                    </div>
                   </div>
-                  <div
-                    {...getImageRootProps({
-                      className: "",
-                    })}
-                  >
-                    <Input {...getImageInputProps()} />
-                    <Paperclip className="h-4 w-4 text-gray-500" />
-                  </div>
+                  {frontImage && (
+                    <Link
+                      href={frontImage}
+                      target="_blank"
+                      className="text-blue-300 hover:underline text-xs font-light capitalize"
+                    >
+                      view file
+                    </Link>
+                  )}
                 </div>
-                <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center">
-                  <div
-                    // // readOnly
-                    // placeholder="upload .jpeg, .jpg, .png, .pdf"
-                    className="flex-1 text-muted text-start"
-                  >
-                    <p className="text-sm text-gray-500">Backside</p>
+                <div>
+                  <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center ">
+                    <div
+                      aria-disabled
+                      className="flex-1 text-start text-sm text-gray-500 line-clamp-1 overflow-hidden"
+                    >
+                      {backImage ? `${backImage}` : "Backside"}
+                    </div>
+                    {/* // ID Back */}
+                    <div {...getBackRootProps()}>
+                      <Input {...getBackInputProps()} />
+                      <Paperclip className="h-4 w-4 text-gray-500" />
+                    </div>
                   </div>
-                  <div
-                    {...getImageRootProps({
-                      className: "",
-                    })}
-                  >
-                    <Input {...getImageInputProps()} />
-                    <Paperclip className="h-4 w-4 text-gray-500" />
-                  </div>
+                  {backImage && (
+                    <Link
+                      href={backImage}
+                      target="_blank"
+                      className="text-blue-300 hover:underline text-xs font-light capitalize"
+                    >
+                      view file
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5 gap-y-7">
+        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-start gap-5 gap-y-7">
           <div className="space-y-2">
             <Label
               htmlFor="taxId"
@@ -235,6 +353,7 @@ const BusinessInfo = () => {
             <Input
               type="text"
               id="taxId"
+              {...register("taxIdentificationNumber")}
               placeholder="Tax Identification Number"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm placeholder:capitalize"
             />
@@ -248,24 +367,28 @@ const BusinessInfo = () => {
               Upload Tax Identification Number (TIN)
               <span className="text-xs">Required</span>
             </Label>
-            <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center">
-              <div
-                // // readOnly
-                // placeholder="upload .jpeg, .jpg, .png, .pdf"
-                className="flex-1 text-muted text-start"
-              >
-                <p className="text-sm text-gray-500">
-                  Upload .jpeg, .jpg, .png, .pdf
-                </p>
+            <div>
+              <div className="border-2 border-gray-300 rounded-md p-1.5 text-center cursor-pointer flex justify-between items-center">
+                <div
+                  aria-disabled
+                  className="flex-1  text-start text-sm text-gray-500 line-clamp-1 overflow-hidden"
+                >
+                  {taxImage ? `${taxImage}` : "Upload .jpeg, .jpg, .png, .pdf"}
+                </div>
+                <div {...getTaxRootProps()}>
+                  <Input {...getTaxInputProps()} />
+                  <Paperclip className="h-4 w-4 text-gray-500" />
+                </div>
               </div>
-              <div
-                {...getImageRootProps({
-                  className: "",
-                })}
-              >
-                <Input {...getImageInputProps()} />
-                <Paperclip className="h-4 w-4 text-gray-500" />
-              </div>
+              {taxImage && (
+                <Link
+                  href={taxImage}
+                  target="_blank"
+                  className="text-blue-300 hover:underline text-xs font-light capitalize"
+                >
+                  view file
+                </Link>
+              )}
             </div>
           </div>
 
@@ -280,6 +403,7 @@ const BusinessInfo = () => {
             <Input
               type="text"
               id="vatNumber"
+              {...register("vatNumber")}
               placeholder="VAT Number"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm placeholder:capitalize"
             />
@@ -295,7 +419,7 @@ const BusinessInfo = () => {
           <h2 className="text-2xl font-medium capitalize">
             legal representative address
           </h2>
-          <p className="text-sm">
+          <p className="text-base font-sans">
             Please provide the registered address of your business
           </p>
         </div>
@@ -328,7 +452,7 @@ const BusinessInfo = () => {
               htmlFor="address_2"
               className="text-sm font-medium capitalize flex items-center justify-between"
             >
-              Address line 2<span className="text-xs">Required</span>
+              Address line 2{/* <span className="text-xs">Required</span> */}
             </Label>
             <Input
               id="address_2"
@@ -404,7 +528,7 @@ const BusinessInfo = () => {
               placeholder="country"
               readOnly
               className={cn(
-                "disabled:bg-gray-100 read-only:bg-gray-100 dark:read-only:bg-gray-800 text-gray-700 dark",
+                "read-only:bg-gray-100 dark:read-only:bg-gray-800 text-gray-700 dark:text-gray-300",
                 errors.country ? "border-red-400" : ""
               )}
             />

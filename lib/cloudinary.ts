@@ -23,3 +23,5 @@ export const uploadToCloudinary = async (file: File) => {
   }
   return data.secure_url as string;
 };
+
+

@@ -220,6 +220,7 @@ export async function GET(request: Request) {
         contact: true, // Include contact details
         customerCare: true, // Include customer care details
         businessInfo: true,
+        shippingInfo: true,
         orderItems: {
           include: {
             order: {

@@ -36,6 +36,8 @@ import {
   Address,
   Contact,
   CustomerCare,
+  BusinessInfo,
+  ShippingInfo,
 } from "@prisma/client";
 import { Sidebar } from "../dashboard/Sidebar";
 import { SellerStoreProvider } from "@/Hooks/use-store-context";
@@ -54,10 +56,13 @@ interface SellerStoreData {
   banners: string[];
   contactEmail: string;
   country: string;
+  state: string;
   contactPhone: string;
   accountType: string;
   contact: Contact;
   customerCare: CustomerCare;
+  businessInfo: BusinessInfo | null;
+  shippingInfo: ShippingInfo;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -113,7 +118,7 @@ export default function SellerDashboardLayout({
     return (
       <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-300"></div>
         </div>
       </section>
     );

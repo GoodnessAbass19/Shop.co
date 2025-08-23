@@ -1,11 +1,6 @@
 "use client";
 
-import { GET_PRODUCTS_BY_TAGS } from "@/lib/query";
-import { ProductData, productTags } from "@/types";
-import { useQuery } from "@apollo/client";
 import ProductCard from "../products/productCard";
-import { Button } from "../ui/button";
-import Link from "next/link";
 import { Navigation, FreeMode } from "swiper/modules";
 import useSwiperRef from "@/Hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
@@ -85,7 +80,22 @@ const Sections = ({
   }
 
   if (!products || products.length === 0) {
-    return null;
+    return (
+      <div>
+        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Optio commodi
+        unde dicta debitis blanditiis consectetur labore? Cupiditate, omnis?
+        Vitae, voluptatem iusto repudiandae non adipisci, fuga consequuntur hic
+        ut placeat eius facere ex! Voluptatum ullam repellendus atque. Impedit
+        officia optio earum ipsa vitae voluptas aperiam fugit voluptates
+        quibusdam odit nobis odio eius deserunt cumque molestiae soluta nesciunt
+        quod quaerat mollitia qui blanditiis repellendus, fuga fugiat?
+        Consectetur, architecto deleniti! Numquam reprehenderit vitae
+        consectetur commodi cumque. Assumenda soluta consequatur eius itaque
+        dolor deleniti ad excepturi a amet voluptates quas mollitia ut labore
+        tempora, maiores nisi et suscipit quo quibusdam, eveniet animi. Iusto,
+        provident.
+      </div>
+    );
   }
 
   return (

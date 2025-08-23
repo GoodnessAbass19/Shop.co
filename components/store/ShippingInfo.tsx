@@ -48,8 +48,8 @@ const ShippingInfo = () => {
 
   const updateStoreMutation = useMutation({
     mutationFn: async (formData: Inputs) => {
-      const res = await fetch("/api/store/businessInfo", {
-        method: store.businessInfo?.id ? "PATCH" : "POST",
+      const res = await fetch("/api/store/shippingInfo", {
+        method: store.shippingInfo?.id ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
@@ -136,13 +136,51 @@ const ShippingInfo = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Switch id="business-address" />
+          <Switch
+            id="business-address"
+            onCheckedChange={(checked) => {
+              if (checked && store.businessInfo) {
+                setValue("shippingAddress1", store.businessInfo.address1 || "");
+                setValue("shippingAddress2", store.businessInfo.address2 || "");
+                setValue("shippingCity", store.businessInfo.city || "");
+                setValue("shippingState", store.businessInfo.state || "");
+                setValue("shippingCountry", store.businessInfo.country || "");
+                setValue(
+                  "shippingPostalCode",
+                  store.businessInfo.postalCode || ""
+                );
+              } else if (!checked) {
+                setValue(
+                  "shippingAddress1",
+                  store.shippingInfo.shippingAddress1 || ""
+                );
+                setValue(
+                  "shippingAddress2",
+                  store.shippingInfo.shippingAddress2 || ""
+                );
+                setValue("shippingCity", store.shippingInfo.shippingCity || "");
+                setValue(
+                  "shippingState",
+                  store.shippingInfo.shippingState || ""
+                );
+                setValue(
+                  "shippingCountry",
+                  store.shippingInfo.shippingCountry || ""
+                );
+                setValue(
+                  "shippingPostalCode",
+                  store.shippingInfo.shippingPostalCode || ""
+                );
+              }
+            }}
+          />
           <Label htmlFor="business-address">
             {" "}
             Make it same as your business address
           </Label>
         </div>
-        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
+
+        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-start gap-5">
           <div className="space-y-2">
             <Label
               htmlFor="shippingAddress1"
@@ -264,7 +302,7 @@ const ShippingInfo = () => {
               htmlFor="postal-code"
               className="text-sm font-medium flex items-center justify-between"
             >
-              Country<span className="text-xs">Required</span>
+              Postal Code
             </Label>
 
             <Input
@@ -296,13 +334,47 @@ const ShippingInfo = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Switch id="return-address" />
+          <Switch
+            id="return-address"
+            onCheckedChange={(checked) => {
+              if (checked && store.businessInfo) {
+                setValue("returnAddress1", store.businessInfo.address1 || "");
+                setValue("returnAddress2", store.businessInfo.address2 || "");
+                setValue("returnCity", store.businessInfo.city || "");
+                setValue("returnState", store.businessInfo.state || "");
+                setValue("returnCountry", store.businessInfo.country || "");
+                setValue(
+                  "returnPostalCode",
+                  store.businessInfo.postalCode || ""
+                );
+              } else if (!checked) {
+                setValue(
+                  "returnAddress1",
+                  store.shippingInfo.returnAddress1 || ""
+                );
+                setValue(
+                  "returnAddress2",
+                  store.shippingInfo.returnAddress2 || ""
+                );
+                setValue("returnCity", store.shippingInfo.returnCity || "");
+                setValue("returnState", store.shippingInfo.returnState || "");
+                setValue(
+                  "returnCountry",
+                  store.shippingInfo.returnCountry || ""
+                );
+                setValue(
+                  "returnPostalCode",
+                  store.shippingInfo.returnPostalCode || ""
+                );
+              }
+            }}
+          />
           <Label htmlFor="return-address">
             Make it same as your business address
           </Label>
         </div>
 
-        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-center gap-5">
+        <div className="grid md:grid-cols-3 grid-cols-2 justify-between items-start gap-5">
           <div className="space-y-2">
             <Label
               htmlFor="returnAddress1"
@@ -419,7 +491,7 @@ const ShippingInfo = () => {
               htmlFor="return-postal-code"
               className="text-sm font-medium flex items-center justify-between"
             >
-              Country<span className="text-xs">Required</span>
+              Postal Code
             </Label>
 
             <Input

@@ -83,7 +83,6 @@ export async function GET() {
         images: product.images.map((url) => ({ url })), // Transform images to { url: string }[]
       };
     });
-
     return NextResponse.json({ products: processedProducts }); // Return as { products: [...] } for consistency
   } catch (error) {
     console.error("New arrivals fetch failed:", error);

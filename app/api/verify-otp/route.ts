@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { signToken } from "@/lib/jwt";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const { email, otp, redirect_url } = await req.json(); // Destructure redirect_url
 
@@ -83,7 +83,8 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         message: "Account verified and logged in successfully!",
-        redirect_url: redirect_url || "/",
+        redirect_url: redirect_url || "/your/store/dashboard",
+        token: token,
       },
       { status: 200 }
     );

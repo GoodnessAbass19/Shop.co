@@ -13,3 +13,15 @@ export function verifyToken(token: string) {
     role: string;
   };
 }
+
+export function createJwtToken(user: {
+  id: string;
+  email: string;
+  role: string;
+}) {
+  return signToken({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  });
+}

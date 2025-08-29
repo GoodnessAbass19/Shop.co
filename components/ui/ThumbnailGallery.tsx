@@ -142,7 +142,7 @@ const ThumbnailGallery = ({
   return (
     <div className="flex flex-col-reverse md:flex-row flex-1 flex-grow-0 justify-start items-start gap-5 overflow-hidden">
       <div className="">
-        <div className="grid md:grid-cols-1 grid-cols-4 gap-4 justify-center items-center">
+        <div className="grid md:grid-cols-1 grid-cols-4 gap-4 justify-center items-center md:h-[500px] overflow-hidden">
           {images.map((image, index) => (
             <div
               key={index}
@@ -175,7 +175,7 @@ const ThumbnailGallery = ({
               priority
               src={images[selectedImageIndex].url}
               alt={`Selected Image ${selectedImageIndex}`}
-              className="md:h-full w-[372px] h-[444px] md:w-full w border-2 border-gray-200 object-cover object-center shadow-sm dark:border-gray-800 sm:rounded-2xl overflow-clip"
+              className="md:h-full w-[372px] h-[444px] md:w-full w border-2 border-gray-200 object-cover object-center shadow-sm dark:border-gray-800 sm:rounded-2xl sm:rounded-b-2xl overflow-clip"
             />
           </div>
         )}

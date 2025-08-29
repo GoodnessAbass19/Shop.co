@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { v4 as uuidv4 } from "uuid";
 import { cookies } from "next/headers"; // ✅ Correct way to handle cookies
 import { signToken } from "@/lib/jwt";
+import { Role } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,8 +35,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        isSeller,
-        isBuyer: true,
+        role: Role.BUYER,
       },
     });
 

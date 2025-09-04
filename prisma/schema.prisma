@@ -34,6 +34,7 @@ model User {
   cart          Cart?
   wishlistItems WishlistItem[]
   notifications Notification[]
+  Rider         Rider?
 }
 
 model Address {
@@ -296,25 +297,54 @@ model Order {
 }
 
 model OrderItem {
-  id       String @id @default(uuid())
-  quantity Int
-  price    Float
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
+  id               String         @id @default(uuid())
+  quantity         Int
+  price            Float
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productVariantId String
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
+  storeId          String
+  store            Store          @relation("StoreOrderItems", fields: [storeId], references: [id])
+  riderName        String?
+  riderPhone       String?
+  deliveryStatus   DeliveryStatus @default(PENDING)
+  deliveredAt      DateTime?
+  assignedAt       DateTime? // When the rider is assigned
+  deliveryItem     DeliveryItem?
+}
 
-  storeId        String
-  store          Store          @relation("StoreOrderItems", fields: [storeId], references: [id])
-  riderName      String?
-  riderPhone     String?
-  trackingUrl    String?
-  deliveryStatus DeliveryStatus @default(PENDING)
-  deliveredAt    DateTime?
-  deliveryCode   String? // nullable initially
-  assignedAt     DateTime? // When the rider is assigned
+model DeliveryItem {
+  id            String    @id @default(uuid())
+  orderItemId   String    @unique
+  orderItem     OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  riderId       String?
+  rider         Rider?    @relation(fields: [riderId], references: [id])
+  codeHash      String? // hashed 6-digit code sent to BUYER only
+  codeExpiresAt DateTime? // typically now + 24h
+  attempts      Int       @default(0) // verification attempts
+  acceptedAt    DateTime?
+  pickedUpAt    DateTime?
+  deliveredAt   DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Rider {
+  id         String         @id @default(uuid())
+  name       String
+  phone      String         @unique
+  isActive   Boolean        @default(true)
+  // 🔥 Location tracking
+  latitude   Float?
+  longitude  Float?
+  geohash    String? // for proximity queries (GeoHash5)
+  userId     String?        @unique
+  user       User?          @relation(fields: [userId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  deliveries DeliveryItem[] // renamed for clarity
 }
 
 model OtpToken {
@@ -391,8 +421,14 @@ enum ProductStatus {
 
 enum DeliveryStatus {
   PENDING
+  READY_FOR_PICKUP
   OUT_FOR_DELIVERY
   DELIVERED
+  FAILED
+  RETURN_REQUESTED
+  RETURN_APPROVED
+  RETURN_IN_TRANSIT
+  RETURNED
 }
 
 model Notification {

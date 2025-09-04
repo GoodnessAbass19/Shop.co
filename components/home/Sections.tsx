@@ -80,22 +80,7 @@ const Sections = ({
   }
 
   if (!products || products.length === 0) {
-    return (
-      <div>
-        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Optio commodi
-        unde dicta debitis blanditiis consectetur labore? Cupiditate, omnis?
-        Vitae, voluptatem iusto repudiandae non adipisci, fuga consequuntur hic
-        ut placeat eius facere ex! Voluptatum ullam repellendus atque. Impedit
-        officia optio earum ipsa vitae voluptas aperiam fugit voluptates
-        quibusdam odit nobis odio eius deserunt cumque molestiae soluta nesciunt
-        quod quaerat mollitia qui blanditiis repellendus, fuga fugiat?
-        Consectetur, architecto deleniti! Numquam reprehenderit vitae
-        consectetur commodi cumque. Assumenda soluta consequatur eius itaque
-        dolor deleniti ad excepturi a amet voluptates quas mollitia ut labore
-        tempora, maiores nisi et suscipit quo quibusdam, eveniet animi. Iusto,
-        provident.
-      </div>
-    );
+    return null;
   }
 
   return (

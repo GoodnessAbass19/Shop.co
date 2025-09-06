@@ -34,6 +34,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getFirstName, getInitials, getLastName } from "@/lib/utils";
+import { useUser } from "@/Hooks/user-context";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -47,6 +48,7 @@ const fetcher = async (url: string) => {
 };
 
 const ProductDetails = ({ slug }: { slug: string }) => {
+  const { refetchCart } = useUser();
   const { data, error, isLoading, mutate } = useSWR(
     `/api/products/${slug}`,
     fetcher
@@ -89,6 +91,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     onSuccess: () => {
       // Invalidate the 'cart' query so it refetches next time it's accessed (e.g., if user goes to cart page)
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+      refetchCart();
       toast.success("Item added to cart successfully!");
     },
     onError: (mutationError: Error) => {
@@ -257,30 +260,30 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     id = "",
   } = data?.product || {};
 
-  const cartData = useMemo(
-    () => ({
-      id: data?.product.id as string,
-      name: data?.product.productName as string,
-      image: data?.product.images[0].url as string,
-      slug: data?.product.slug as string,
-      price:
-        (data?.product.discountedPrice as number) ||
-        (data?.product.price as number),
-      quantity: quantity as number,
-      size: selectedSize as string,
-      color: selectedColor as string,
-    }),
-    [
-      quantity,
-      selectedSize,
-      selectedColor,
-      price,
-      productName,
-      images,
-      slug,
-      id,
-    ]
-  );
+  // const cartData = useMemo(
+  //   () => ({
+  //     id: data?.product.id as string,
+  //     name: data?.product.productName as string,
+  //     image: data?.product.images[0].url as string,
+  //     slug: data?.product.slug as string,
+  //     price:
+  //       (data?.product.discountedPrice as number) ||
+  //       (data?.product.price as number),
+  //     quantity: quantity as number,
+  //     size: selectedSize as string,
+  //     color: selectedColor as string,
+  //   }),
+  //   [
+  //     quantity,
+  //     selectedSize,
+  //     selectedColor,
+  //     price,
+  //     productName,
+  //     images,
+  //     slug,
+  //     id,
+  //   ]
+  // );
 
   const image =
     data?.product.images && data.product.images.length > 0
@@ -451,7 +454,11 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                 </span>
               )}
             </div>
-
+            <span className="text-sm text-start text-red-500/70 h-5">
+              {selectedVariant && selectedVariant.stock <= 10
+                ? `${selectedVariant.stock} unit available in stock`
+                : ""}
+            </span>
             {/* <h2 className="font-medium text-lg text-wrap">
               {data?.product.name}
             </h2> */}
@@ -484,7 +491,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                           key={size}
                           value={size}
                           // disabled={
-                          //   !getAvailableSizesForColor(selectedColor).has(size)
+                          // !getAvailableSizesForColor(selectedColor).has(size)
                           // } // Disable if not available for selected color
                         >
                           {size}{" "}

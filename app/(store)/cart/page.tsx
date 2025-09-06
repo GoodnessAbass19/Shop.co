@@ -27,6 +27,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { useUser } from "@/Hooks/user-context";
 // import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
 
 // --- Extended Types to match API response ---
@@ -52,6 +53,7 @@ const fetcher = async (url: string) => {
 };
 
 const CartPage = () => {
+  const { refetchCart } = useUser();
   const queryClient = useQueryClient();
   // const { data, error, isLoading, mutate } = useSWR("/api/cart", fetcher);
   const [isUpdating, setIsUpdating] = useState(false); // For showing loading on quantity update
@@ -110,6 +112,7 @@ const CartPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] }); // Invalidate and refetch the cart data
       toast.success("Item removed from cart successfully!");
+      refetchCart();
     },
     onError: (mutationError: Error) => {
       toast.error(`Error removing item`);
@@ -255,6 +258,7 @@ const CartPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] }); // Invalidate cart to refetch latest
       toast.success("Item added to cart successfully!");
+      refetchCart();
     },
     onError: (mutationError: Error) => {
       toast.error(`Error updating quantity`);
@@ -451,13 +455,13 @@ const CartPage = () => {
               </div>
             );
           })}
-          {(updateQuantityMutation.isPending ||
+          {/* {(updateQuantityMutation.isPending ||
             deleteCartItemMutation.isPending) && (
             <div className="flex justify-center items-center py-4 text-blue-600">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Updating cart...
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Order Summary / Total */}
@@ -536,7 +540,7 @@ const CartPage = () => {
               <p className="text-sm text-gray-500">
                 No saved addresses.{" "}
                 <HoverPrefetchLink
-                  href="/account/settings"
+                  href="/me/account/"
                   className="text-blue-600 underline"
                 >
                   Add one

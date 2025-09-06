@@ -17,18 +17,7 @@ import CategoryMenu from "./category-menu";
 import { useQuery } from "@tanstack/react-query";
 import MobileMenu from "./mobileMenu";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-
-const fetcher = async (url: string) => {
-  preload(url, fetch);
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) {
-    const error: any = new Error(data.error || "Failed to fetch data.");
-    error.status = res.status;
-    throw error;
-  }
-  return data;
-};
+import { useUser } from "@/Hooks/user-context";
 
 const fetchSearchedProducts = async (search: string) => {
   if (!search) return { products: [] };
@@ -49,10 +38,10 @@ const Menu = () => {
     const textWithoutHyphen = slug.replace(/-/g, " ");
     return textWithoutHyphen;
   }
+  const { user, cart } = useUser();
+  // const { data: cart } = useSWR("/api/cart", fetcher);
 
-  const { data: cart } = useSWR("/api/cart", fetcher);
-
-  const items: CartItems = cart?.cart || [];
+  const items: CartItems = cart! || [];
   // const { user } = useUser();
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);

@@ -30,7 +30,7 @@ export default function CheckoutSuccessPage() {
       <p className="text-xl text-green-700 mb-8">
         Thank you for your purchase. Your order is being processed.
       </p>
-      <HoverPrefetchLink href="/orders" passHref>
+      <HoverPrefetchLink href="/me/orders" passHref>
         <Button className="bg-green-700 hover:bg-green-800 text-white text-lg px-8 py-3 rounded-md shadow-lg transition-all duration-300 transform hover:scale-105">
           View My Orders
         </Button>

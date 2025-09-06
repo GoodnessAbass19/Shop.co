@@ -1,4 +1,6 @@
 import Menu from "@/components/layout/menu";
+import { UserProvider } from "@/Hooks/user-context";
+import { User } from "lucide-react";
 import Image from "next/image";
 
 export default function DashboardLayout({
@@ -8,8 +10,10 @@ export default function DashboardLayout({
 }>) {
   return (
     <div className="">
-      <Menu />
-      {children}
+      <UserProvider>
+        <Menu />
+        {children}
+      </UserProvider>
     </div>
   );
 }

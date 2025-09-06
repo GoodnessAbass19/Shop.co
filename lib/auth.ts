@@ -21,6 +21,12 @@ export async function getCurrentUser() {
         role: true,
         phone: true,
         createdAt: true,
+        notifications: true,
+        cart: {
+          include: {
+            cartItems: true,
+          },
+        },
       },
     });
     return user;

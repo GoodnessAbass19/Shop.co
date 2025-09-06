@@ -2,8 +2,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,12 @@ import Link from "next/link";
 import { useToast } from "@/Hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
 type AuthFormProps = {
   type: "login" | "register";
@@ -63,6 +69,9 @@ export default function AuthForm({ type }: AuthFormProps) {
   const searchParams = useSearchParams();
   const [isPasswordShown, setIsPasswordShown] = useState(false);
   const { toast } = useToast();
+  const [resendTimer, setResendTimer] = useState(60);
+  const [otpSent, setOtpSent] = useState(false);
+  const [redirect, setRedirect] = useState(false);
 
   const emailWatcher = watch("email");
 
@@ -94,6 +103,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       const result = await res.json();
 
       if (res.ok && result.nextStep === "verifyOtp") {
+        setOtpSent(true);
         setCurrentStep("input_otp");
         toast({
           title: "OTP Sent!",
@@ -142,6 +152,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       const result = await res.json();
 
       if (res.ok && result.success) {
+        setRedirect(true);
         toast({
           title: "Success!",
           description:
@@ -209,6 +220,7 @@ export default function AuthForm({ type }: AuthFormProps) {
       const result = await res.json();
 
       if (res.ok && result.nextStep === "verifyOtp") {
+        setOtpSent(true);
         toast({
           title: "OTP Resent!",
           description:
@@ -240,6 +252,18 @@ export default function AuthForm({ type }: AuthFormProps) {
   const renderLoadingSpinner = () => (
     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
   );
+
+  useEffect(() => {
+    let timer: string | number | NodeJS.Timeout | undefined;
+    if (otpSent && resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      clearInterval(timer);
+    }
+    return () => clearInterval(timer);
+  }, [otpSent, resendTimer]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -473,7 +497,7 @@ export default function AuthForm({ type }: AuthFormProps) {
               <span className="font-medium text-gray-800">{emailWatcher}</span>.
               Please enter it below.
             </p>
-            <div>
+            <div className="flex flex-col justify-center items-center">
               <Label
                 htmlFor="otp"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -481,7 +505,29 @@ export default function AuthForm({ type }: AuthFormProps) {
                 Enter OTP
               </Label>
               <div className="relative flex items-center">
-                <Input
+                <InputOTP
+                  id="otp"
+                  {...register("otp", {
+                    required: "OTP is required.",
+                    // pattern: {
+                    //   value: /^\d{6}$/,
+                    //   message: "OTP must be 6 digits.",
+                    // },
+                  })}
+                  pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                  maxLength={6}
+                  // onComplete={handleVerifyOtp}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                {/* <Input
                   id="otp"
                   type="text"
                   placeholder="XXXXXX"
@@ -494,7 +540,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                     },
                   })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 text-center text-2xl font-bold tracking-widest"
-                />
+                /> */}
               </div>
               {errors.otp && (
                 <p className="text-red-500 text-xs mt-1">
@@ -508,11 +554,32 @@ export default function AuthForm({ type }: AuthFormProps) {
               disabled={loading}
               className="w-full flex justify-center py-3 px-4 rounded-md shadow-md text-lg font-semibold text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
             >
-              {loading && renderLoadingSpinner()}
-              Verify OTP
+              {loading
+                ? renderLoadingSpinner()
+                : redirect
+                ? "Redirecting..."
+                : "Verify & Continue"}
             </Button>
 
-            <Button
+            <div className="text-center text-sm mt-4">
+              {resendTimer > 0 ? (
+                <p>
+                  Resend code in{" "}
+                  <span className="font-bold">{resendTimer}s</span>
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-gray-600 hover:text-gray-900 px-4 py-3 transition duration-200"
+                  onClick={handleResendOtp}
+                  disabled={resendTimer > 0 || loading}
+                >
+                  Resend Code
+                </Button>
+              )}
+            </div>
+            {/* <Button
               type="button"
               variant="ghost"
               onClick={handleResendOtp}
@@ -521,7 +588,7 @@ export default function AuthForm({ type }: AuthFormProps) {
             >
               {loading && renderLoadingSpinner()}
               Resend OTP
-            </Button>
+            </Button> */}
 
             <p className="mt-4 text-center text-sm text-gray-600">
               <button

@@ -32,34 +32,10 @@ import LogoutButton from "./logout-button";
 import { ClipLoader } from "react-spinners";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import UserNotificationBell from "./notification";
+import { useUser } from "@/Hooks/user-context";
 
 const UserButton = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(true); // Set loading to true when starting fetch
-    fetch("/api/me")
-      .then((res) => {
-        if (!res.ok) {
-          // If response is not OK (e.g., 401 Unauthorized), the user is not logged in.
-          // Don't throw an error, just set user to null.
-          return { user: null };
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setUser(data.user);
-      })
-      .catch((err) => {
-        // This catch block is for network errors or parsing errors
-        console.error("Failed to fetch user:", err);
-        setUser(null); // Ensure user is null on error
-      })
-      .finally(() => {
-        setIsLoading(false); // Always set loading to false after fetch attempt
-      });
-  }, []);
+  const { user, isLoading } = useUser();
 
   if (isLoading) {
     return (

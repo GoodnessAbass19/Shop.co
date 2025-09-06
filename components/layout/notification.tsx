@@ -8,35 +8,25 @@ import axios from "axios"; // Keep axios for the fetch function
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/Hooks/user-context";
 
-// Function to fetch the unread notifications count for the seller
-const fetchUnreadNotificationsCount = async (): Promise<{ count: number }> => {
-  // Assuming your /api/notifications endpoint can filter by role and read status
-  const res = await axios.get("/api/notifications?role=BUYER&read=false");
-  // Adjust based on your API response structure.
-  // If your /api/notifications endpoint returns an array, you'd count unread items:
-  // return { count: res.data.notifications.filter((n: any) => !n.read).length };
-  // If you have a dedicated /api/notifications/unread-count endpoint, use that:
-  // const res = await axios.get("/api/notifications/unread-count?role=SELLER");
-  // return res.data; // Assuming it returns { count: number }
-  return { count: res.data.totalNotifications || 0 }; // Assuming totalNotifications is the count of unread items
-};
+// // Function to fetch the unread notifications count for the seller
+// const fetchUnreadNotificationsCount = async (): Promise<{ count: number }> => {
+//   // Assuming your /api/notifications endpoint can filter by role and read status
+//   const res = await axios.get("/api/notifications?role=BUYER&read=false");
+//   // Adjust based on your API response structure.
+//   // If your /api/notifications endpoint returns an array, you'd count unread items:
+//   // return { count: res.data.notifications.filter((n: any) => !n.read).length };
+//   // If you have a dedicated /api/notifications/unread-count endpoint, use that:
+//   // const res = await axios.get("/api/notifications/unread-count?role=SELLER");
+//   // return res.data; // Assuming it returns { count: number }
+//   return { count: res.data.totalNotifications || 0 }; // Assuming totalNotifications is the count of unread items
+// };
 
 export default function UserNotificationBell() {
-  // Use useQuery to fetch the unread count
-  const {
-    data,
-    isLoading,
-    isError,
-    // error // Error not explicitly handled in UI for bell, but available
-  } = useQuery<{ count: number }, Error>({
-    queryKey: ["unreadSellerNotificationsCount"],
-    queryFn: fetchUnreadNotificationsCount,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds to keep count updated
-    staleTime: 10 * 1000, // Data considered stale after 10 seconds
-  });
+  const { notifications } = useUser();
 
-  const unreadCount = data?.count || 0;
+  const unreadCount = notifications.filter((item) => item.read === false) || 0;
 
   // You might want a subtle loading indicator or just show 0 during loading
   // if (isLoading) {
@@ -67,9 +57,9 @@ export default function UserNotificationBell() {
       )}
     >
       <Bell className="w-5 h-5 text-black" /> inbox
-      {unreadCount > 0 && (
+      {unreadCount.length > 0 && (
         <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-          {unreadCount}
+          {unreadCount.length > 9 ? "9+" : unreadCount.length}
         </span>
       )}
     </HoverPrefetchLink>

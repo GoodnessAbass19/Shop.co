@@ -67,7 +67,7 @@ export async function getCurrentRider() {
 // lib/riders.ts
 
 // distance in meters
-const MIN_DISTANCE = 1500;
+const MIN_DISTANCE = 1000;
 const MAX_DISTANCE = 3000;
 
 export async function getNearbyRiders(

@@ -4,6 +4,7 @@ import { verifyCode } from "@/lib/delivery";
 import { pusherServer } from "@/lib/pusher";
 import { sendStatusEmail, sendStatusSMS } from "@/lib/notify";
 import { getCurrentRider } from "@/lib/auth";
+import { updateOrderStatus } from "@/lib/updateOrderStatus";
 
 async function maybeSetOrderDelivered(orderId: string) {
   // If every item is DELIVERED, flip order status + deliveredAt
@@ -34,12 +35,12 @@ export async function POST(req: Request) {
       });
       if (!assignment || assignment.riderId !== rider.id)
         throw new Error("Forbidden");
-      if (!assignment.codeHash || !assignment.codeExpiresAt)
+      if (!assignment.deliveryCodeHash || !assignment.deliveryCodeExpires)
         throw new Error("No active code");
-      if (new Date() > assignment.codeExpiresAt)
+      if (new Date() > assignment.deliveryCodeExpires)
         throw new Error("Code expired");
 
-      const match = await verifyCode(code, assignment.codeHash);
+      const match = await verifyCode(code, assignment.deliveryCodeHash);
       if (!match) {
         await tx.deliveryItem.update({
           where: { orderItemId },
@@ -58,8 +59,8 @@ export async function POST(req: Request) {
         where: { orderItemId },
         data: {
           deliveredAt: new Date(),
-          codeHash: null,
-          codeExpiresAt: null,
+          deliveryCodeHash: null,
+          deliveryCodeExpires: null,
           attempts: 0,
         },
       });
@@ -96,6 +97,8 @@ export async function POST(req: Request) {
         "order_item.delivered",
         { orderItemId }
       );
+
+      // await updateOrderStatus(assignment.orderItem.orderId);
     });
 
     return NextResponse.json({ ok: true });

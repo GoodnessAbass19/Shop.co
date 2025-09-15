@@ -35,6 +35,9 @@ model User {
   wishlistItems WishlistItem[]
   notifications Notification[]
   Rider         Rider?
+  isBuyer       Boolean         @default(false)
+  isSeller      Boolean         @default(false)
+  isRider       Boolean         @default(false)
 }
 
 model Address {
@@ -205,18 +208,6 @@ model ProductReview {
   reply     String? // Seller/admin reply
 }
 
-// model Discount {
-//   id            String    @id @default(uuid())
-//   code          String?   @unique // Optional for automatic discounts
-//   description   String
-//   percentage    Float // e.g., 10.0 means 10% off
-//   expiresAt     DateTime?
-//   productId     String
-//   product       Product   @relation(fields: [productId], references: [id])
-//   canBeCombined Boolean   @default(false) // Whether stackable
-//   createdAt     DateTime  @default(now())
-// }
-
 model Discount {
   id                String  @id @default(uuid())
   code              String  @unique // e.g., "SUMMER20"
@@ -315,20 +306,36 @@ model OrderItem {
 }
 
 model DeliveryItem {
-  id            String    @id @default(uuid())
-  orderItemId   String    @unique
-  orderItem     OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  riderId       String?
-  rider         Rider?    @relation(fields: [riderId], references: [id])
-  codeHash      String? // hashed 6-digit code sent to BUYER only
-  codeExpiresAt DateTime? // typically now + 24h
-  attempts      Int       @default(0) // verification attempts
-  acceptedAt    DateTime?
-  pickedUpAt    DateTime?
-  deliveredAt   DateTime?
-  cancelledAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(uuid())
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  riderId     String?
+  rider       Rider?    @relation(fields: [riderId], references: [id])
+
+  // codes
+  pickupCodeHash      String?
+  pickupCodeExpires   DateTime?
+  deliveryCodeHash    String?
+  deliveryCodeExpires DateTime?
+  attempts            Int       @default(0)
+
+  // logistics lifecycle
+  status      DeliveryStatus @default(PENDING)
+  acceptedAt  DateTime?
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  cancelledAt DateTime?
+
+  // geolocation for matching riders
+  sellerLat      Float?
+  sellerLng      Float?
+  currentLat     Float?
+  currentLng     Float?
+  currentGeohash String? // for proximity queries (GeoHash5)
+  sellerGeohash  String?
+  offerExpiresAt DateTime? // typically now + 15m
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Rider {

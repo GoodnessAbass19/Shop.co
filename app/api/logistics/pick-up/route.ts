@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   await prisma.deliveryItem.update({
     where: { orderItemId },
-    data: { pickedUpAt: new Date() },
+    data: { pickedUpAt: new Date(), status: "OUT_FOR_DELIVERY" },
   });
 
   await pusherServer.trigger(

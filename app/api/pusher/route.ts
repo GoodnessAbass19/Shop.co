@@ -1,7 +1,8 @@
 // app/api/pusher/auth/route.ts
+import { NextResponse } from "next/server";
 import { pusherServer } from "@/lib/pusher";
 import { getCurrentUser } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -14,18 +15,81 @@ export async function POST(request: Request) {
     const socketId = formData.get("socket_id") as string;
     const channelName = formData.get("channel_name") as string;
 
-    // IMPORTANT: Validate that the user is authorized to subscribe to this channel.
-    // For user-specific notifications, the channel name should typically be `private-user-${userId}`.
-    // Ensure the `userId` in the channel name matches the authenticated `user.id`.
-    if (!channelName.startsWith(`private-user-${user.id}`)) {
-      console.warn(
-        `Attempted unauthorized subscription: User ${user.id} tried to subscribe to ${channelName}`
+    // --- 1. Handle Presence Channels for Riders ---
+    if (channelName.startsWith("presence-nearby-")) {
+      // Check if the current user is a rider.
+      const rider = await prisma.rider.findUnique({
+        where: { userId: user.id },
+        select: { id: true, name: true, latitude: true, longitude: true },
+      });
+
+      if (!rider) {
+        return NextResponse.json(
+          { message: "Forbidden: Not a rider" },
+          { status: 403 }
+        );
+      }
+
+      // Authorize with user info for presence.
+      const presenceData = {
+        user_id: rider.id,
+        user_info: {
+          name: rider.name,
+          lat: rider.latitude,
+          lng: rider.longitude,
+        },
+      };
+
+      const auth = pusherServer.authorizeChannel(
+        socketId,
+        channelName,
+        presenceData
       );
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(auth);
     }
 
-    const authResponse = pusherServer.authorizeChannel(socketId, channelName);
-    return NextResponse.json(authResponse);
+    // --- 2. Handle Private Channel for Sellers ---
+    if (channelName.startsWith("private-seller-")) {
+      const sellerIdFromChannel = channelName.split("-")[2];
+
+      const store = await prisma.store.findUnique({
+        where: { userId: user.id },
+        select: { id: true },
+      });
+
+      if (!store || String(store.id) !== sellerIdFromChannel) {
+        return NextResponse.json(
+          { message: "Forbidden: Not the channel owner" },
+          { status: 403 }
+        );
+      }
+
+      const auth = pusherServer.authorizeChannel(socketId, channelName);
+      return NextResponse.json(auth);
+    }
+
+    // --- 3. Handle Private Channels for Buyers and Riders ---
+    if (
+      channelName.startsWith("private-buyer-") ||
+      channelName.startsWith("private-rider-")
+    ) {
+      const entityIdFromChannel = channelName.split("-")[2];
+      if (user.id !== entityIdFromChannel) {
+        return NextResponse.json(
+          { message: "Forbidden: Not the channel owner" },
+          { status: 403 }
+        );
+      }
+
+      const auth = pusherServer.authorizeChannel(socketId, channelName);
+      return NextResponse.json(auth);
+    }
+
+    // --- 4. Fallback for All Other Cases ---
+    console.warn(
+      `Attempted unauthorized subscription to unknown channel type: ${channelName}`
+    );
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   } catch (error) {
     console.error("Pusher authentication error:", error);
     return NextResponse.json(

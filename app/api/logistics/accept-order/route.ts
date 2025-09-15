@@ -7,6 +7,7 @@ import {
 } from "@/lib/notify";
 import { pusherServer } from "@/lib/pusher";
 import { getCurrentRider } from "@/lib/auth";
+import { createAndSendNotification } from "@/lib/create-notification";
 
 export async function POST(req: Request) {
   const rider = await getCurrentRider();
@@ -36,21 +37,21 @@ export async function POST(req: Request) {
 
       // generate code for buyer
       const code = generateDeliveryCode();
-      const codeHash = await hashCode(code);
+      const deliveryCodeHash = await hashCode(code);
 
       const assignment = await tx.deliveryItem.upsert({
         where: { orderItemId },
         create: {
           orderItemId,
           riderId: rider.id,
-          codeHash,
-          codeExpiresAt: codeExpiresIn(24),
+          deliveryCodeHash,
+          deliveryCodeExpires: codeExpiresIn(24),
           acceptedAt: new Date(),
         },
         update: {
           riderId: rider.id,
-          codeHash,
-          codeExpiresAt: codeExpiresIn(24),
+          deliveryCodeHash,
+          deliveryCodeExpires: codeExpiresIn(24),
           acceptedAt: new Date(),
           attempts: 0,
         },
@@ -111,6 +112,16 @@ export async function POST(req: Request) {
         orderItemId,
       }
     );
+
+    await createAndSendNotification({
+      userId: result.item.order.buyerId,
+      userRole: "BUYER",
+      type: "ORDER_CONFIRMATION",
+      title: "Your order is out for delivery",
+      message: `Your order item "${result.item.productVariant.product.name}" is out for delivery by ${rider.name}. Your delivery code is ${result.code}.`,
+      relatedEntityId: orderItemId,
+      relatedEntityType: "ORDER_ITEM",
+    });
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

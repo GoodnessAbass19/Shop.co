@@ -120,7 +120,7 @@ const OrderDetailsPage = () => {
 
   // Redirect if unauthorized
   if (error) {
-    router.push(`/sign-in?redirect_url=/orders/${orderId}`);
+    router.push(`/sign-in?redirect_url=${encodeURI(`/orders/${orderId}`)}`);
     return null;
   }
 

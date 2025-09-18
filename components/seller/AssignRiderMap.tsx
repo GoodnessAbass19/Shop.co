@@ -57,7 +57,15 @@ export default function AssignRiderMap({
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v11",
+      style: "mapbox://styles/mapbox/standard",
+      config: {
+        basemap: {
+          lightPreset: "night",
+          colorMotorways: "#2e89ff",
+          showPedestrianRoads: true,
+          show3dObjects: true,
+        },
+      },
       center: [sellerLng, sellerLat],
       zoom: 14,
     });
@@ -65,11 +73,28 @@ export default function AssignRiderMap({
     map.current.on("load", () => {
       setMapReady(true);
 
-      // Seller marker
-      new mapboxgl.Marker({ color: "blue" })
-        .setLngLat([sellerLng, sellerLat])
-        .setPopup(new mapboxgl.Popup().setText("Seller Location"))
-        .addTo(map.current!);
+      const hour = new Date().getHours();
+      let lightPreset: "day" | "dusk" | "night" | "dawn";
+
+      if (hour >= 6 && hour < 18) {
+        lightPreset = "day";
+      } else if (hour >= 18 && hour < 20) {
+        lightPreset = "dusk";
+      } else if (hour >= 20 || hour < 4) {
+        lightPreset = "night";
+      } else {
+        lightPreset = "dawn";
+      }
+
+      // Set the lightPreset property safely
+      if (map.current) {
+        map.current.setConfigProperty("basemap", "lightPreset", lightPreset);
+        // Seller marker
+        new mapboxgl.Marker({ color: "blue" })
+          .setLngLat([sellerLng, sellerLat])
+          .setPopup(new mapboxgl.Popup().setText("Seller Location"))
+          .addTo(map.current);
+      }
     });
 
     return () => {

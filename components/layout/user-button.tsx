@@ -2,6 +2,7 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -86,10 +87,10 @@ const UserButton = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="space-y-2 p-1">
             {user ? (
-              <>
+              <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <HoverPrefetchLink
-                    href={""}
+                    href={"/me/account"}
                     className="flex justify-between items-center gap-3 capitalize"
                   >
                     <UserRound className="w-5 h-5 text-black" />
@@ -166,7 +167,7 @@ const UserButton = () => {
                 </form> */}
                   <LogoutButton />
                 </DropdownMenuItem>
-              </>
+              </DropdownMenuGroup>
             ) : (
               <DropdownMenuItem asChild>
                 <HoverPrefetchLink href="/sign-in">

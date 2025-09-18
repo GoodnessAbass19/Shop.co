@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastContainer } from "react-toastify";
+import "react-phone-number-input/style.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

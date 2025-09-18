@@ -1,4 +1,8 @@
-import { add } from "date-fns";
+import { Rider } from "./../node_modules/.prisma/client/index.d";
+import { add, differenceInYears } from "date-fns";
+import { fi } from "date-fns/locale";
+import { Banknote } from "lucide-react";
+import next from "next";
 import { z } from "zod";
 
 export const userSchema = z.object({
@@ -96,4 +100,46 @@ export const ShippingInfoSchema = z.object({
   returnState: z.string().min(1, "state is required"),
   returnCountry: z.string().min(1, "country is required"),
   returnPostalCode: z.string().optional(),
+});
+
+export const RiderInfoSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email format"),
+  phoneNumber: z.string().min(10, "Phone number is required"),
+  gender: z.enum(["MALE", "FEMALE"]),
+  dateOfBirth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine(
+      (value) => {
+        const dob = new Date(value);
+        return differenceInYears(new Date(), dob) >= 20;
+      },
+      {
+        message: "You must be at least 20 years old.",
+      }
+    ),
+  nextOfKinName: z.string().min(1, "Next of kin name is required"),
+  nextOfKinPhone: z.string().min(10, "Next of kin phone number is required"),
+  nin: z.string().min(11, "NIN is required"),
+  // ninImage: z.string().url(),
+  bvn: z.string().min(11, "BVN is required").optional(),
+  plateNumber: z.string().min(1, "Plate number is required"),
+  vehicleType: z.enum(["MOTORCYCLE", "TRICYCLE", "CAR", "VAN", "BUS"]),
+  vehicleModel: z.string().min(1, "Vehicle model is required"),
+  vehicleColor: z.string().min(1, "Vehicle color is required"),
+  guarantor1Name: z.string().min(1, "Guarantor name is required"),
+  guarantor1Phone: z.string().min(10, "Guarantor phone number is required"),
+  guarantor2Name: z.string().min(1, "Guarantor name is required"),
+  guarantor2Phone: z.string().min(10, "Guarantor phone number is required"),
+  driversLicenseImage: z.string().url(),
+  vehicleRegistrationDocument: z.string().url(),
+  profileImage: z.string().url(),
+  stateOfResidence: z.string().min(1, "State of residence is required"),
+  bankName: z.string().min(1, "Bank name is required"),
+  accountNumber: z
+    .string()
+    .min(10, "Account number must be at least 10 digits long"),
+  accountName: z.string().min(1, "Account name is required"),
 });

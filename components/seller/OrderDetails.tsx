@@ -471,58 +471,60 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                   </TableCell>
                   {item.deliveryStatus !== "DELIVERED" && (
                     <TableCell className="text-right">
-                      {
-                        item.deliveryStatus === "PENDING" && (
-                          <Dialog>
-                            <DialogTrigger
-                              onClick={() => getSellerLocation(item.id)}
-                              disabled={isMarkingReady}
-                              className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50"
-                            >
-                              {isMarkingReady ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                "Assign to Rider"
-                              )}
-                            </DialogTrigger>
+                      {item.deliveryStatus === "PENDING" ||
+                      "READY_FOR_PICKUP" ? (
+                        <Dialog>
+                          <DialogTrigger
+                            onClick={() => getSellerLocation(item.id)}
+                            disabled={isMarkingReady}
+                            className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50"
+                          >
+                            {isMarkingReady ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Assign to Rider"
+                            )}
+                          </DialogTrigger>
 
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Assign a rider</DialogTitle>
-                              </DialogHeader>
-                              {store && sellerLocation ? (
-                                <>
-                                  <AssignRiderMap
-                                    orderItemId={item.id}
-                                    sellerLat={sellerLocation.lat}
-                                    sellerLng={sellerLocation.lng}
-                                    storeId={store.id}
-                                  />
-                                  {/* <AssignRiderForm orderItemId={item.id} /> */}
-                                </>
-                              ) : (
-                                <div className="flex h-full min-h-[400px] items-center justify-center text-gray-500">
-                                  <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                                  <p>Loading map and finding riders...</p>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        )
-                        // : (
-                        //   <Dialog>
-                        //     <DialogTrigger className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
-                        //       Confirm Delivery
-                        //     </DialogTrigger>
-                        //     <DialogContent>
-                        //       <DialogHeader>
-                        //         <DialogTitle>Confirm Delivery</DialogTitle>
-                        //       </DialogHeader>
-                        //       <ConfirmDeliveryForm orderItemId={item.id} />
-                        //     </DialogContent>
-                        //   </Dialog>
-                        // )
-                      }
+                          <DialogContent className="max-w-3xl w-full">
+                            <DialogHeader>
+                              <DialogTitle>
+                                {item.deliveryStatus === "PENDING"
+                                  ? "Assign a rider"
+                                  : "Track rider"}
+                              </DialogTitle>
+                            </DialogHeader>
+                            {store && sellerLocation ? (
+                              <>
+                                <AssignRiderMap
+                                  orderItemId={item.id}
+                                  sellerLat={sellerLocation.lat}
+                                  sellerLng={sellerLocation.lng}
+                                  storeId={store.id}
+                                />
+                                {/* <AssignRiderForm orderItemId={item.id} /> */}
+                              </>
+                            ) : (
+                              <div className="flex h-full min-h-[400px] items-center justify-center text-gray-500">
+                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                                <p>Loading map and finding riders...</p>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <Dialog>
+                          <DialogTrigger className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
+                            Confirm Delivery
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirm Delivery</DialogTitle>
+                            </DialogHeader>
+                            <ConfirmDeliveryForm orderItemId={item.id} />
+                          </DialogContent>
+                        </Dialog>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>

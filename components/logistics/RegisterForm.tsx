@@ -1,0 +1,586 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import { CalendarIcon, Check, ChevronDownIcon, Mail, User } from "lucide-react";
+import Image from "next/image";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { RiderInfoSchema } from "@/lib/form-schema";
+import { Label } from "../ui/label";
+import { Input } from "@/components/ui/input";
+import PhoneInput from "react-phone-number-input";
+import { E164Number } from "libphonenumber-js/core";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
+
+type Inputs = z.infer<typeof RiderInfoSchema>;
+
+const stepFields = [
+  {
+    id: "Step 1",
+    name: "Create Account",
+    fields: ["country"],
+  },
+  {
+    id: "Step 2",
+    name: "Personal Information",
+    fields: [
+      "firstName",
+      "lastName",
+      "email",
+      "phoneNumber",
+      "gender",
+      "dateOfBirth",
+      "nextOfKinName",
+      "nextOfKinPhone",
+    ],
+  },
+  {
+    id: "Step 3",
+    name: "Shop Information",
+    fields: ["state", "terms", "account_type"],
+  },
+  {
+    id: "Step 4",
+    name: "Contact Information",
+    fields: ["email", "phone"],
+  },
+];
+
+const RiderForm = () => {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    trigger,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm<Inputs>({
+    resolver: zodResolver(RiderInfoSchema),
+  });
+  const [previousStep, setPreviousStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const delta = currentStep - previousStep;
+  type FieldName = keyof Inputs;
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const next = async () => {
+    const fields = stepFields[currentStep].fields;
+    const output = await trigger(fields as FieldName[], { shouldFocus: true });
+
+    if (!output) return;
+
+    // // On store name step, check for uniqueness and block if exists
+    // if (currentStep === 1) {
+    //   await handleStoreNameCheck();
+    //   // Re-read errors after async setError
+    //   if (
+    //     watch("storeName") &&
+    //     (await storeNameVerification(watch("storeName")))
+    //   ) {
+    //     return;
+    //   }
+    //   if (errors.storeName?.message) return;
+    // }
+
+    // // On last step, submit the form
+    // if (currentStep === steps.length - 1) {
+    //   await handleSubmit(processForm)();
+    //   return;
+    // }
+
+    setPreviousStep(currentStep);
+    setCurrentStep((step) => step + 1);
+  };
+
+  const totalSteps = 4;
+  // An array to easily map over and render each step
+  const steps = Array.from({ length: totalSteps }, (_, i) => i);
+
+  const handleStateChange = (value: string) => {
+    setValue("stateOfResidence", value);
+  };
+
+  const handleGenderChange = (value: string) => {
+    setValue("gender", value as "MALE" | "FEMALE");
+  };
+
+  return (
+    <section className="w-full max-w-screen-2xl min-h-[80vh] flex flex-col justify-center items-center">
+      <div className="w-full grid md:grid-cols-2 justify-center items-center gap-10">
+        <div className="w-full col-span-1">
+          <Image
+            src={"/rider.svg"}
+            width={500}
+            height={500}
+            alt="background"
+            priority
+            className="w-full h-full object-cover object-center"
+          />
+
+          <div aria-label="Progress" className="mt-10 w-3/5 mx-auto">
+            {/* Progress bar container */}
+            <div className="flex items-center justify-between relative w-full">
+              {/* Horizontal line */}
+              <div className="absolute top-1/2 left-0 w-full h-1 bg-blue-200 z-0 transform -translate-y-1/2 rounded-full"></div>
+              <div
+                className="absolute top-1/2 left-0 h-1 bg-blue-500 z-10 transition-all duration-500 ease-in-out rounded-full"
+                style={{
+                  width: `${(currentStep / (totalSteps - 1)) * 100}%`,
+                }}
+              ></div>
+
+              {/* Steps (circles) */}
+              {steps.map((step) => (
+                <div
+                  key={step}
+                  className={cn(
+                    "relative z-20 flex items-center justify-center w-5 h-5 rounded-full transition-all duration-300",
+                    {
+                      "bg-blue-500 text-white shadow-md": step <= currentStep,
+                      "bg-blue-200 text-white": step > currentStep,
+                    }
+                  )}
+                >
+                  {/* Display checkmark if step is completed, otherwise display step number */}
+                  {step < currentStep ? <Check size={15} /> : ""}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full col-span-1 max-w-xl mx-auto">
+          <form
+          // onSubmit={}
+          >
+            {currentStep === 0 && (
+              <motion.div
+                initial={{ x: delta >= 0 ? "50%" : "-50%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#f6f6f6]">
+                  <CardHeader className="space-y-1 text-center capitalize">
+                    <CardTitle className="font-semibold text-xl">
+                      Become a Shopco Rider
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      Join our team and start delivering with Shopco!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-2 space-y-4">
+                    <Button
+                      onClick={next}
+                      className="w-full capitalize bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ease-in-out duration-150"
+                    >
+                      {/* <Link
+                        href="/logistics/rider/login"
+                        className="w-full capitalize"
+                      > */}
+                      sign up as a new rider
+                      {/* </Link> */}
+                    </Button>
+
+                    <Link
+                      href="/logistics/rider/login"
+                      className="w-full text-center text-blue-600 hover:underline transition ease-in-out duration-150"
+                    >
+                      Already have a rider? Log in
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {currentStep === 1 && (
+              <motion.div
+                initial={{ x: delta >= 0 ? "50%" : "-50%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff]">
+                  <CardHeader className="space-y-1 text-center capitalize">
+                    <CardTitle className="font-semibold text-xl">
+                      Personal Details
+                    </CardTitle>
+                    {/* <CardDescription className="text-sm text-gray-600">
+                     
+                    </CardDescription> */}
+                  </CardHeader>
+
+                  <CardContent className="grid gap-2.5 space-y-3">
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="w-full rounded-md overflow-hidden border border-gray-300 p-1 flex gap-1 items-center">
+                        <User className="w-5 h-5 text-gray-500" />
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="Enter your first name"
+                          autoComplete="name"
+                          className={cn(
+                            "block w-full rounded-md placeholder:text-sm border-none shadow-sm sm:text-base",
+                            "focus:outline-none focus:ring-0 focus:border-none focus:shadow-none focus-visible:outline-none", // Added focus:shadow-none
+                            "active:outline-none active:border-none",
+                            errors.firstName ? "border-red-400" : ""
+                          )}
+                          {...register("firstName")}
+                        />
+                      </div>
+                      {errors.firstName?.message && (
+                        <p className=" text-sm text-red-400">
+                          {errors.firstName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="w-full rounded-md overflow-hidden border border-gray-300 p-1 flex gap-1 items-center">
+                        <User className="w-5 h-5 text-gray-500" />
+                        <Input
+                          id="lastName"
+                          type="text"
+                          placeholder="Enter your first name"
+                          autoComplete="name"
+                          className={cn(
+                            "block w-full rounded-md placeholder:text-sm border-none shadow-sm sm:text-base",
+                            "focus:outline-none focus:ring-0 focus:border-none focus:shadow-none focus-visible:outline-none",
+                            "active:outline-none active:border-none",
+                            errors.lastName ? "border-red-400" : ""
+                          )}
+                          {...register("lastName")}
+                        />
+                      </div>
+                      {errors.lastName?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.lastName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Phone Number <span className="text-red-500">*</span>
+                      </Label>
+                      <PhoneInput
+                        defaultCountry={"NG"}
+                        placeholder={"123-456-7890"}
+                        value={watch("phoneNumber") as E164Number | undefined}
+                        international
+                        withCountryCallingCode
+                        inputComponent={Input}
+                        onChange={(value: string | undefined) =>
+                          setValue("phoneNumber", value ?? "")
+                        }
+                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                      />
+                      {errors.phoneNumber?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.phoneNumber.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="email"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Email <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="w-full rounded-md overflow-hidden border border-gray-300 p-1 flex gap-1 items-center">
+                        <Mail className="w-5 h-5 text-gray-500" />
+                        <Input
+                          type="email"
+                          id="email"
+                          {...register("email")}
+                          placeholder="Enter your email"
+                          className={cn(
+                            "block w-full rounded-md placeholder:text-sm border-none shadow-sm sm:text-base",
+                            "focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none",
+                            "active:outline-none active:border-none",
+                            errors.email ? "border-red-400" : ""
+                          )}
+                        />
+                      </div>
+                      {errors.email?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.email.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="gender"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Gender <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        defaultValue=""
+                        {...register("gender")}
+                        value={watch("gender")}
+                        onValueChange={handleGenderChange}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "w-full",
+                            errors.gender ? "border-red-400" : ""
+                          )}
+                        >
+                          <SelectValue placeholder="Select your gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MALE">Male</SelectItem>
+                          <SelectItem value="FEMALE">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.gender?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.gender.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="dateOfBirth"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Date of Birth <span className="text-red-500">*</span>
+                      </Label>
+
+                      <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                            type="button"
+                            onClick={() => setOpen(true)}
+                          >
+                            {date ? (
+                              format(date, "yyyy-MM-dd")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-full overflow-hidden p-0"
+                          align="center"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            captionLayout="dropdown"
+                            onSelect={(date) => {
+                              setDate(date);
+                              setValue(
+                                "dateOfBirth",
+                                date ? format(date, "yyyy-MM-dd") : ""
+                              );
+                              setOpen(false);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {errors.dateOfBirth && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.dateOfBirth.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="nextOfKinName"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Next of Kin Name <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="w-full rounded-md overflow-hidden border border-gray-300 p-1 flex gap-1 items-center">
+                        <User className="w-5 h-5 text-gray-500" />
+                        <Input
+                          id="nextOfKinName"
+                          type="text"
+                          placeholder="Next of kin name"
+                          className={cn(
+                            "block w-full rounded-md placeholder:text-sm border-none shadow-sm sm:text-base",
+                            "focus:outline-none focus:ring-0 focus:border-none focus:shadow-none focus-visible:outline-none",
+                            "active:outline-none active:border-none",
+                            errors.nextOfKinName ? "border-red-400" : ""
+                          )}
+                          {...register("nextOfKinName")}
+                        />
+                      </div>
+                      {errors.nextOfKinName?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.nextOfKinName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="nextOfKinPhone"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Next of Kin Phone Number{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <PhoneInput
+                        defaultCountry={"NG"}
+                        placeholder={"123-456-7890"}
+                        value={
+                          watch("nextOfKinPhone") as E164Number | undefined
+                        }
+                        international
+                        withCountryCallingCode
+                        inputComponent={Input}
+                        onChange={(value: string | undefined) =>
+                          setValue("nextOfKinPhone", value ?? "")
+                        }
+                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                      />
+                      {errors.nextOfKinPhone?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.nextOfKinPhone.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="w-full mt-2">
+                      <button
+                        type="button"
+                        onClick={next}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {currentStep === 2 && (
+              <motion.div
+                initial={{ x: delta >= 0 ? "50%" : "-50%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff]">
+                  <CardHeader className="space-y-1 text-center capitalize">
+                    <CardTitle className="font-semibold text-xl">
+                      Verification Details
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="grid gap-2.5 space-y-3">
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="nin"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        NIN (National Identification Number){" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <Input
+                        id="nin"
+                        type="text"
+                        placeholder="Enter your NIN"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.nin ? "border-red-400" : ""
+                        )}
+                        {...register("nin")}
+                      />
+
+                      {errors.nin?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.nin.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="bvn"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        BVN <span className="text-gray-700">(optional)</span>
+                      </Label>
+                      <Input
+                        id="bvn"
+                        type="text"
+                        placeholder="Enter your BVN"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.bvn ? "border-red-400" : ""
+                        )}
+                        {...register("bvn")}
+                      />
+                      {errors.bvn?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.bvn.message}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default RiderForm;

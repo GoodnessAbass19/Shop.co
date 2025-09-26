@@ -50,6 +50,7 @@ import AssignRiderMap from "./AssignRiderMap";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import Pusher from "pusher-js";
 import { useOrderRealtime } from "@/Hooks/use-real-time-update";
+import { formatCurrencyValue } from "../../utils/format-currency-value";
 
 // Define the full order structure including all relations
 type FullOrder = Order & {
@@ -318,7 +319,9 @@ export default function OrderDetailsPage({ params }: { params: string }) {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${order.total.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrencyValue(order.total)}
+            </div>
             <p className="text-xs text-muted-foreground">Including all items</p>
           </CardContent>
         </Card>
@@ -448,10 +451,10 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                   </TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell className="text-right">
-                    ${item.price.toFixed(2)}
+                    {formatCurrencyValue(item.price)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {(item.price * item.quantity).toFixed(2)}
+                    {formatCurrencyValue(item.price * item.quantity)}
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge

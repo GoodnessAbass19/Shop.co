@@ -625,22 +625,6 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               </button>
             </div>
 
-            {/* <button
-              className="flex items-center justify-center w-full h-10 text-lg border border-black text-white text-center bg-black dark:bg-white dark:text-black hover:bg-white hover:text-black rounded-full flex-grow transition-transform delay-150 duration-200 ease-in-out"
-              onClick={() => {
-                createCartItem({ success: false, error: false }, {...cartData, userId: user?.id as string })
-               
-              }}
-            >
-              Add To Cart
-            </button> */}
-            {/* {items.length > 0 ? (
-              <div>
-                {items.map((item) => (
-                  <span>{item.quantity} item(s) added</span>
-                ))}
-              </div>
-            ) : ( */}
             <AddToCartButton
               productName={data?.product.productName}
               onAddToCartClick={handleAddToCart}

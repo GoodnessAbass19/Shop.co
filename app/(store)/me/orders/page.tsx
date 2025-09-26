@@ -8,6 +8,7 @@ import Image from "next/image"; // For optimized images
 import Link from "next/link";
 import useSWR from "swr";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
 
 // Extend the Order type to include relations fetched from the API
 type OrderWithDetails = Order & {
@@ -324,7 +325,8 @@ const OrderCard: React.FC<OrderCardProps> = ({
       {/* Order Details */}
       <div className="mb-4 text-gray-700">
         <p className="text-sm">
-          <span className="font-medium">Total:</span> ${order.total.toFixed(2)}
+          <span className="font-medium">Total:</span>
+          {formatCurrencyValue(order.total)}
         </p>
         <p className="text-sm">
           <span className="font-medium">Placed on:</span>{" "}
@@ -377,7 +379,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
               {firstItem.productVariant.product.name}
             </p>
             <p className="text-sm text-gray-600">
-              {firstItem.quantity} x ${firstItem.price.toFixed(2)}
+              {firstItem.quantity} x {formatCurrencyValue(firstItem.price)}
               {firstItem.productVariant.color &&
                 ` - ${firstItem.productVariant.color}`}
               {firstItem.productVariant.size &&

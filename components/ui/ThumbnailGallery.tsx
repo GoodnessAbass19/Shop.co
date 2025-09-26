@@ -7,6 +7,11 @@ import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
 import { Heart, Loader2 } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode, Scrollbar } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/scrollbar";
+import "swiper/css/free-mode";
 
 const checkWishlistStatus = async (
   productId: string
@@ -140,13 +145,36 @@ const ThumbnailGallery = ({
   };
 
   return (
-    <div className="flex flex-col-reverse md:flex-row flex-1 flex-grow-0 justify-start items-start gap-5 overflow-hidden">
+    <div className="flex flex-col-reverse md:flex-row flex-1 justify-start items-stretch gap-5 overflow-hidden">
       <div className="">
-        <div className="grid md:grid-cols-1 grid-cols-4 gap-4 justify-center items-center md:h-[500px] overflow-hidden">
+        <Swiper
+          scrollbar={{
+            draggable: true,
+            snapOnRelease: true,
+            dragSize: 20,
+            hide: true,
+          }}
+          spaceBetween={5}
+          direction="horizontal"
+          slidesPerView={4}
+          keyboard={{
+            enabled: true,
+          }}
+          freeMode={true}
+          modules={[Scrollbar, FreeMode]}
+          breakpoints={{
+            768: {
+              direction: "vertical",
+              slidesPerView: 6,
+              spaceBetween: 10,
+            },
+          }}
+          className="md:max-h-[500px]"
+        >
           {images.map((image, index) => (
-            <div
+            <SwiperSlide
               key={index}
-              className={`cursor-pointer max-w-[100px] md:max-w-[110px] rounded-2xl ${
+              className={`cursor-pointer max-w-[100px] md:w-[100px] max-h-[100px] md:h-[100px] rounded-2xl ${
                 index === selectedImageIndex
                   ? "border-2 brightness-100 contrast-100"
                   : "brightness-50  hover:brightness-75"
@@ -159,14 +187,17 @@ const ThumbnailGallery = ({
                 src={image.url}
                 alt={`Thumbnail ${index}`}
                 loading="lazy"
-                className="w-full md:rounded-lg hover:shadow-md transition duration-300 transform rounded-2xl"
+                className="md:rounded-lg hover:shadow-md transition duration-300 transform rounded-2xl object-cover w-[100px] h-[100px]"
               />
-            </div>
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
+        {/* <div className="grid md:grid-cols-1 grid-cols-4 gap-4 justify-center items-center md:h-[500px] overflow-hidden">
+          
+        </div> */}
       </div>
 
-      <div className="w-full md:max-w-[480px] flex-grow order-1 md:order-2 aspect-square relative overflow-hidden">
+      <div className="w-full h-full md:max-w-[480px] grow order-1 md:order-2 aspect-square relative overflow-hidden">
         {images.length > 0 && (
           <div>
             <Image

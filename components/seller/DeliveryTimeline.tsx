@@ -1,5 +1,14 @@
 interface DeliveryTimelineProps {
-  deliveryStatus: "PENDING" | "OUT_FOR_DELIVERY" | "DELIVERED" | "FAILED";
+  deliveryStatus:
+    | "PENDING"
+    | "READY_FOR_PICKUP"
+    | " OUT_FOR_DELIVERY"
+    | " DELIVERED"
+    | "FAILED"
+    | "RETURN_REQUESTED"
+    | "RETURN_APPROVED"
+    | " RETURN_IN_TRANSIT"
+    | "RETURNED";
   timestamps?: {
     assignedAt?: Date;
     deliveredAt?: Date;

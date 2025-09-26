@@ -1,7 +1,7 @@
 // components/seller/DashboardOverview.tsx
 "use client";
 
-import React from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DollarSign,
@@ -164,15 +164,7 @@ export function DashboardOverview() {
     );
   }
 
-  // if (isError) {
-  //   return (
-  //     <div className="text-red-600 text-center py-8">
-  //       Error loading dashboard data:{" "}
-  //       {error?.message || "An unknown error occurred."}
-  //       <p className="text-sm mt-2">Please try refreshing the page.</p>
-  //     </div>
-  //   );
-  // }
+ 
 
   const {
     totalRevenue,
@@ -570,7 +562,7 @@ export function DashboardOverview() {
                       {getStatusDisplayName(order.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell>{formatCurrencyValue(order.total)}</TableCell>
                   <TableCell className="text-center">
                     <HoverPrefetchLink
                       href={`/your/store/dashboard/orders/${order.id}`}
@@ -587,29 +579,6 @@ export function DashboardOverview() {
           </Table>
         )}
       </div>
-      {/* Recent Activity Section */}
-      {/* <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold mb-4 flex items-center">
-          <Info className="h-5 w-5 mr-2 text-gray-700" /> Recent Activities
-        </h3>
-        {recentActivities.length > 0 ? (
-          <ul className="space-y-3 text-gray-700">
-            {recentActivities.map((activity) => (
-              <li
-                key={activity.id}
-                className="flex justify-between items-center border-b pb-2 last:border-b-0 last:pb-0"
-              >
-                <span className="flex-1">{activity.message}</span>
-                <span className="text-sm text-gray-500 ml-4">
-                  {format(new Date(activity.timestamp), "MMM dd, yyyy HH:mm")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-500">No recent activities to display.</p>
-        )}
-      </div> */}
     </div>
   );
 }

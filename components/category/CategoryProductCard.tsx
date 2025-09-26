@@ -147,7 +147,9 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
           className="w-full h-[250px] object-cover object-center rounded-sm"
         />
         <div className="px-1.5 leading-none">
-          <h4 className="text-base font-normal line-clamp-1">{product.name}</h4>
+          <h4 className="text-base font-medium line-clamp-1 capitalize">
+            {product.name}
+          </h4>
           <div>
             {product.reviews.length > 0 && (
               <span className="text-black text-2xl font-normal flex items-center gap-1">

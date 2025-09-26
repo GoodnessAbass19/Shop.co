@@ -11,17 +11,14 @@ import {
   User,
 } from "@prisma/client";
 import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowLeft,
   Clock,
   CheckCircle,
   Package,
   XCircle,
-  Home,
   Loader2,
 } from "lucide-react"; // Added Home icon
-import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Assuming shadcn/ui Card
 import { Separator } from "@/components/ui/separator"; // Assuming shadcn/ui Separator
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -37,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { DeliveryTimeline } from "@/components/seller/DeliveryTimeline";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
 
 // Extend types to match API response structure
 type OrderItemWithProductDetails = OrderItem & {
@@ -357,12 +355,12 @@ const OrderDetailsPage = () => {
                               ` - Color: ${item.productVariant.color}`}
                           </p>
                           <p className="text-md font-medium text-gray-800 mt-1">
-                            ${item.price.toFixed(2)} / item
+                            {formatCurrencyValue(item.price)} / item
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-bold text-lg text-gray-900">
-                            ${(item.quantity * item.price).toFixed(2)}
+                            {formatCurrencyValue(item.quantity * item.price)}
                           </p>
                           <Dialog>
                             <DialogTrigger className="capitalize text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
@@ -374,7 +372,16 @@ const OrderDetailsPage = () => {
                                 <DialogTitle>Package History</DialogTitle>
                               </DialogHeader>
                               <DeliveryTimeline
-                                deliveryStatus={item.deliveryStatus}
+                                deliveryStatus={
+                                  item.deliveryStatus === "OUT_FOR_DELIVERY"
+                                    ? " OUT_FOR_DELIVERY"
+                                    : item.deliveryStatus === "DELIVERED"
+                                    ? " DELIVERED"
+                                    : item.deliveryStatus ===
+                                      "RETURN_IN_TRANSIT"
+                                    ? " RETURN_IN_TRANSIT"
+                                    : item.deliveryStatus
+                                }
                               />
                               {/* <DialogHeader>
                             <DialogTitle>Are you absolutely sure?</DialogTitle>
@@ -425,19 +432,18 @@ const OrderDetailsPage = () => {
                   <div className="flex justify-between">
                     <span>Subtotal ({order.items.length} items):</span>
                     <span>
-                      $
-                      {order.items
-                        .reduce(
+                      {formatCurrencyValue(
+                        order.items.reduce(
                           (sum, item) => sum + item.quantity * item.price,
                           0
                         )
-                        .toFixed(2)}
+                      )}
                     </span>
                   </div>
                   {/* You might add shipping cost, tax, discounts here if applicable */}
                   <div className="flex justify-between font-semibold text-lg text-gray-900 pt-2 border-t border-gray-200 mt-2">
                     <span>Total:</span>
-                    <span>${order.total.toFixed(2)}</span>
+                    <span>{formatCurrencyValue(order.total)}</span>
                   </div>
                   {/* Add payment status if relevant */}
                   {/* <p className="text-sm text-gray-500 mt-2">Payment Status: Paid</p> */}
@@ -446,55 +452,55 @@ const OrderDetailsPage = () => {
             </Card>
           </div>
         </div>
-      </div>
 
-      <div>
-        {/* --- NEW: Display Refund Status --- */}
-        {hasRefundStatus && (
-          <p className="text-lg text-gray-700 mb-2">
-            <strong>Refund Status:</strong>
-            <span
-              className={`font-semibold ml-2 ${
-                order.refundStatus === "SUCCEEDED"
-                  ? "text-green-600"
-                  : order.refundStatus === "REQUIRED" ||
-                    order.refundStatus === "PENDING"
-                  ? "text-orange-600"
-                  : order.refundStatus === "FAILED"
-                  ? "text-red-600"
-                  : "text-gray-600"
-              }`}
-            >
-              {order.refundStatus?.replace(/_/g, " ") || "N/A"}{" "}
-              {/* Replace underscores for display */}
-            </span>
+        <div>
+          {/* --- NEW: Display Refund Status --- */}
+          {hasRefundStatus && (
+            <p className="text-lg text-gray-700 mb-2">
+              <strong>Refund Status:</strong>
+              <span
+                className={`font-semibold ml-2 ${
+                  order.refundStatus === "SUCCEEDED"
+                    ? "text-green-600"
+                    : order.refundStatus === "REQUIRED" ||
+                      order.refundStatus === "PENDING"
+                    ? "text-orange-600"
+                    : order.refundStatus === "FAILED"
+                    ? "text-red-600"
+                    : "text-gray-600"
+                }`}
+              >
+                {order.refundStatus?.replace(/_/g, " ") || "N/A"}{" "}
+                {/* Replace underscores for display */}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {isCancellable && (
+          <Button
+            onClick={handleCancelClick}
+            disabled={cancelOrderMutation.isPending}
+            className="mt-6 bg-red-600 hover:bg-red-700 text-white"
+          >
+            {cancelOrderMutation.isPending ? (
+              <Loader2 className="animate-spin mr-2" />
+            ) : (
+              "Cancel Order"
+            )}
+          </Button>
+        )}
+        {!isCancellable && order.status !== "CANCELLED" && (
+          <p className="mt-4 text-gray-600">
+            This order cannot be cancelled at its current status.
+          </p>
+        )}
+        {order.status === "CANCELLED" && (
+          <p className="mt-4 text-red-600 font-semibold">
+            This order has been cancelled.
           </p>
         )}
       </div>
-
-      {isCancellable && (
-        <Button
-          onClick={handleCancelClick}
-          disabled={cancelOrderMutation.isPending}
-          className="mt-6 bg-red-600 hover:bg-red-700 text-white"
-        >
-          {cancelOrderMutation.isPending ? (
-            <Loader2 className="animate-spin mr-2" />
-          ) : (
-            "Cancel Order"
-          )}
-        </Button>
-      )}
-      {!isCancellable && order.status !== "CANCELLED" && (
-        <p className="mt-4 text-gray-600">
-          This order cannot be cancelled at its current status.
-        </p>
-      )}
-      {order.status === "CANCELLED" && (
-        <p className="mt-4 text-red-600 font-semibold">
-          This order has been cancelled.
-        </p>
-      )}
     </section>
   );
 };

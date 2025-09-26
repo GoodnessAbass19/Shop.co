@@ -107,7 +107,7 @@ export async function POST(req: NextRequest, request: Request) {
       // Add to Stripe line items (Stripe expects amount in cents)
       lineItems.push({
         price_data: {
-          currency: "usd", // Your currency (should match your Stripe account's default)
+          currency: "ngn", // Your currency (should match your Stripe account's default)
           product_data: {
             name: product.name,
             images: product.images.length > 0 ? product.images : undefined, // Optional images
@@ -198,7 +198,7 @@ export async function POST(req: NextRequest, request: Request) {
 
     // 4. Create the Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"], // Add other payment methods as needed
+      payment_method_types: ["card", "cashapp", "paypal", "amazon_pay"], // Add other payment methods as needed
       line_items: lineItems,
       mode: "payment",
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

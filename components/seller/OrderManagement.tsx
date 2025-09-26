@@ -44,6 +44,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge"; // Assuming you have shadcn/ui Badge
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { formatCurrencyValue } from "../../utils/format-currency-value";
 
 // Extend Order type for data fetching
 export type OrderWithRelations = Order & {
@@ -284,7 +285,7 @@ export function OrderManagement() {
                   <TableCell>
                     {order.buyer?.name || order.buyer?.email || "Guest"}
                   </TableCell>
-                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell>{formatCurrencyValue(order.total)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(order.status)}>
                       {getStatusDisplayName(order.status)}

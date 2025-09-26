@@ -1,9 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Check, ChevronDownIcon, Mail, User } from "lucide-react";
+import {
+  CalendarIcon,
+  Check,
+  ChevronDownIcon,
+  ImageIcon,
+  Loader2,
+  Mail,
+  User,
+} from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -32,6 +40,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
+import { useDropzone } from "react-dropzone";
+import { useToast } from "@/Hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type Inputs = z.infer<typeof RiderInfoSchema>;
 
@@ -68,6 +80,10 @@ const stepFields = [
 ];
 
 const RiderForm = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -86,6 +102,7 @@ const RiderForm = () => {
   type FieldName = keyof Inputs;
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const currentImages = watch("driversLicenseImage");
 
   const next = async () => {
     const fields = stepFields[currentStep].fields;
@@ -127,6 +144,70 @@ const RiderForm = () => {
   const handleGenderChange = (value: string) => {
     setValue("gender", value as "MALE" | "FEMALE");
   };
+
+  // Helper to get error message for a given field path
+  const getErrorMessage = (path: string) => {
+    const error = errors;
+    const errorObject = path.split(".").reduce((acc, part) => {
+      return (
+        acc &&
+        (acc[parseInt(part)] !== undefined ? acc[parseInt(part)] : acc[part])
+      );
+    }, error as any);
+    return errorObject?.message;
+  };
+
+  const onDropImage = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        toast({
+          title: "File rejected",
+          description: "Please upload an image file (PNG, JPEG, JPG).",
+          variant: "destructive",
+        });
+        return;
+      }
+      setUploadingImage(true);
+      try {
+        // Only upload the first file
+        const uploadedUrl = await uploadToCloudinary(acceptedFiles[0]);
+        setValue("driversLicenseImage", uploadedUrl, { shouldValidate: true });
+        toast({
+          title: "Image Uploaded",
+          description: "Image uploaded successfully.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload image.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [setValue, toast]
+  );
+
+  const { getRootProps: getImageRootProps, getInputProps: getImageInputProps } =
+    useDropzone({
+      onDrop: onDropImage,
+      accept: { "image/jpeg": [], "image/png": [] },
+      multiple: true,
+      maxFiles: 5,
+      maxSize: 5 * 1024 * 1024, // 5MB per file
+      onDropRejected: (fileRejections: any[]) => {
+        toast({
+          title: "Image Files Rejected",
+          description: fileRejections
+            .map((r) =>
+              r.errors.map((e: { message: any }) => e.message).join(", ")
+            )
+            .join("; "),
+          variant: "destructive",
+        });
+      },
+    });
 
   return (
     <section className="w-full max-w-screen-2xl min-h-[80vh] flex flex-col justify-center items-center">
@@ -228,7 +309,7 @@ const RiderForm = () => {
                       Personal Details
                     </CardTitle>
                     {/* <CardDescription className="text-sm text-gray-600">
-                     
+
                     </CardDescription> */}
                   </CardHeader>
 
@@ -525,6 +606,57 @@ const RiderForm = () => {
                   <CardContent className="grid gap-2.5 space-y-3">
                     <div className="space-y-1">
                       <Label
+                        htmlFor="driversLicenseImage"
+                        className="block text-sm font-medium leading-6 text-gray-900 capitalize"
+                      >
+                        Upload a picture of your driver's license{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <div
+                        {...getImageRootProps()}
+                        className={cn(
+                          "dropzone flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
+                          getErrorMessage("images")
+                            ? "border-red-500"
+                            : "border-blue-400 hover:border-blue-600"
+                        )}
+                      >
+                        <input {...getImageInputProps()} />
+                        {uploadingImage ? (
+                          <div className="flex flex-col items-center p-4">
+                            <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
+                            <p className=" text-lg font-medium">
+                              Uploading Image...
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <ImageIcon className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                            <p className="text-lg font-semibold  mb-1">
+                              Drag 'n' drop product images here
+                            </p>
+                            <p className="text-sm mb-3">
+                              or click to select files
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                            >
+                              Choose Files
+                            </Button>
+                            <p className="text-xs  mt-2">
+                              Supported formats: PNG, JPEG, JPG (Max 5MB each,
+                              up to 5 files)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
                         htmlFor="nin"
                         className="block text-sm font-medium leading-6 text-gray-900"
                       >
@@ -549,6 +681,7 @@ const RiderForm = () => {
                         </p>
                       )}
                     </div>
+
                     <div className="space-y-1">
                       <Label
                         htmlFor="bvn"

@@ -21,7 +21,9 @@ const subCategoryCard = ({ item }: { item: SubCategory }) => {
         loading="lazy"
         className="w-full h-full"
       />
-      <h3 className="text-sm font-semibold text-center">{item.name}</h3>
+      <h3 className="text-base font-medium text-center capitalize">
+        {item.name}
+      </h3>
     </div>
   );
 };

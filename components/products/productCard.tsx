@@ -1,7 +1,6 @@
 // import { Product } from "@/types";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Image from "next/image";
-import Link from "next/link";
 import { SkeletonCard } from "../ui/SkeletonCard";
 import {
   Category,
@@ -16,20 +15,7 @@ import {
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/Hooks/use-toast";
-import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
-import { Heart, Loader2 } from "lucide-react";
-import { format } from "date-fns";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-// interface ProductCardItem {
-//   id: string;
-//   slug: string;
-//   productName: string; // From API's mapping of product.name
-//   images: { url: string }[]; // From API's mapping of product.images
-//   price: number; // This is the 'lowestPrice' from API
-//   discountedPrice?: number | null; // The 'calculatedDiscountedPrice' from API
-//   discountPercentage?: number | null; // The 'discountPercentage' from API
-// }
 
 export type ProductFromApi = Product & {
   category: Pick<Category, "id" | "name" | "slug">;
@@ -205,7 +191,7 @@ const ProductCard = ({
           className="object-cover object-center rounded-md h-[260px]"
         />
         {/* )} */}
-        <h2 className="font-semibold text-base capitalize text-start font-sans line-clamp-1">
+        <h2 className="font-medium text-base capitalize text-start font-sans line-clamp-1">
           {item?.productName}
         </h2>
         <div className="space-y-2">
@@ -234,35 +220,6 @@ const ProductCard = ({
           )}
         </div>
       </HoverPrefetchLink>
-      {/* <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "absolute top-2 right-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors duration-200",
-          isWishlisted
-            ? "text-red-500 hover:text-red-600"
-            : "text-gray-500 hover:text-red-500",
-          (isCheckingWishlist ||
-            addMutation.isPending ||
-            removeMutation.isPending) &&
-            "opacity-60 cursor-not-allowed"
-        )}
-        onClick={handleWishlistToggle}
-        disabled={
-          isCheckingWishlist ||
-          addMutation.isPending ||
-          removeMutation.isPending
-        }
-        title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-      >
-        {isCheckingWishlist ||
-        addMutation.isPending ||
-        removeMutation.isPending ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
-        )}
-      </Button> */}
     </div>
   );
 };

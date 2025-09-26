@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { useUser } from "@/Hooks/user-context";
+import { formatCurrencyValue } from "@/utils/format-currency-value";
 // import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
 
 // --- Extended Types to match API response ---
@@ -406,11 +407,12 @@ const CartPage = () => {
 
                   <div className="flex flex-col sm:items-end justify-between text-right">
                     <p className="text-xl font-bold text-gray-900">
-                      ${(item.quantity * variant.price).toFixed(2)}
+                      {formatCurrencyValue(item.quantity * variant.price)}
                     </p>
                     {item.calculatedItemDiscount > 0 && (
                       <p className="text-sm text-green-600 font-medium mt-1">
-                        -${item.calculatedItemDiscount.toFixed(2)} Discount
+                        -{formatCurrencyValue(item.calculatedItemDiscount)}{" "}
+                        Discount
                       </p>
                     )}
                     <div className="flex items-center justify-center sm:justify-end mt-4 sm:mt-0">

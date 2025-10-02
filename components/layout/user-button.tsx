@@ -13,13 +13,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-// import UserIcon from "../Icons/userIcon";
 import { Button } from "../ui/button";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
+  Bike,
   ChevronDown,
-  CircleUserRound,
   Heart,
   Settings,
   ShoppingBagIcon,
@@ -28,15 +25,18 @@ import {
   UserRound,
   UserRoundCheck,
 } from "lucide-react";
-import { User } from "@prisma/client";
 import LogoutButton from "./logout-button";
 import { ClipLoader } from "react-spinners";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import UserNotificationBell from "./notification";
 import { useUser } from "@/Hooks/user-context";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const UserButton = () => {
   const { user, isLoading } = useUser();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -70,7 +70,7 @@ const UserButton = () => {
         </TooltipProvider>
       )}
       {user ? (
-        <DropdownMenu>
+        <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <div className="flex justify-center items-center hover:cursor-pointer">
               <UserCheck2Icon className="w-6 h-6 text-black md:hidden block" />
@@ -88,7 +88,7 @@ const UserButton = () => {
           <DropdownMenuContent className="space-y-2 p-1">
             {user ? (
               <DropdownMenuGroup>
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setOpen(!open)}>
                   <HoverPrefetchLink
                     href={"/me/account"}
                     className="flex justify-between items-center gap-3 capitalize"
@@ -103,7 +103,7 @@ const UserButton = () => {
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setOpen(!open)}>
                   <HoverPrefetchLink
                     href={"/me/orders"}
                     className="flex justify-start items-center gap-2 capitalize"
@@ -113,7 +113,7 @@ const UserButton = () => {
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setOpen(!open)}>
                   <HoverPrefetchLink
                     href={"/me/orders"}
                     className="flex justify-start items-center gap-2 capitalize"
@@ -122,7 +122,7 @@ const UserButton = () => {
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setOpen(!open)}>
                   <HoverPrefetchLink
                     href={"/me/wishlist"}
                     className="flex justify-start items-center gap-2 capitalize"
@@ -131,23 +131,9 @@ const UserButton = () => {
                     wishlist
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {user.role !== "SELLER" && (
-                  <>
-                    <DropdownMenuItem>
-                      <HoverPrefetchLink
-                        href={"/your/store/create"}
-                        className="flex justify-start items-center gap-2 capitalize"
-                      >
-                        <Store className="w-5 h-5 text-black" />
-                        sell on shop.co
-                      </HoverPrefetchLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
 
-                <DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setOpen(!open)}>
                   <HoverPrefetchLink
                     href={"/me/account"}
                     className="flex justify-between items-center gap-3 capitalize"
@@ -159,7 +145,35 @@ const UserButton = () => {
                   </HoverPrefetchLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                {user.role !== "SELLER" && user.role !== "RIDER" && (
+                  <>
+                    <DropdownMenuItem onSelect={() => setOpen(!open)}>
+                      <button
+                        onClick={() => router.push("/your/store/create")}
+                        className="flex justify-start items-center gap-2 capitalize"
+                      >
+                        <Store className="w-5 h-5 text-black" />
+                        sell on shop.co
+                      </button>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {user.role !== "RIDER" && user.role !== "SELLER" && (
+                  <>
+                    <DropdownMenuItem onSelect={() => setOpen(!open)}>
+                      <button
+                        onClick={() => router.push("/logistics/rider/register")}
+                        className="flex justify-start items-center gap-2 capitalize"
+                      >
+                        <Bike className="w-5 h-5 text-black" />
+                        Become a shop.co rider
+                      </button>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem asChild onSelect={() => setOpen(!open)}>
                   {/* <form action="/api/logout" method="GET">
                   <button type="submit" className="w-full text-left">
                     Logout
@@ -169,7 +183,7 @@ const UserButton = () => {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             ) : (
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild onSelect={() => setOpen(!open)}>
                 <HoverPrefetchLink href="/sign-in">
                   <Button className="w-full bg-black text-white">Login</Button>
                 </HoverPrefetchLink>

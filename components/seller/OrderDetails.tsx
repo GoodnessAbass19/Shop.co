@@ -433,12 +433,9 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <HoverPrefetchLink
-                      href={`/products/${item.productVariant.product.slug}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
+                    <div className="font-medium text-blue-600 hover:underline">
                       {item.productVariant.product.name}
-                    </HoverPrefetchLink>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {item.productVariant.size &&

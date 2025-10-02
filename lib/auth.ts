@@ -22,6 +22,9 @@ export async function getCurrentUser() {
         phone: true,
         createdAt: true,
         notifications: true,
+        isBuyer: true,
+        isRider: true,
+        isSeller: true,
         cart: {
           include: {
             cartItems: true,

@@ -1,28 +1,9 @@
 // app/dashboard/seller/layout.tsx
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import {
-  Loader2,
-  X,
-  Store as StoreIcon,
-  Package,
-  ShoppingBag,
-  BarChart,
-  Warehouse,
-  Percent,
-  Settings,
-  MessageSquare,
-  Star,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Store as StoreIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   User,
   Role,
@@ -39,13 +20,12 @@ import {
   BusinessInfo,
   ShippingInfo,
 } from "@prisma/client";
-import { Sidebar } from "../dashboard/Sidebar";
 import { SellerStoreProvider } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../dashboard/NewSidebar";
 import { usePathname, useRouter } from "next/navigation";
-// import { cookies } from "next/headers";
+import { useUserRole } from "@/Hooks/use-user-role";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStoreData {
@@ -64,6 +44,7 @@ interface SellerStoreData {
   businessInfo: BusinessInfo | null;
   shippingInfo: ShippingInfo;
   userId: string;
+  user: User;
   createdAt: Date;
   updatedAt: Date;
   products: (Product & {
@@ -113,8 +94,10 @@ export default function SellerDashboardLayout({
   const sellerStore = data?.store;
   const pathname = usePathname();
   const router = useRouter();
+  const { isSeller, isLoading: isRoleLoading } = useUserRole();
+
   // Handle loading state for the main store data
-  if (isLoading) {
+  if (isRoleLoading || isLoading) {
     return (
       <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -124,31 +107,19 @@ export default function SellerDashboardLayout({
     );
   }
 
-  // Handle error state for the main store data
-  // if (isError) {
-  //   return (
-  //     <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-8 text-center">
-  //       <X className="w-16 h-16 text-red-500 mb-4" />
-  //       <h2 className="text-2xl font-bold mb-2">Error Loading Dashboard</h2>
-  //       <p className="mb-4">
-  //         {error?.message ||
-  //           "An unknown error occurred while fetching your store data."}
-  //       </p>
-  //       <Button
-  //         onClick={() => window.location.reload()}
-  //         className="bg-red-600 hover:bg-red-700 text-white"
-  //       >
-  //         Try Again
-  //       </Button>
-  //     </div>
-  //   );
-  // }
-
   // Handle case where no store is found for the user
   if (pathname === "/your/store/create" && !sellerStore) {
     router.prefetch(`/sign-in`);
     router.push(
       `/sign-in?redirectUrl=${encodeURIComponent("/your/store/create")}`
+    );
+    return null;
+  }
+
+  // verify seller status and store data security
+  if (isSeller === false) {
+    router.push(
+      `/your/store/login?redirectUrl=${encodeURIComponent(pathname)}`
     );
     return null;
   }
@@ -188,25 +159,6 @@ export default function SellerDashboardLayout({
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
         </SidebarInset>
       </SidebarProvider>
-      {/* Provide store data to children */}
-      {/* <div className="flex min-h-screen bg-gray-100 font-inter"> */}
-      {/* Sidebar is now a separate component */}
-      {/* <Sidebar
-          storeName={sellerStore.name}
-          navItems={navItems}
-          email={sellerStore.user.email}
-          logo={sellerStore.logo! || "https://via.placeholder.com/200"}
-        />{" "} */}
-      {/* No setActivePage needed */}
-      {/* Main Content Area */}
-      {/* Adjusted padding-top (pt-20) for mobile fixed header */}
-      {/* <main className="flex-1 p-4 md:p-8 pt-20 md:pt-4 overflow-y-auto">
-          <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-40px)]">
-            {children}{" "}
-            This is where the specific page content will be rendered
-          </div>
-        </main> */}
-      {/* </div> */}
     </SellerStoreProvider>
   );
 }

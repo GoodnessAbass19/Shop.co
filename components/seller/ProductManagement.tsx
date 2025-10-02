@@ -224,7 +224,7 @@ export function ProductManagement() {
               {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <HoverPrefetchLink href={`/products/${product.slug}`}>
+                    <div>
                       {product.images && product.images.length > 0 ? (
                         <Image
                           src={product.images[0]}
@@ -242,15 +242,12 @@ export function ProductManagement() {
                           No Img
                         </div>
                       )}
-                    </HoverPrefetchLink>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <HoverPrefetchLink
-                      href={`/products/${product.slug}`}
-                      className="font-medium hover:text-blue-600 hover:underline"
-                    >
+                    <div className="font-medium hover:text-blue-600 hover:underline capitalize text-sm">
                       {product.name}
-                    </HoverPrefetchLink>
+                    </div>
                   </TableCell>
                   {/* <TableCell>
                     {product.category.name}

@@ -44,6 +44,7 @@ import { useDropzone } from "react-dropzone";
 import { useToast } from "@/Hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 type Inputs = z.infer<typeof RiderInfoSchema>;
 
@@ -83,6 +84,7 @@ const RiderForm = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingNINImage, setUploadingNINImage] = useState(false);
 
   const {
     register,
@@ -110,35 +112,21 @@ const RiderForm = () => {
 
     if (!output) return;
 
-    // // On store name step, check for uniqueness and block if exists
-    // if (currentStep === 1) {
-    //   await handleStoreNameCheck();
-    //   // Re-read errors after async setError
-    //   if (
-    //     watch("storeName") &&
-    //     (await storeNameVerification(watch("storeName")))
-    //   ) {
-    //     return;
-    //   }
-    //   if (errors.storeName?.message) return;
-    // }
-
-    // // On last step, submit the form
-    // if (currentStep === steps.length - 1) {
-    //   await handleSubmit(processForm)();
-    //   return;
-    // }
-
     setPreviousStep(currentStep);
     setCurrentStep((step) => step + 1);
+  };
+
+  const prev = async () => {
+    setCurrentStep((step) => step - 1);
+    setPreviousStep(currentStep - 1);
   };
 
   const totalSteps = 4;
   // An array to easily map over and render each step
   const steps = Array.from({ length: totalSteps }, (_, i) => i);
 
-  const handleStateChange = (value: string) => {
-    setValue("stateOfResidence", value);
+  const handleChange = (field: string, value: string) => {
+    setValue(field as keyof Inputs, value);
   };
 
   const handleGenderChange = (value: string) => {
@@ -209,6 +197,60 @@ const RiderForm = () => {
       },
     });
 
+  const onDropNINImage = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        toast({
+          title: "File rejected",
+          description: "Please upload an image file (PNG, JPEG, JPG).",
+          variant: "destructive",
+        });
+        return;
+      }
+      setUploadingNINImage(true);
+      try {
+        // Only upload the first file
+        const uploadedUrl = await uploadToCloudinary(acceptedFiles[0]);
+        setValue("ninImage", uploadedUrl, { shouldValidate: true });
+        toast({
+          title: "Image Uploaded",
+          description: "Image uploaded successfully.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload image.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [setValue, toast]
+  );
+
+  const {
+    getRootProps: getImageNINRootProps,
+    getInputProps: getImageNINInputProps,
+  } = useDropzone({
+    onDrop: onDropNINImage,
+    accept: { "image/jpeg": [], "image/png": [] },
+    multiple: true,
+    maxFiles: 5,
+    maxSize: 5 * 1024 * 1024, // 5MB per file
+    onDropRejected: (fileRejections: any[]) => {
+      toast({
+        title: "Image Files Rejected",
+        description: fileRejections
+          .map((r) =>
+            r.errors.map((e: { message: any }) => e.message).join(", ")
+          )
+          .join("; "),
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <section className="w-full max-w-screen-2xl min-h-[80vh] flex flex-col justify-center items-center">
       <div className="w-full grid md:grid-cols-2 justify-center items-center gap-10">
@@ -270,28 +312,32 @@ const RiderForm = () => {
                       Become a Shopco Rider
                     </CardTitle>
                     <CardDescription className="text-sm text-gray-600">
-                      Join our team and start delivering with Shopco!
+                      Join our team and start delivering with Shopco
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-2 space-y-4">
                     <Button
                       onClick={next}
-                      className="w-full capitalize bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ease-in-out duration-150"
+                      className="w-full capitalize bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ease-in-out duration-150 font-sans font-medium"
                     >
-                      {/* <Link
-                        href="/logistics/rider/login"
-                        className="w-full capitalize"
-                      > */}
                       sign up as a new rider
-                      {/* </Link> */}
                     </Button>
 
-                    <Link
+                    <p className="text-base text-gray-700 mt-4 font-sans text-center font-medium">
+                      Already have an account?{" "}
+                      <HoverPrefetchLink
+                        href={`/logistics/rider/login`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Login
+                      </HoverPrefetchLink>
+                    </p>
+                    {/* <Link
                       href="/logistics/rider/login"
                       className="w-full text-center text-blue-600 hover:underline transition ease-in-out duration-150"
                     >
-                      Already have a rider? Log in
-                    </Link>
+                      Already have a rider? Log in 
+                    </Link> */}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -303,7 +349,7 @@ const RiderForm = () => {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
-                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff]">
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff] lg:max-h-[70vh] overflow-y-scroll">
                   <CardHeader className="space-y-1 text-center capitalize">
                     <CardTitle className="font-semibold text-xl">
                       Personal Details
@@ -576,7 +622,15 @@ const RiderForm = () => {
                       )}
                     </div>
 
-                    <div className="w-full mt-2">
+                    <div className="w-full mt-2 grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={prev}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
+                      >
+                        Previous
+                      </button>
+
                       <button
                         type="button"
                         onClick={next}
@@ -596,7 +650,7 @@ const RiderForm = () => {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
-                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff]">
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff] lg:max-h-[70vh] overflow-y-scroll">
                   <CardHeader className="space-y-1 text-center capitalize">
                     <CardTitle className="font-semibold text-xl">
                       Verification Details
@@ -616,7 +670,7 @@ const RiderForm = () => {
                       <div
                         {...getImageRootProps()}
                         className={cn(
-                          "dropzone flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
+                          "dropzone flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
                           getErrorMessage("images")
                             ? "border-red-500"
                             : "border-blue-400 hover:border-blue-600"
@@ -625,19 +679,19 @@ const RiderForm = () => {
                         <input {...getImageInputProps()} />
                         {uploadingImage ? (
                           <div className="flex flex-col items-center p-4">
-                            <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
+                            <Loader2 className="w-6 h-6 text-blue-600 animate-spin mb-1.5" />
                             <p className=" text-lg font-medium">
                               Uploading Image...
                             </p>
                           </div>
                         ) : (
                           <div className="text-center">
-                            <ImageIcon className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                            <p className="text-lg font-semibold  mb-1">
-                              Drag 'n' drop product images here
+                            <ImageIcon className="w-7 h-7 text-blue-600 mx-auto mb-2" />
+                            <p className="text-base  mb-1">
+                              Drag 'n' drop image here
                             </p>
                             <p className="text-sm mb-3">
-                              or click to select files
+                              or click to select file
                             </p>
                             <Button
                               type="button"
@@ -647,8 +701,7 @@ const RiderForm = () => {
                               Choose Files
                             </Button>
                             <p className="text-xs  mt-2">
-                              Supported formats: PNG, JPEG, JPG (Max 5MB each,
-                              up to 5 files)
+                              Supported formats: PNG, JPEG, JPG (Max 5MB)
                             </p>
                           </div>
                         )}
@@ -684,6 +737,56 @@ const RiderForm = () => {
 
                     <div className="space-y-1">
                       <Label
+                        htmlFor="ninImage"
+                        className="block text-sm font-medium leading-6 text-gray-900 capitalize"
+                      >
+                        Upload a picture of your NIN{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <div
+                        {...getImageNINRootProps()}
+                        className={cn(
+                          "dropzone flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
+                          getErrorMessage("images")
+                            ? "border-red-500"
+                            : "border-blue-400 hover:border-blue-600"
+                        )}
+                      >
+                        <input {...getImageNINInputProps()} />
+                        {uploadingNINImage ? (
+                          <div className="flex flex-col items-center p-4">
+                            <Loader2 className="w-6 h-6 text-blue-600 animate-spin mb-1.5" />
+                            <p className=" text-lg font-medium">
+                              Uploading Image...
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <ImageIcon className="w-7 h-7 text-blue-600 mx-auto mb-2" />
+                            <p className="text-base  mb-1">
+                              Drag 'n' drop image here
+                            </p>
+                            <p className="text-sm mb-3">
+                              or click to select file
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                            >
+                              Choose Files
+                            </Button>
+                            <p className="text-xs  mt-2">
+                              Supported formats: PNG, JPEG, JPG (Max 5MB)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
                         htmlFor="bvn"
                         className="block text-sm font-medium leading-6 text-gray-900"
                       >
@@ -702,6 +805,293 @@ const RiderForm = () => {
                       {errors.bvn?.message && (
                         <p className="text-sm text-red-400">
                           {errors.bvn.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="vehicleType"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Vehicle Type <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        defaultValue=""
+                        {...register("vehicleType")}
+                        value={watch("vehicleType")}
+                        onValueChange={() =>
+                          handleChange("vehicleType", watch("vehicleType"))
+                        }
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "w-full",
+                            errors.vehicleType ? "border-red-400" : ""
+                          )}
+                        >
+                          <SelectValue placeholder="Select your Vehicle Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MOTORCYCLE">Motorcycle</SelectItem>
+                          <SelectItem value="BICYCLE">Bicycle</SelectItem>
+                          <SelectItem value="CAR">Car</SelectItem>
+                          <SelectItem value="VAN">Van</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.vehicleType?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.vehicleType.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="vehicleModel"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Vehicle Model <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="vehicleModel"
+                        type="text"
+                        placeholder="E.g. Toyota"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.vehicleModel ? "border-red-400" : ""
+                        )}
+                        {...register("vehicleModel")}
+                      />
+                      {errors.vehicleModel?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.vehicleModel.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="vehicleColor"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Vehicle Color <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="vehicleColor"
+                        type="text"
+                        placeholder="E.g. Silver"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.vehicleColor ? "border-red-400" : ""
+                        )}
+                        {...register("vehicleColor")}
+                      />
+                      {errors.vehicleColor?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.vehicleColor.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="plateNumber"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Plate Number <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="plateNumber"
+                        type="text"
+                        placeholder="Plate number"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.plateNumber ? "border-red-400" : ""
+                        )}
+                        {...register("plateNumber")}
+                      />
+                      {errors.plateNumber?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.plateNumber.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="accountNumber"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Account Number <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="accountNumber"
+                        type="text"
+                        placeholder="Account number"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.accountNumber ? "border-red-400" : ""
+                        )}
+                        {...register("accountNumber")}
+                      />
+                      {errors.accountNumber?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.accountNumber.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="accountName"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Account Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="accountName"
+                        type="text"
+                        placeholder="Account name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.accountName ? "border-red-400" : ""
+                        )}
+                        {...register("accountName")}
+                      />
+                      {errors.accountName?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.accountName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="bankName"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Account Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="bankName"
+                        type="text"
+                        placeholder="Bank name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.bankName ? "border-red-400" : ""
+                        )}
+                        {...register("bankName")}
+                      />
+                      {errors.bankName?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.bankName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="guarantor1Name"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 1 Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="guarantor1Name"
+                        type="text"
+                        placeholder="Gaurantor 1 name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.guarantor1Name ? "border-red-400" : ""
+                        )}
+                        {...register("guarantor1Name")}
+                      />
+                      {errors.guarantor1Name?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.guarantor1Name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="guarantor1Phone"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 1 Phone{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <PhoneInput
+                        defaultCountry={"NG"}
+                        placeholder={"123-456-7890"}
+                        value={
+                          watch("guarantor1Phone") as E164Number | undefined
+                        }
+                        international
+                        withCountryCallingCode
+                        inputComponent={Input}
+                        onChange={(value: string | undefined) =>
+                          setValue("guarantor1Phone", value ?? "")
+                        }
+                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                      />
+                      {errors.guarantor1Phone?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.guarantor1Phone.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="guarantor2Name"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 2 Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="guarantor2Name"
+                        type="text"
+                        placeholder="Gaurantor 2 name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.guarantor2Name ? "border-red-400" : ""
+                        )}
+                        {...register("guarantor2Name")}
+                      />
+                      {errors.guarantor2Name?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.guarantor2Name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="guarantor2Phone"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 2 Phone{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <PhoneInput
+                        defaultCountry={"NG"}
+                        placeholder={"123-456-7890"}
+                        value={
+                          watch("guarantor2Phone") as E164Number | undefined
+                        }
+                        international
+                        withCountryCallingCode
+                        inputComponent={Input}
+                        onChange={(value: string | undefined) =>
+                          setValue("guarantor2Phone", value ?? "")
+                        }
+                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                      />
+                      {errors.guarantor2Phone?.message && (
+                        <p className="mt-2 text-sm text-red-400">
+                          {errors.guarantor2Phone.message}
                         </p>
                       )}
                     </div>

@@ -22,8 +22,8 @@ import {
   Lock,
   User,
   Phone,
-  Calendar,
   CircleUser,
+  CalendarIcon,
 } from "lucide-react"; // Icons
 import Link from "next/link";
 import { useToast } from "@/Hooks/use-toast";
@@ -35,6 +35,10 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Calendar } from "../ui/calendar";
 
 type AuthFormProps = {
   type: "login" | "register";
@@ -72,6 +76,9 @@ export default function AuthForm({ type }: AuthFormProps) {
   const [resendTimer, setResendTimer] = useState(60);
   const [otpSent, setOtpSent] = useState(false);
   const [redirect, setRedirect] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [otp, setOtp] = useState("");
 
   const emailWatcher = watch("email");
 
@@ -253,6 +260,11 @@ export default function AuthForm({ type }: AuthFormProps) {
     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
   );
 
+  const handleOTPChange = (newValue: string) => {
+    // handle the OTP value directly
+    setOtp(newValue);
+  };
+
   useEffect(() => {
     let timer: string | number | NodeJS.Timeout | undefined;
     if (otpSent && resendTimer > 0) {
@@ -359,7 +371,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                 </div>
 
                 {/* NEW: Birth Date Input */}
-                <div>
+                {/* <div>
                   <Label
                     htmlFor="birthDate"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -375,6 +387,62 @@ export default function AuthForm({ type }: AuthFormProps) {
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
                     />
                   </div>
+                </div> */}
+
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="birthDate"
+                    className="block text-sm font-medium leading-6 text-gray-900"
+                  >
+                    Date of Birth <span className="text-red-500">*</span>
+                  </Label>
+
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                        type="button"
+                        onClick={() => setOpen(true)}
+                      >
+                        {date ? (
+                          format(date, "yyyy-MM-dd")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-full overflow-hidden p-0"
+                      align="center"
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        captionLayout="dropdown"
+                        onSelect={(date) => {
+                          setDate(date);
+                          setValue(
+                            "birthDate",
+                            date ? format(date, "yyyy-MM-dd") : ""
+                          );
+                          setOpen(false);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.birthDate && (
+                    <p className="mt-2 text-sm text-red-400">
+                      {errors.birthDate.message}
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -516,6 +584,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                   })}
                   pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
                   maxLength={6}
+                  onChange={handleOTPChange}
                   // onComplete={handleVerifyOtp}
                 >
                   <InputOTPGroup>

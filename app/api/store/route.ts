@@ -54,83 +54,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate products (server-side for security and data integrity)
-    // if (!products || !Array.isArray(products) || products.length === 0) {
-    //   return NextResponse.json(
-    //     { error: "At least one product is required for your store." },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Prepare products and their variants for nested creation
-    // const productsToCreate = [];
-    // for (const productData of products) {
-    //   if (
-    //     !productData.name ||
-    //     productData.price <= 0 ||
-    //     !productData.categoryId ||
-    //     productData.images.length === 0
-    //   ) {
-    //     return NextResponse.json(
-    //       {
-    //         error: `Product "${
-    //           productData.name || "Unnamed Product"
-    //         }" has missing required fields (name, price, category, images).`,
-    //       },
-    //       { status: 400 }
-    //     );
-    //   }
-    //   if (!productData.variants || productData.variants.length === 0) {
-    //     return NextResponse.json(
-    //       {
-    //         error: `Product "${productData.name}" must have at least one variant.`,
-    //       },
-    //       { status: 400 }
-    //     );
-    //   }
-
-    //   const productSlug = await generateUniqueSlug("Product", productData.name);
-
-    //   const variantsToCreate = [];
-    //   for (const variantData of productData.variants) {
-    //     if (
-    //       variantData.price <= 0 ||
-    //       variantData.stock < 0 ||
-    //       (!variantData.size && !variantData.color)
-    //     ) {
-    //       return NextResponse.json(
-    //         {
-    //           error: `Variant for "${productData.name}" has invalid data (price, stock, or missing size/color).`,
-    //         },
-    //         { status: 400 }
-    //       );
-    //     }
-    //     variantsToCreate.push({
-    //       size: variantData.size || null,
-    //       color: variantData.color || null,
-    //       price: parseFloat(variantData.price),
-    //       stock: parseInt(variantData.stock, 10),
-    //       sku: variantData.sku || null,
-    //     });
-    //   }
-
-    //   productsToCreate.push({
-    //     name: productData.name,
-    //     slug: productSlug, // Generated unique slug for product
-    //     description: productData.description,
-    //     price: parseFloat(productData.price),
-    //     images: productData.images, // Array of strings
-    //     categoryId: productData.categoryId,
-    //     subCategoryId: productData.subCategoryId,
-    //     subSubCategoryId: productData.subSubCategoryId,
-    //     stock: parseInt(productData.stock, 10),
-    //     // isFeatured: productData.isFeatured || false,
-    //     variants: {
-    //       create: variantsToCreate, // Nested create for variants
-    //     },
-    //   });
-    // }
-
     // Create the store and nested products/variants
     const newStore = await prisma.store.create({
       data: {
@@ -148,7 +71,7 @@ export async function POST(request: Request) {
     // --- NEW: Update the user's role to SELLER ---
     await prisma.user.update({
       where: { id: user.id },
-      data: { role: Role.SELLER }, // Set user's role to SELLER
+      data: { role: Role.SELLER, isSeller: true }, // Set user's role to SELLER
     });
     console.log(`User ${user.id} role updated to SELLER.`);
 

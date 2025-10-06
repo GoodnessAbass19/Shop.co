@@ -82,7 +82,6 @@ const stepFields = [
 
 const RiderForm = () => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingNINImage, setUploadingNINImage] = useState(false);
 

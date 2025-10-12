@@ -75,10 +75,14 @@ const fetchSellerStore = async (): Promise<{ store: SellerStoreData }> => {
 export default function SellerDashboardLayout({
   children, // This is where your page.tsx content will be rendered
   defaultOpen,
+  storeToken,
 }: {
   children: React.ReactNode;
   defaultOpen: boolean;
+  storeToken?: string | undefined;
 }) {
+  const { isSeller, isLoading: isRoleLoading } = useUserRole();
+
   // Fetch seller's store data
   const { data, isLoading, isError, error } = useQuery<
     { store: SellerStoreData },
@@ -88,13 +92,13 @@ export default function SellerDashboardLayout({
     queryFn: fetchSellerStore,
     staleTime: 10 * 60 * 1000, // Data considered fresh for 5 minutes
     refetchOnWindowFocus: false,
+    enabled: isSeller === true && !!storeToken, // Only run the query if storeToken is available
     retry: 1, // Retry once if it fails
   });
 
   const sellerStore = data?.store;
   const pathname = usePathname();
   const router = useRouter();
-  const { isSeller, isLoading: isRoleLoading } = useUserRole();
 
   // Handle loading state for the main store data
   if (isRoleLoading || isLoading) {
@@ -117,7 +121,7 @@ export default function SellerDashboardLayout({
   }
 
   // verify seller status and store data security
-  if (isSeller === false) {
+  if (isSeller === false || !storeToken) {
     router.push(
       `/your/store/login?redirectUrl=${encodeURIComponent(pathname)}`
     );

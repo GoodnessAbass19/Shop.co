@@ -28,20 +28,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // if (banner && !Array.isArray(banner)) {
-    //   return NextResponse.json(
-    //     { error: "Banner must be an array of image URLs." },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Upload all banner images and store as array of strings
-    // const bannerUrls: string[] = [];
-    // for (const file of banner || []) {
-    //   const url = await uploadImage(file, "stores/banners");
-    //   bannerUrls.push(url);
-    // }
-
     // Check if the user already has a store
     const existingStore = await prisma.store.findUnique({
       where: { userId: user.id },
@@ -130,7 +116,12 @@ export async function GET(request: Request) {
     const sellerStore = await prisma.store.findUnique({
       where: { userId: user.id },
       include: {
-        user: true, // Include user details
+        user: {
+          select: {
+            isSeller: true,
+            isRider: true,
+          },
+        }, // Include user details
         products: {
           orderBy: { createdAt: "desc" }, // Order products by newest first
           include: {

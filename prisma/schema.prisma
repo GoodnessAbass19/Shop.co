@@ -35,7 +35,6 @@ model User {
   wishlistItems WishlistItem[]
   notifications Notification[]
   Rider         Rider?
-  isBuyer       Boolean         @default(false)
   isSeller      Boolean         @default(false)
   isRider       Boolean         @default(false)
 }
@@ -338,20 +337,62 @@ model DeliveryItem {
   updatedAt      DateTime  @updatedAt
 }
 
+// Rider Model
 model Rider {
-  id         String         @id @default(uuid())
-  name       String
-  phone      String         @unique
-  isActive   Boolean        @default(true)
+  id       String  @id @default(uuid())
+  isActive Boolean @default(false)
+
+  // 1. Personal & Contact Info (from RiderInfoSchema)
+  firstName   String
+  lastName    String
+  email       String   @unique // Keep this here for direct communication
+  phoneNumber String   @unique
+  gender      Gender
+  dateOfBirth DateTime
+
+  // 2. Next of Kin
+  nextOfKinName  String
+  nextOfKinPhone String
+
+  // 3. Verification & Documents
+  nin              String  @unique
+  ninImage         String? // Optional field for image URL
+  bvn              String? @unique // Optional as per your schema
+  profileImage     String?
+  stateOfResidence String
+
+  // 4. Vehicle Information
+  plateNumber                 String      @unique
+  vehicleType                 VehicleType
+  vehicleModel                String
+  vehicleColor                String
+  vehicleRegistrationDocument String?
+
+  // 5. Guarantor Information
+  guarantor1Name         String
+  guarantor1Phone        String
+  guarantor1Relationship GuarantorRelationship
+  guarantor2Name         String
+  guarantor2Phone        String
+  guarantor2Relationship GuarantorRelationship
+
+  // 6. Bank Account Details
+  bankName      String
+  accountNumber String
+  accountName   String
+
+  // 7. Core User & Location Tracking
+  userId     String         @unique
+  user       User           @relation(fields: [userId], references: [id])
+  status     RiderStatus    @default(PENDING_APPROVAL)
   // 🔥 Location tracking
   latitude   Float?
   longitude  Float?
-  geohash    String? // for proximity queries (GeoHash5)
-  userId     String?        @unique
-  user       User?          @relation(fields: [userId], references: [id])
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  geohash    String?
   deliveries DeliveryItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OtpToken {
@@ -493,4 +534,36 @@ enum IdType {
   PASSPORT
   DRIVER_LICENSE
   VOTER_ID
+}
+
+enum VehicleType {
+  MOTORCYCLE
+  BICYCLE
+  CAR
+  VAN
+  SCOOTER
+}
+
+enum GuarantorRelationship {
+  FATHER
+  MOTHER
+  BROTHER
+  SISTER
+  SPOUSE
+  UNCLE
+  AUNTY
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum RiderStatus {
+  PENDING_APPROVAL
+  VERIFIED
+  ACTIVE
+  DELIVERING
+  UNAVAILABLE
+  SUSPENDED
 }

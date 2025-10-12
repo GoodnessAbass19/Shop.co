@@ -21,8 +21,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { RiderInfoSchema } from "@/lib/form-schema";
@@ -42,9 +41,10 @@ import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/Hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 type Inputs = z.infer<typeof RiderInfoSchema>;
 
@@ -52,7 +52,7 @@ const stepFields = [
   {
     id: "Step 1",
     name: "Create Account",
-    fields: ["country"],
+    fields: [],
   },
   {
     id: "Step 2",
@@ -70,13 +70,27 @@ const stepFields = [
   },
   {
     id: "Step 3",
-    name: "Shop Information",
-    fields: ["state", "terms", "account_type"],
+    name: "Verification Information",
+    fields: [
+      "driversLicenseImage",
+      "nin",
+      "bvn",
+      "ninImage",
+      "vehicleType",
+      "vehicleModel",
+      "plateNumber",
+      "guarantor1Name",
+      "guarantor1Phone",
+      "guarantor1Relationship",
+      "guarantor2Name",
+      "guarantor2Phone",
+      "guarantor2Relationship",
+    ],
   },
   {
     id: "Step 4",
     name: "Contact Information",
-    fields: ["email", "phone"],
+    fields: ["email", "phoneNumber"],
   },
 ];
 
@@ -97,22 +111,63 @@ const RiderForm = () => {
   } = useForm<Inputs>({
     resolver: zodResolver(RiderInfoSchema),
   });
+
   const [previousStep, setPreviousStep] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const delta = currentStep - previousStep;
   type FieldName = keyof Inputs;
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const currentImages = watch("driversLicenseImage");
+  const licenseImage = watch("driversLicenseImage");
+  const ninImage = watch("ninImage");
+  const router = useRouter();
+
+  const createRiderMutation = useMutation({
+    mutationFn: async (formData: Inputs) => {
+      const res = await fetch("/api/rider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to create rider account.");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      // Handle success (e.g., redirect, show toast, etc.)
+      // console.log("Store created!", data);
+      router.prefetch("/your/rider/dashboard");
+      router.push("/your/rider/dashboard");
+    },
+    onError: (error: any) => {
+      // Handle error (e.g., show toast)
+      console.error("Rider Account creation failed:", error.message);
+    },
+  });
+
+  const processForm: SubmitHandler<Inputs> = (data) => {
+    createRiderMutation.mutate(data);
+    reset();
+    router.prefetch("/your/rider/dashboard");
+    router.push("/your/rider/dashboard");
+  };
 
   const next = async () => {
     const fields = stepFields[currentStep].fields;
     const output = await trigger(fields as FieldName[], { shouldFocus: true });
-
+    console.log(output, errors);
     if (!output) return;
 
+    // On last step, submit the form
+    if (currentStep === steps.length - 1) {
+      await handleSubmit(processForm)();
+      return;
+    }
+
     setPreviousStep(currentStep);
-    setCurrentStep((step) => step + 1);
+    setCurrentStep(currentStep + 1);
   };
 
   const prev = async () => {
@@ -180,8 +235,8 @@ const RiderForm = () => {
     useDropzone({
       onDrop: onDropImage,
       accept: { "image/jpeg": [], "image/png": [] },
-      multiple: true,
-      maxFiles: 5,
+      // multiple: true,
+      maxFiles: 1,
       maxSize: 5 * 1024 * 1024, // 5MB per file
       onDropRejected: (fileRejections: any[]) => {
         toast({
@@ -222,7 +277,7 @@ const RiderForm = () => {
           variant: "destructive",
         });
       } finally {
-        setUploadingImage(false);
+        setUploadingNINImage(false);
       }
     },
     [setValue, toast]
@@ -234,8 +289,8 @@ const RiderForm = () => {
   } = useDropzone({
     onDrop: onDropNINImage,
     accept: { "image/jpeg": [], "image/png": [] },
-    multiple: true,
-    maxFiles: 5,
+    // multiple: true,
+    maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB per file
     onDropRejected: (fileRejections: any[]) => {
       toast({
@@ -296,9 +351,7 @@ const RiderForm = () => {
         </div>
 
         <div className="w-full col-span-1 max-w-xl mx-auto">
-          <form
-          // onSubmit={}
-          >
+          <form onSubmit={handleSubmit(processForm)}>
             {currentStep === 0 && (
               <motion.div
                 initial={{ x: delta >= 0 ? "50%" : "-50%", opacity: 0 }}
@@ -683,6 +736,16 @@ const RiderForm = () => {
                               Uploading Image...
                             </p>
                           </div>
+                        ) : licenseImage ? (
+                          <div>
+                            <Image
+                              src={licenseImage!}
+                              alt="driver license"
+                              width={500}
+                              height={500}
+                              className="w-full object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className="text-center">
                             <ImageIcon className="w-7 h-7 text-blue-600 mx-auto mb-2" />
@@ -747,23 +810,36 @@ const RiderForm = () => {
                         {...getImageNINRootProps()}
                         className={cn(
                           "dropzone flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
-                          getErrorMessage("images")
+                          getErrorMessage("ninImage")
                             ? "border-red-500"
                             : "border-blue-400 hover:border-blue-600"
                         )}
                       >
-                        <input {...getImageNINInputProps()} />
+                        <input
+                          {...getImageNINInputProps()}
+                          style={{ display: "none" }}
+                        />
                         {uploadingNINImage ? (
                           <div className="flex flex-col items-center p-4">
                             <Loader2 className="w-6 h-6 text-blue-600 animate-spin mb-1.5" />
-                            <p className=" text-lg font-medium">
+                            <p className="text-lg font-medium">
                               Uploading Image...
                             </p>
+                          </div>
+                        ) : ninImage ? (
+                          <div>
+                            <Image
+                              src={ninImage}
+                              alt="nin"
+                              width={500}
+                              height={500}
+                              className="w-full object-cover"
+                            />
                           </div>
                         ) : (
                           <div className="text-center">
                             <ImageIcon className="w-7 h-7 text-blue-600 mx-auto mb-2" />
-                            <p className="text-base  mb-1">
+                            <p className="text-base mb-1">
                               Drag 'n' drop image here
                             </p>
                             <p className="text-sm mb-3">
@@ -773,10 +849,18 @@ const RiderForm = () => {
                               type="button"
                               variant="outline"
                               className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                              onClick={() => {
+                                // Trigger file input click
+                                const input =
+                                  document.querySelector<HTMLInputElement>(
+                                    'input[type="file"][name="ninImage"]'
+                                  );
+                                if (input) input.click();
+                              }}
                             >
                               Choose Files
                             </Button>
-                            <p className="text-xs  mt-2">
+                            <p className="text-xs mt-2">
                               Supported formats: PNG, JPEG, JPG (Max 5MB)
                             </p>
                           </div>
@@ -819,8 +903,8 @@ const RiderForm = () => {
                         defaultValue=""
                         {...register("vehicleType")}
                         value={watch("vehicleType")}
-                        onValueChange={() =>
-                          handleChange("vehicleType", watch("vehicleType"))
+                        onValueChange={(value) =>
+                          handleChange("vehicleType", value)
                         }
                       >
                         <SelectTrigger
@@ -834,6 +918,7 @@ const RiderForm = () => {
                         <SelectContent>
                           <SelectItem value="MOTORCYCLE">Motorcycle</SelectItem>
                           <SelectItem value="BICYCLE">Bicycle</SelectItem>
+                          <SelectItem value="SCOOTER">Scooter</SelectItem>
                           <SelectItem value="CAR">Car</SelectItem>
                           <SelectItem value="VAN">Van</SelectItem>
                         </SelectContent>
@@ -919,6 +1004,213 @@ const RiderForm = () => {
 
                     <div className="space-y-1">
                       <Label
+                        htmlFor="guarantor1Name"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 1 Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="guarantor1Name"
+                        type="text"
+                        placeholder="Gaurantor 1 name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.guarantor1Name ? "border-red-400" : ""
+                        )}
+                        {...register("guarantor1Name")}
+                      />
+                      {errors.guarantor1Name?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.guarantor1Name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="guarantor1Phone"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 1 Phone{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="grid grid-cols-4 gap-1 items-center justify-between">
+                        <div className="col-span-3">
+                          <PhoneInput
+                            defaultCountry={"NG"}
+                            placeholder={"123-456-7890"}
+                            value={
+                              watch("guarantor1Phone") as E164Number | undefined
+                            }
+                            international
+                            withCountryCallingCode
+                            inputComponent={Input}
+                            onChange={(value: string | undefined) =>
+                              setValue("guarantor1Phone", value ?? "")
+                            }
+                            className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                          />
+
+                          {errors.guarantor1Phone?.message && (
+                            <p className="mt-2 text-sm text-red-400">
+                              {errors.guarantor1Phone.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Select
+                            {...register("guarantor1Relationship")}
+                            value={watch("guarantor1Relationship")}
+                            onValueChange={(value) =>
+                              handleChange("guarantor1Relationship", value)
+                            }
+                          >
+                            <SelectTrigger className="h-11 !rounded-md border border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500">
+                              <SelectValue placeholder="Relationship" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PARENT">Parent</SelectItem>
+                              <SelectItem value="SIBLING">Sibling</SelectItem>
+                              <SelectItem value="FRIEND">Friend</SelectItem>
+                              <SelectItem value="SPOUSE">Spouse</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {errors.guarantor1Relationship?.message && (
+                            <p className="mt-2 text-sm text-red-400">
+                              {errors.guarantor1Relationship.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="guarantor2Name"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 2 Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="guarantor2Name"
+                        type="text"
+                        placeholder="Gaurantor 2 name"
+                        className={cn(
+                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
+                          errors.guarantor2Name ? "border-red-400" : ""
+                        )}
+                        {...register("guarantor2Name")}
+                      />
+                      {errors.guarantor2Name?.message && (
+                        <p className="text-sm text-red-400">
+                          {errors.guarantor2Name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="guarantor2Phone"
+                        className="block text-sm font-medium leading-6 text-gray-900"
+                      >
+                        Guarantor 2 Phone{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <div className="grid grid-cols-4 gap-1 items-center justify-between">
+                        <div className="col-span-3">
+                          <PhoneInput
+                            defaultCountry={"NG"}
+                            placeholder={"123-456-7890"}
+                            value={
+                              watch("guarantor2Phone") as E164Number | undefined
+                            }
+                            international
+                            withCountryCallingCode
+                            inputComponent={Input}
+                            onChange={(value: string | undefined) =>
+                              setValue("guarantor2Phone", value ?? "")
+                            }
+                            className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                          />
+
+                          {errors.guarantor2Phone?.message && (
+                            <p className="mt-2 text-sm text-red-400">
+                              {errors.guarantor2Phone.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Select
+                            {...register("guarantor2Relationship")}
+                            value={watch("guarantor2Relationship")}
+                            onValueChange={(value) =>
+                              handleChange("guarantor2Relationship", value)
+                            }
+                          >
+                            <SelectTrigger className="h-11 !rounded-md border border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500">
+                              <SelectValue placeholder="Relationship" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PARENT">Parent</SelectItem>
+                              <SelectItem value="SIBLING">Sibling</SelectItem>
+                              <SelectItem value="FRIEND">Friend</SelectItem>
+                              <SelectItem value="SPOUSE">Spouse</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {errors.guarantor2Relationship?.message && (
+                            <p className="mt-2 text-sm text-red-400">
+                              {errors.guarantor2Relationship.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full mt-2 grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={prev}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
+                      >
+                        Previous
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={next}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {currentStep === 3 && (
+              <motion.div
+                initial={{ x: delta >= 0 ? "50%" : "-50%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <Card className="w-full border outline-none shadow-none rounded-lg bg-[#ffffff] lg:max-h-[70vh] overflow-y-scroll">
+                  <CardHeader className="space-y-1 text-center capitalize">
+                    <CardTitle className="font-semibold text-xl">
+                      Bank Details
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="grid gap-2.5 space-y-3">
+                    <div className="space-y-1">
+                      <Label
                         htmlFor="accountNumber"
                         className="block text-sm font-medium leading-6 text-gray-900"
                       >
@@ -989,110 +1281,24 @@ const RiderForm = () => {
                       )}
                     </div>
 
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor="guarantor1Name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
+                    <div className="w-full my-2 grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={prev}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
                       >
-                        Guarantor 1 Name <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="guarantor1Name"
-                        type="text"
-                        placeholder="Gaurantor 1 name"
-                        className={cn(
-                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
-                          errors.guarantor1Name ? "border-red-400" : ""
-                        )}
-                        {...register("guarantor1Name")}
-                      />
-                      {errors.guarantor1Name?.message && (
-                        <p className="text-sm text-red-400">
-                          {errors.guarantor1Name.message}
-                        </p>
-                      )}
-                    </div>
+                        Previous
+                      </button>
 
-                    <div>
-                      <Label
-                        htmlFor="guarantor1Phone"
-                        className="block text-sm font-medium leading-6 text-gray-900"
+                      <button
+                        type="button"
+                        onClick={next}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
                       >
-                        Guarantor 1 Phone{" "}
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <PhoneInput
-                        defaultCountry={"NG"}
-                        placeholder={"123-456-7890"}
-                        value={
-                          watch("guarantor1Phone") as E164Number | undefined
-                        }
-                        international
-                        withCountryCallingCode
-                        inputComponent={Input}
-                        onChange={(value: string | undefined) =>
-                          setValue("guarantor1Phone", value ?? "")
-                        }
-                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
-                      />
-                      {errors.guarantor1Phone?.message && (
-                        <p className="mt-2 text-sm text-red-400">
-                          {errors.guarantor1Phone.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor="guarantor2Name"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Guarantor 2 Name <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="guarantor2Name"
-                        type="text"
-                        placeholder="Gaurantor 2 name"
-                        className={cn(
-                          "block w-full rounded-md border placeholder:text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base px-2 py-4",
-                          errors.guarantor2Name ? "border-red-400" : ""
-                        )}
-                        {...register("guarantor2Name")}
-                      />
-                      {errors.guarantor2Name?.message && (
-                        <p className="text-sm text-red-400">
-                          {errors.guarantor2Name.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="guarantor2Phone"
-                        className="block text-sm font-medium leading-6 text-gray-900"
-                      >
-                        Guarantor 2 Phone{" "}
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <PhoneInput
-                        defaultCountry={"NG"}
-                        placeholder={"123-456-7890"}
-                        value={
-                          watch("guarantor2Phone") as E164Number | undefined
-                        }
-                        international
-                        withCountryCallingCode
-                        inputComponent={Input}
-                        onChange={(value: string | undefined) =>
-                          setValue("guarantor2Phone", value ?? "")
-                        }
-                        className="mt-2 h-12 rounded-md p-3 text-sm border bg-gray-100 placeholder:text-gray-700 border-gray-300 !!important focus:border-blue-500 focus:ring-blue-500 sm:text-base"
-                      />
-                      {errors.guarantor2Phone?.message && (
-                        <p className="mt-2 text-sm text-red-400">
-                          {errors.guarantor2Phone.message}
-                        </p>
-                      )}
+                        {createRiderMutation.isPending
+                          ? "Submitting..."
+                          : "Submit"}
+                      </button>
                     </div>
                   </CardContent>
                 </Card>

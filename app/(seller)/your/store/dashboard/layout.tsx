@@ -9,6 +9,7 @@ export default async function DashboardLayout({
 }>) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const storeToken = cookieStore.get("store-token")?.value;
 
   return (
     <main className="" suppressHydrationWarning>
@@ -18,7 +19,11 @@ export default async function DashboardLayout({
         enableSystem
         disableTransitionOnChange
       >
-        <SellerDashboardLayout children={children} defaultOpen={defaultOpen} />
+        <SellerDashboardLayout
+          children={children}
+          defaultOpen={defaultOpen}
+          storeToken={storeToken}
+        />
       </ThemeProvider>
     </main>
   );

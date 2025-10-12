@@ -22,12 +22,23 @@ export async function getCurrentUser() {
         phone: true,
         createdAt: true,
         notifications: true,
-        isBuyer: true,
+        // isBuyer: true,
         isRider: true,
         isSeller: true,
         cart: {
           include: {
             cartItems: true,
+          },
+        },
+        store: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            businessInfo: true,
+            contactEmail: true,
+            contactPhone: true,
+            shippingInfo: true,
           },
         },
       },
@@ -55,8 +66,8 @@ export async function getCurrentRider() {
       },
       select: {
         id: true,
-        name: true,
-        phone: true,
+        // name: true,
+        // phone: true,
         createdAt: true,
       },
     });

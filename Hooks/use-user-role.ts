@@ -1,10 +1,58 @@
-import { useState } from "react";
+import {
+  Address,
+  BusinessInfo,
+  Category,
+  Contact,
+  CustomerCare,
+  Order,
+  OrderItem,
+  Product,
+  ProductVariant,
+  ShippingInfo,
+  SubCategory,
+  SubSubCategory,
+  User,
+} from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCurrentUser } from "@/lib/auth";
+
+interface SellerStoreData {
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  banners: string[];
+  contactEmail: string;
+  country: string;
+  state: string;
+  contactPhone: string;
+  accountType: string;
+  contact: Contact;
+  customerCare: CustomerCare;
+  businessInfo: BusinessInfo | null;
+  shippingInfo: ShippingInfo;
+  userId: string;
+  user: User;
+  createdAt: Date;
+  updatedAt: Date;
+  products: (Product & {
+    variants: ProductVariant[];
+    category: Category;
+    subCategory: SubCategory | null;
+    subSubCategory: SubSubCategory | null;
+  })[];
+  orderItems: (OrderItem & {
+    order: Order & {
+      buyer: User;
+      address: Address;
+    };
+  })[];
+}
 
 interface UserStatus {
   isRider?: boolean;
   isSeller?: boolean;
+  storeContactEmail?: string;
+  store?: SellerStoreData;
 }
 
 // Function to fetch the user's current status
@@ -14,7 +62,12 @@ const fetchUserStatus = async (): Promise<UserStatus> => {
     throw new Error("Failed to fetch user status");
   }
   const data = await res.json();
-  return { isRider: data.user?.isRider, isSeller: data.user?.isSeller };
+  return {
+    isRider: data.user?.isRider,
+    isSeller: data.user?.isSeller,
+    storeContactEmail: data.user.store.contactEmail,
+    store: data.user.store!,
+  };
 };
 
 // Function to update the user's status
@@ -74,6 +127,8 @@ export function useUserRole() {
   return {
     isRider: data?.isRider,
     isSeller: data?.isSeller,
+    contactEmail: data?.storeContactEmail,
+    store: data?.store,
     isLoading,
     isError,
     isSwitching,

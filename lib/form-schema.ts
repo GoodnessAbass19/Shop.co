@@ -121,7 +121,7 @@ export const RiderInfoSchema = z.object({
   nextOfKinPhone: z.string().min(10, "Next of kin phone number is required"),
   nin: z.string().min(11, "NIN is required").max(11, "NIN must be 11 digits"),
   ninImage: z.string().url(),
-  bvn: z.string().min(11, "BVN is required").max(11).optional(),
+  bvn: z.string().min(11, "BVN is required").optional(),
   plateNumber: z.string().min(1, "Plate number is required"),
   vehicleType: z.enum(["MOTORCYCLE", "BICYCLE", "CAR", "VAN", "SCOOTER"]),
   vehicleModel: z.string().min(1, "Vehicle model is required"),

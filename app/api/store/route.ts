@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { generateUniqueSlug } from "@/utils/generate-slug";
 import { Role } from "@prisma/client";
 import { countries } from "@/lib/utils";
+import { signToken } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
@@ -60,6 +62,21 @@ export async function POST(request: Request) {
       data: { role: Role.SELLER, isSeller: true }, // Set user's role to SELLER
     });
     console.log(`User ${user.id} role updated to SELLER.`);
+
+    const token = signToken({
+      userId: user.id,
+      email: email,
+      role: Role.SELLER,
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set("store-token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 60 * 60 * 6, // 6 hour
+      sameSite: "lax",
+      path: "/",
+    });
 
     return NextResponse.json(
       {

@@ -355,11 +355,11 @@ model Rider {
   nextOfKinPhone String
 
   // 3. Verification & Documents
-  nin              String  @unique
-  ninImage         String? // Optional field for image URL
-  bvn              String? @unique // Optional as per your schema
-  profileImage     String?
-  stateOfResidence String
+  nin                 String  @unique
+  ninImage            String? // Optional field for image URL
+  bvn                 String? @unique // Optional as per your schema
+  profileImage        String?
+  driversLicenseImage String?
 
   // 4. Vehicle Information
   plateNumber                 String      @unique

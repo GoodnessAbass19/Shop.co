@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import {
   CalendarIcon,
   Check,
-  ChevronDownIcon,
   ImageIcon,
   Loader2,
   Mail,
@@ -89,8 +88,8 @@ const stepFields = [
   },
   {
     id: "Step 4",
-    name: "Contact Information",
-    fields: ["email", "phoneNumber"],
+    name: "Bank Information",
+    fields: ["bankName", "accountNumber", "accountName"],
   },
 ];
 
@@ -106,7 +105,6 @@ const RiderForm = () => {
     reset,
     trigger,
     setValue,
-    setError,
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(RiderInfoSchema),
@@ -136,28 +134,38 @@ const RiderForm = () => {
       return res.json();
     },
     onSuccess: (data) => {
-      // Handle success (e.g., redirect, show toast, etc.)
-      // console.log("Store created!", data);
-      router.prefetch("/your/rider/dashboard");
-      router.push("/your/rider/dashboard");
+      reset();
+      toast({
+        title: "Rider Account Created",
+        description: "Your rider account has been created successfully.",
+      });
+      // Redirect to rider dashboard
+      router.prefetch("/logistics/rider/dashboard");
+      router.push("/logistics/rider/dashboard");
     },
     onError: (error: any) => {
       // Handle error (e.g., show toast)
       console.error("Rider Account creation failed:", error.message);
+      toast({
+        title: "Account Creation Failed",
+        description: error.message || "Failed to create rider account.",
+        variant: "destructive",
+      });
     },
   });
 
   const processForm: SubmitHandler<Inputs> = (data) => {
     createRiderMutation.mutate(data);
-    reset();
-    router.prefetch("/your/rider/dashboard");
-    router.push("/your/rider/dashboard");
   };
+
+  const totalSteps = 4;
+  // An array to easily map over and render each step
+  const steps = Array.from({ length: totalSteps }, (_, i) => i);
 
   const next = async () => {
     const fields = stepFields[currentStep].fields;
     const output = await trigger(fields as FieldName[], { shouldFocus: true });
-    console.log(output, errors);
+
     if (!output) return;
 
     // On last step, submit the form
@@ -174,10 +182,6 @@ const RiderForm = () => {
     setCurrentStep((step) => step - 1);
     setPreviousStep(currentStep - 1);
   };
-
-  const totalSteps = 4;
-  // An array to easily map over and render each step
-  const steps = Array.from({ length: totalSteps }, (_, i) => i);
 
   const handleChange = (field: string, value: string) => {
     setValue(field as keyof Inputs, value);
@@ -291,7 +295,7 @@ const RiderForm = () => {
     accept: { "image/jpeg": [], "image/png": [] },
     // multiple: true,
     maxFiles: 1,
-    maxSize: 5 * 1024 * 1024, // 5MB per file
+    maxSize: 3 * 1024 * 1024, // 5MB per file
     onDropRejected: (fileRejections: any[]) => {
       toast({
         title: "Image Files Rejected",
@@ -535,8 +539,6 @@ const RiderForm = () => {
                         Gender <span className="text-red-500">*</span>
                       </Label>
                       <Select
-                        defaultValue=""
-                        {...register("gender")}
                         value={watch("gender")}
                         onValueChange={handleGenderChange}
                       >
@@ -600,9 +602,14 @@ const RiderForm = () => {
                             captionLayout="dropdown"
                             onSelect={(date) => {
                               setDate(date);
+                              // setValue(
+                              //   "dateOfBirth",
+                              //   date ? format(date, "yyyy-MM-dd") : ""
+                              // );
                               setValue(
                                 "dateOfBirth",
-                                date ? format(date, "yyyy-MM-dd") : ""
+                                date ? date.toISOString() : "",
+                                { shouldValidate: true }
                               );
                               setOpen(false);
                             }}
@@ -674,15 +681,7 @@ const RiderForm = () => {
                       )}
                     </div>
 
-                    <div className="w-full mt-2 grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={prev}
-                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
-                      >
-                        Previous
-                      </button>
-
+                    <div className="w-full mt-2">
                       <button
                         type="button"
                         onClick={next}
@@ -763,7 +762,7 @@ const RiderForm = () => {
                               Choose Files
                             </Button>
                             <p className="text-xs  mt-2">
-                              Supported formats: PNG, JPEG, JPG (Max 5MB)
+                              Supported formats: PNG, JPEG, JPG (Max 3MB)
                             </p>
                           </div>
                         )}
@@ -900,8 +899,6 @@ const RiderForm = () => {
                         Vehicle Type <span className="text-red-500">*</span>
                       </Label>
                       <Select
-                        defaultValue=""
-                        {...register("vehicleType")}
                         value={watch("vehicleType")}
                         onValueChange={(value) =>
                           handleChange("vehicleType", value)
@@ -1060,7 +1057,6 @@ const RiderForm = () => {
 
                         <div>
                           <Select
-                            {...register("guarantor1Relationship")}
                             value={watch("guarantor1Relationship")}
                             onValueChange={(value) =>
                               handleChange("guarantor1Relationship", value)
@@ -1291,8 +1287,7 @@ const RiderForm = () => {
                       </button>
 
                       <button
-                        type="button"
-                        onClick={next}
+                        type="submit"
                         className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition w-full ease-in-out duration-150"
                       >
                         {createRiderMutation.isPending

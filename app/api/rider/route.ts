@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
+import { signToken } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -12,6 +14,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+
+    const { email } = body;
 
     // Check if the user already has a rider profile
     const existingRider = await prisma.rider.findUnique({
@@ -32,32 +36,43 @@ export async function POST(request: Request) {
       },
     });
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { role: Role.RIDER, isRider: true }, // Set user's role to SELLER
+    // Update user role if not already RIDER
+    if (user.role !== Role.RIDER) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: Role.RIDER, isRider: true },
+      });
+      console.log(`User ${user.id} role updated to RIDER.`);
+    }
+
+    const token = signToken({
+      userId: user.id,
+      email: email,
+      role: Role.RIDER,
     });
-    console.log(`User ${user.id} role updated to RIDER.`);
+
+    const cookieStore = await cookies();
+    cookieStore.set("rider-token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 60 * 60 * 6, // 6 hour
+      sameSite: "lax",
+      path: "/",
+    });
 
     return NextResponse.json(
       {
         success: true,
         message: "Rider created successfully!",
-        store: newRider,
+        rider: newRider,
       },
-      { status: 201 } // 201 Created
+      { status: 201 }
     );
   } catch (error: any) {
-    console.error("API Error creating store and products:", error);
+    console.error("API Error creating rider profile:", error);
 
-    // Handle unique constraint error for store name (slug is handled by utility)
-    if (error.code === "P2002" && error.meta?.target?.includes("name")) {
-      return NextResponse.json(
-        { error: "Store name already taken. Please choose a different name." },
-        { status: 409 }
-      );
-    }
     return NextResponse.json(
-      { error: "Failed to create store and products." },
+      { error: "Failed to create rider profile." },
       { status: 500 }
     );
   }

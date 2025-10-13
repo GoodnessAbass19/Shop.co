@@ -1,7 +1,8 @@
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import RiderDashboardLayout from "@/components/logistics/Layout";
 import { cookies } from "next/headers";
 
-export default async function RiderDashboardLayout({
+export default async function RiderLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -16,7 +17,7 @@ export default async function RiderDashboardLayout({
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <RiderDashboardLayout>{children}</RiderDashboardLayout>
       </ThemeProvider>
     </main>
   );

@@ -77,3 +77,25 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const rider = await prisma.rider.findUnique({
+      where: { userId: user.id },
+    });
+    if (!rider) {
+      return NextResponse.json({ error: "Rider not found" }, { status: 404 });
+    }
+    return NextResponse.json({ rider }, { status: 200 });
+  } catch (error) {
+    console.error("API Error fetching rider profile:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch rider profile." },
+      { status: 500 }
+    );
+  }
+}

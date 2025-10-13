@@ -677,7 +677,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                 ? renderLoadingSpinner()
                 : redirect
                 ? "Redirecting..."
-                : "Verify & Continue"}
+                : "Verify"}
             </Button>
 
             <div className="text-center text-sm mt-4">

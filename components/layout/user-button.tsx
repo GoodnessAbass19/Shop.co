@@ -32,6 +32,7 @@ import UserNotificationBell from "./notification";
 import { useUser } from "@/Hooks/user-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 const UserButton = () => {
   const { user, isLoading } = useUser();
@@ -69,6 +70,27 @@ const UserButton = () => {
           </Tooltip>
         </TooltipProvider>
       )}
+
+      {user?.role === "RIDER" && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HoverPrefetchLink href={"/logistics/rider/dashboard"}>
+                <Image
+                  src={"/images/motorsports.svg"}
+                  alt="rider"
+                  width={30}
+                  height={30}
+                />
+              </HoverPrefetchLink>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="capitalize">Switch to rider mode</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
       {user ? (
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN     "pickUpLat" DOUBLE PRECISION,
+ADD COLUMN     "pickUpLng" DOUBLE PRECISION;

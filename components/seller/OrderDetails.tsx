@@ -235,7 +235,9 @@ export default function OrderDetailsPage({ params }: { params: string }) {
   if (isLoading) {
     return (
       <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
-        <Loader2 className="animate-spin w-10 h-10 text-gray-500" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-300"></div>
+        </div>
       </section>
     );
   }

@@ -296,8 +296,6 @@ model OrderItem {
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
   storeId          String
   store            Store          @relation("StoreOrderItems", fields: [storeId], references: [id])
-  riderName        String?
-  riderPhone       String?
   deliveryStatus   DeliveryStatus @default(PENDING)
   deliveredAt      DateTime?
   assignedAt       DateTime? // When the rider is assigned

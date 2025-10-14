@@ -4,19 +4,6 @@ import { verifyCode } from "@/lib/delivery";
 import { pusherServer } from "@/lib/pusher";
 import { sendStatusEmail, sendStatusSMS } from "@/lib/notify";
 import { getCurrentRider } from "@/lib/auth";
-import { updateOrderStatus } from "@/lib/updateOrderStatus";
-
-async function maybeSetOrderDelivered(orderId: string) {
-  // If every item is DELIVERED, flip order status + deliveredAt
-  const items = await prisma.orderItem.findMany({ where: { orderId } });
-  const allDelivered = items.every((i) => i.deliveryStatus === "DELIVERED");
-  if (allDelivered) {
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "DELIVERED", deliveredAt: new Date() },
-    });
-  }
-}
 
 export async function POST(req: Request) {
   const rider = await getCurrentRider();
@@ -30,9 +17,14 @@ export async function POST(req: Request) {
       const assignment = await tx.deliveryItem.findUnique({
         where: { orderItemId },
         include: {
-          orderItem: { include: { order: { include: { buyer: true } } } },
+          orderItem: {
+            include: {
+              order: { include: { buyer: true } },
+            },
+          },
         },
       });
+
       if (!assignment || assignment.riderId !== rider.id)
         throw new Error("Forbidden");
       if (!assignment.deliveryCodeHash || !assignment.deliveryCodeExpires)
@@ -49,39 +41,60 @@ export async function POST(req: Request) {
         throw new Error("Invalid code");
       }
 
+      // Mark order item as delivered
       const item = await tx.orderItem.update({
         where: { id: orderItemId },
-        data: { deliveryStatus: "DELIVERED", deliveredAt: new Date() },
+        data: {
+          deliveryStatus: "DELIVERED",
+          deliveredAt: new Date(),
+        },
         include: { order: { include: { buyer: true } } },
       });
 
+      // Update delivery record
       await tx.deliveryItem.update({
         where: { orderItemId },
         data: {
           deliveredAt: new Date(),
+          status: "DELIVERED",
           deliveryCodeHash: null,
           deliveryCodeExpires: null,
           attempts: 0,
         },
       });
 
-      await maybeSetOrderDelivered(item.orderId);
+      // If all order items delivered, mark order as delivered
+      const remaining = await tx.orderItem.count({
+        where: {
+          orderId: item.orderId,
+          deliveryStatus: { not: "DELIVERED" },
+        },
+      });
+      if (remaining === 0) {
+        await tx.order.update({
+          where: { id: item.orderId },
+          data: { status: "DELIVERED", deliveredAt: new Date() },
+        });
+      }
 
-      // Notify buyer & seller
+      // Notifications
       const buyerEmail = item.order.buyer?.email;
       const buyerPhone = item.order.buyer?.phone;
+
       if (buyerEmail)
         await sendStatusEmail(
           buyerEmail,
           "Delivery confirmed",
-          `<p>Your item has been delivered. Thanks!</p>`
+          `<p>Your item has been delivered successfully. Thank you for shopping with us!</p>`
         );
+
       if (buyerPhone)
         await sendStatusSMS(
           buyerPhone,
-          "Your item has been delivered. Thanks for shopping!"
+          "✅ Your item has been delivered successfully. Thank you for shopping with us!"
         );
 
+      // Push real-time updates
       await pusherServer.trigger(
         `private-buyer-${item.order.buyerId}`,
         "order_item.delivered",
@@ -97,14 +110,13 @@ export async function POST(req: Request) {
         "order_item.delivered",
         { orderItemId }
       );
-
-      // await updateOrderStatus(assignment.orderItem.orderId);
     });
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error("Deliver route error:", e);
     return NextResponse.json(
-      { error: e.message || "Complete failed" },
+      { error: e.message || "Delivery confirmation failed" },
       { status: 400 }
     );
   }

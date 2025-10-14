@@ -66,8 +66,10 @@ export async function getCurrentRider() {
       },
       select: {
         id: true,
-        // name: true,
-        // phone: true,
+        phoneNumber: true,
+        firstName: true,
+        lastName: true,
+        email: true,
         createdAt: true,
       },
     });

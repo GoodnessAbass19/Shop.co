@@ -40,6 +40,10 @@ export async function POST(req: Request) {
       if (deliveryItem.status !== "PENDING")
         throw new Error("Delivery item is not available for acceptance");
 
+      const now = new Date();
+      const pickupDeadline = new Date(now.getTime() + 30 * 60 * 1000); // 15 mins
+      const deliveryDeadline = new Date(now.getTime() + 6 * 60 * 60 * 1000); // 6 hour
+
       // Assign the rider and mark ready for pickup
       const updated = await tx.deliveryItem.update({
         where: { orderItemId },
@@ -48,6 +52,8 @@ export async function POST(req: Request) {
           status: "READY_FOR_PICKUP",
           acceptedAt: new Date(),
           attempts: 0,
+          pickupDeadline: pickupDeadline,
+          deliveryDeadline: deliveryDeadline,
         },
         include: {
           orderItem: true,
@@ -60,7 +66,6 @@ export async function POST(req: Request) {
         data: {
           deliveryStatus: "READY_FOR_PICKUP",
           assignedAt: new Date(),
-          assignedRiderId: rider.id,
         },
       });
 

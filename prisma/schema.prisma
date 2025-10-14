@@ -317,11 +317,14 @@ model DeliveryItem {
   attempts            Int       @default(0)
 
   // logistics lifecycle
-  status      DeliveryStatus @default(PENDING)
-  acceptedAt  DateTime?
-  pickedUpAt  DateTime?
-  deliveredAt DateTime?
-  cancelledAt DateTime?
+  status           DeliveryStatus @default(PENDING)
+  acceptedAt       DateTime?
+  pickedUpAt       DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+  reofferedAt      DateTime?
+  pickupDeadline   DateTime? // ⏱ Rider must pick up before this
+  deliveryDeadline DateTime? // ⏱ Rider must deliver before this
 
   // geolocation for matching riders
   sellerLat      Float?
@@ -388,6 +391,11 @@ model Rider {
   longitude  Float?
   geohash    String?
   deliveries DeliveryItem[]
+
+  // Penalties & Ratings
+  suspensionUntil  DateTime?
+  reliabilityScore Int       @default(100) // starts from 100
+  penaltyCount     Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -75,6 +75,15 @@ export async function POST(req: Request) {
       }
     );
 
+    await pusherServer.trigger("rider-reoffers", "delivery_item.reoffered", {
+      deliveryItemId: deliveryItem.id,
+      orderItemId: deliveryItem.orderItemId,
+      // pickupLocation: deliveryItem.pickupLocation,
+      // dropoffLocation: deliveryItem.dropoffLocation,
+      // amount: deliveryItem.amount,
+      createdAt: deliveryItem.createdAt,
+    });
+
     // Notify buyer if already out for delivery
     if (deliveryItem.status === "OUT_FOR_DELIVERY") {
       await pusherServer.trigger(

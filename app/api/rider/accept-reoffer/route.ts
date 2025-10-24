@@ -9,6 +9,18 @@ export async function POST(req: Request) {
   if (!rider)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (rider.suspensionUntil && new Date() < rider.suspensionUntil) {
+    const remaining = Math.ceil(
+      (rider.suspensionUntil.getTime() - Date.now()) / (60 * 1000)
+    );
+    return NextResponse.json(
+      {
+        error: `You are temporarily suspended. Please try again in ${remaining} minutes.`,
+      },
+      { status: 403 }
+    );
+  }
+
   const { deliveryItemId } = await req.json();
 
   const item = await prisma.deliveryItem.findUnique({

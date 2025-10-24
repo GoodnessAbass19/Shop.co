@@ -93,6 +93,7 @@ export function useUserRole() {
     queryKey: ["userStatus"],
     queryFn: fetchUserStatus,
     staleTime: 10 * 60 * 1000, // The role won't change unless the user explicitly switches
+    refetchOnWindowFocus: false,
   });
 
   // Use useMutation to handle the API call to update the role

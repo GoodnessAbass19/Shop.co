@@ -1,4 +1,4 @@
-import RiderForm from "@/components/logistics/RegisterForm";
+import RiderForm from "@/components/rider/RegisterForm";
 
 const RiderRegistrationPage = () => {
   return (

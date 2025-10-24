@@ -86,6 +86,21 @@ export async function GET() {
     }
     const rider = await prisma.rider.findUnique({
       where: { userId: user.id },
+      include: {
+        deliveries: {
+          include: {
+            orderItem: {
+              include: {
+                productVariant: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
     if (!rider) {
       return NextResponse.json({ error: "Rider not found" }, { status: 404 });

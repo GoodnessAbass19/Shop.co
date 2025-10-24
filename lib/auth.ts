@@ -71,6 +71,13 @@ export async function getCurrentRider() {
         lastName: true,
         email: true,
         createdAt: true,
+        suspensionUntil: true,
+        penaltyCount: true,
+        reliabilityScore: true,
+        isActive: true,
+        latitude: true,
+        longitude: true,
+        geohash: true,
       },
     });
     return user;

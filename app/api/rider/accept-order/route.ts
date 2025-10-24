@@ -17,6 +17,18 @@ export async function POST(req: Request) {
     );
   }
 
+  if (rider.suspensionUntil && new Date() < rider.suspensionUntil) {
+    const remaining = Math.ceil(
+      (rider.suspensionUntil.getTime() - Date.now()) / (60 * 1000)
+    );
+    return NextResponse.json(
+      {
+        error: `You are temporarily suspended. Please try again in ${remaining} minutes.`,
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const updatedDelivery = await prisma.$transaction(async (tx) => {
       // Ensure delivery item exists and is available

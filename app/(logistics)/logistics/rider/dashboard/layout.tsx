@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import RiderDashboardLayout from "@/components/logistics/Layout";
+import RiderDashboardLayout from "@/components/rider/Layout";
 import { cookies } from "next/headers";
 
 export default async function RiderLayout({

@@ -1,10 +1,17 @@
-import { getCurrentRider } from "@/lib/auth";
+import { getCurrentRider, getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const rider = await getCurrentRider();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rider = await prisma.rider.findUnique({
+      where: { userId: user.id },
+    });
 
     if (!rider?.id) {
       return NextResponse.json(

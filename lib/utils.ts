@@ -38,6 +38,7 @@ export function getFirstName(name: string): string {
   // Return the first word as the first name.
   return words[0] || "";
 }
+
 export function getLastName(name: string): string {
   // Check if the input is valid
   if (!name || typeof name !== "string") {

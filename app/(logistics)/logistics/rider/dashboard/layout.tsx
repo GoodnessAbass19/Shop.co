@@ -1,3 +1,4 @@
+import RiderNavbar from "@/components/dashboard/rider-navbar";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import RiderDashboardLayout from "@/components/rider/Layout";
 import { cookies } from "next/headers";

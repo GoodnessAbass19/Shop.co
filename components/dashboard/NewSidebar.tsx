@@ -237,7 +237,7 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
                             fill="#eab308"
                             stroke="currentColor"
                           />
-                          Dark mode
+                          Light mode
                         </div>
                       )}
 

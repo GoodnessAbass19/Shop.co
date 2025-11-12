@@ -20,6 +20,11 @@ export async function POST(req: Request) {
           orderItem: {
             include: {
               order: { include: { buyer: true } },
+              productVariant: {
+                include: {
+                  product: true,
+                },
+              },
             },
           },
         },
@@ -41,7 +46,20 @@ export async function POST(req: Request) {
         throw new Error("Invalid code");
       }
 
-      // Mark order item as delivered
+      /**
+       * 💰 Compute Rider Earning
+       * You can later customize this logic dynamically (distance, bonuses, etc.)
+       */
+      const itemPrice =
+        assignment.orderItem.productVariant?.product?.price || 0;
+      const basePay = 1000; // NGN
+      const bonus = 100; // NGN
+      const percentOfPrice = 0.05 * itemPrice; // 5% of item price
+      const riderEarnings = basePay + bonus + percentOfPrice;
+
+      /**
+       * ✅ Update order item as delivered
+       */
       const item = await tx.orderItem.update({
         where: { id: orderItemId },
         data: {
@@ -51,7 +69,9 @@ export async function POST(req: Request) {
         include: { order: { include: { buyer: true } } },
       });
 
-      // Update delivery record
+      /**
+       * ✅ Update delivery item
+       */
       await tx.deliveryItem.update({
         where: { orderItemId },
         data: {
@@ -60,16 +80,20 @@ export async function POST(req: Request) {
           deliveryCodeHash: null,
           deliveryCodeExpires: null,
           attempts: 0,
+          // riderEarnings, // 💰 Save earning
         },
       });
 
-      // If all order items delivered, mark order as delivered
+      /**
+       * 🧮 If all order items delivered, mark full order as delivered
+       */
       const remaining = await tx.orderItem.count({
         where: {
           orderId: item.orderId,
           deliveryStatus: { not: "DELIVERED" },
         },
       });
+
       if (remaining === 0) {
         await tx.order.update({
           where: { id: item.orderId },
@@ -77,7 +101,9 @@ export async function POST(req: Request) {
         });
       }
 
-      // Notifications
+      /**
+       * ✉️ Notifications
+       */
       const buyerEmail = item.order.buyer?.email;
       const buyerPhone = item.order.buyer?.phone;
 
@@ -94,22 +120,31 @@ export async function POST(req: Request) {
           "✅ Your item has been delivered successfully. Thank you for shopping with us!"
         );
 
-      // Push real-time updates
+      /**
+       * 🔔 Realtime updates via Pusher
+       */
       await pusherServer.trigger(
         `private-buyer-${item.order.buyerId}`,
         "order_item.delivered",
         { orderItemId }
       );
+
       await pusherServer.trigger(
         `private-seller-${item.storeId}`,
         "order_item.delivered",
         { orderItemId }
       );
+
       await pusherServer.trigger(
         `private-rider-${rider.id}`,
         "order_item.delivered",
-        { orderItemId }
+        { orderItemId, earning: riderEarnings }
       );
+
+      /**
+       * ⭐ (Optional) Rider Rating Placeholder
+       * We'll later add a route where buyer can rate this completed delivery.
+       */
     });
 
     return NextResponse.json({ ok: true });

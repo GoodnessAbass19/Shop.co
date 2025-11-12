@@ -4,6 +4,7 @@ import { RiderProvider } from "@/Hooks/use-rider-context";
 import { useUserRole } from "@/Hooks/use-user-role";
 import { Rider, User } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import RiderNavbar from "../dashboard/rider-navbar";
 
 // Fetch rider data function
 const fetchRiderData = async (): Promise<{ rider: Rider & { user: User } }> => {
@@ -49,7 +50,12 @@ const RiderDashboardLayout = ({
     );
   }
 
-  return <RiderProvider rider={riderData!}>{children}</RiderProvider>;
+  return (
+    <RiderProvider rider={riderData!}>
+      <RiderNavbar rider={data?.rider!} />
+      {children}
+    </RiderProvider>
+  );
 };
 
 export default RiderDashboardLayout;

@@ -2,7 +2,11 @@ import RiderDashboard from "@/components/rider/RiderDashboard";
 import React from "react";
 
 const RiderDashboardPage = () => {
-  return <RiderDashboard />;
+  return (
+    <div>
+      <RiderDashboard />
+    </div>
+  );
 };
 
 export default RiderDashboardPage;

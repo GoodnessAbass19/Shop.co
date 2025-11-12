@@ -608,7 +608,7 @@ export default function AuthForm({ type }: AuthFormProps) {
         {currentStep === "input_otp" && (
           <form onSubmit={handleSubmit(handleVerifyOtp)} className="space-y-6">
             <h3 className="text-2xl font-semibold text-center text-gray-800 mb-4">
-              Verify Your Email
+              Verify It's You
             </h3>
             <p className="text-sm text-center text-gray-600 mb-6">
               A One-Time Password (OTP) has been sent to{" "}

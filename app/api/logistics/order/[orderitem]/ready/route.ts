@@ -15,7 +15,6 @@ export async function POST(
     }
 
     const { orderitem } = params;
-
     if (!orderitem || typeof orderitem !== "string") {
       return NextResponse.json(
         { error: "Invalid or missing order item ID." },
@@ -40,7 +39,7 @@ export async function POST(
     // Verify the seller owns this store
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, shippingInfo: true },
     });
 
     if (!store) {
@@ -60,18 +59,19 @@ export async function POST(
       include: {
         order: { include: { buyer: true } },
         store: true,
-        productVariant: { include: { product: true } },
+        productVariant: {
+          include: { product: true },
+        },
       },
     });
 
     if (!item) {
       return NextResponse.json(
-        { error: "Order item not found." },
+        { error: "Order item not found or not eligible for delivery." },
         { status: 404 }
       );
     }
 
-    // Only allow PENDING → READY_FOR_PICKUP
     if (item.deliveryStatus !== "PENDING") {
       return NextResponse.json(
         { error: "Order item cannot transition to READY_FOR_PICKUP." },
@@ -79,7 +79,7 @@ export async function POST(
       );
     }
 
-    // Check if a delivery item already exists for this order item
+    // Check for existing delivery entry
     const existingDelivery = await prisma.deliveryItem.findUnique({
       where: { orderItemId: item.id },
     });
@@ -87,61 +87,99 @@ export async function POST(
     if (existingDelivery) {
       return NextResponse.json({
         success: true,
-        message: "Order item is already marked as ready for pickup.",
+        message: "Delivery offer already created.",
         orderItem: item,
         deliveryItem: existingDelivery,
       });
     }
 
-    const hash = encodeGeoHash5(sellerLat, sellerLng);
-    const offerExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const sellerGeohash = encodeGeoHash5(sellerLat, sellerLng);
+    const offerExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Update order item delivery status
     const updatedItem = await prisma.orderItem.update({
-      where: { id: orderitem },
+      where: { id: item.id },
       data: { deliveryStatus: "READY_FOR_PICKUP" },
-    });
-
-    // Create a corresponding DeliveryItem
-    const deliveryItem = await prisma.deliveryItem.create({
-      data: {
-        orderItemId: item.id,
-        status: "PENDING",
-        sellerLat,
-        sellerLng,
-        sellerGeohash: hash,
-        offerExpiresAt: offerExpiry,
+      include: {
+        order: { include: { buyer: true } },
+        productVariant: {
+          include: { product: true },
+        },
+        store: true,
       },
     });
 
-    // Notify nearby riders
-    await pusherServer.trigger(
-      `presence-nearby-${hash}`,
-      "order-item-offered",
-      {
-        orderitem: updatedItem.id,
-        orderId: updatedItem.orderId,
-        storeId: updatedItem.storeId,
-        storeName: store.name,
+    const itemPrice = updatedItem.productVariant?.product?.price || 0;
+    const basePay = 1000; // NGN
+    const bonus = 100; // NGN
+    const percentOfPrice = 0.05 * itemPrice; // 5% of item price
+    const riderEarning = basePay + bonus + percentOfPrice;
+
+    // Create the DeliveryItem record
+    const deliveryItem = await prisma.deliveryItem.create({
+      data: {
+        orderItemId: item.id,
         sellerLat,
         sellerLng,
-        itemName: item.productVariant.product.name,
-        price: item.price,
-        timestamp: new Date().toISOString(),
-        geohash: hash,
-      }
+        sellerGeohash,
+        offerExpiresAt,
+        status: "PENDING",
+        riderEarnings: riderEarning,
+      },
+      include: {
+        orderItem: {
+          include: {
+            order: { include: { buyer: true, address: true } },
+            productVariant: {
+              include: { product: true },
+            },
+            store: {
+              include: {
+                shippingInfo: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Notify nearby riders (Pusher broadcast)
+    const offerPayload = {
+      id: deliveryItem.id,
+      orderItemId: deliveryItem.orderItemId,
+      storeName: store.name,
+      pickupAddress: `${store.shippingInfo?.shippingAddress1}, ${
+        store.shippingInfo?.shippingAddress2 || ""
+      } ${store.shippingInfo?.shippingCity || ""}, ${
+        store.shippingInfo?.shippingState
+      }`.trim(),
+      dropoffAddress:
+        `${deliveryItem.orderItem.order.address?.street}, ${deliveryItem.orderItem.order.address?.city}, ${deliveryItem.orderItem.order.address?.state}`.trim(),
+      fee: deliveryItem.riderEarnings,
+      itemName: deliveryItem.orderItem.productVariant.product.name,
+      price: deliveryItem.orderItem.price,
+      sellerLat,
+      sellerLng,
+      buyerName: deliveryItem.orderItem.order.buyer?.name || "Buyer",
+      timestamp: new Date().toISOString(),
+      geohash: sellerGeohash,
+    };
+
+    await pusherServer.trigger(
+      `presence-nearby-${sellerGeohash}`,
+      "offer.new",
+      offerPayload
     );
 
     return NextResponse.json({
       success: true,
-      message: "Order item marked as ready for pickup.",
-      orderItem: updatedItem,
+      message: "Order item marked as ready for pickup and offer broadcasted.",
       deliveryItem,
     });
   } catch (error: any) {
-    console.error("Error marking order item ready for pickup:", error);
+    console.error("❌ Error creating delivery offer:", error);
     return NextResponse.json(
-      { error: "Failed to mark order item as ready for pickup." },
+      { error: "Failed to create delivery offer." },
       { status: 500 }
     );
   }

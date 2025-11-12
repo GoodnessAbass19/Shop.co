@@ -50,10 +50,12 @@ model Address {
   isDefault  Boolean  @default(false) // Flag to indicate if this is the user's primary/default address
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
+  latitude   Float
+  longitude  Float
+  geohash    String
   // Foreign key to User
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Orders associated with this specific address (e.g., shipping address for an order)
   orders Order[]
@@ -325,6 +327,7 @@ model DeliveryItem {
   reofferedAt      DateTime?
   pickupDeadline   DateTime? // ⏱ Rider must pick up before this
   deliveryDeadline DateTime? // ⏱ Rider must deliver before this
+  riderEarnings    Float? // amount rider earns for this delivery
 
   // geolocation for matching riders
   sellerLat      Float?

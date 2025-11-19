@@ -48,6 +48,7 @@ interface SellerStoreData {
       address: Address;
     };
   })[];
+  isactive: boolean;
 }
 
 // Define the context value type

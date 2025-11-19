@@ -1,7 +1,6 @@
 // components/seller/DashboardOverview.tsx
 "use client";
 
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DollarSign,
@@ -47,6 +46,7 @@ import {
   Line,
 } from "recharts";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { useRouter } from "next/navigation";
 
 interface DashboardSummary {
   totalRevenue: number;
@@ -118,6 +118,7 @@ const fetchSalesAnalytics = async (storeId: string) => {
 
 export function DashboardOverview() {
   const { store } = useSellerStore(); // Get store data from context
+  const router = useRouter();
 
   const { data, isLoading, isError, error } = useQuery<DashboardSummary, Error>(
     {
@@ -163,8 +164,6 @@ export function DashboardOverview() {
       </section>
     );
   }
-
- 
 
   const {
     totalRevenue,

@@ -62,13 +62,7 @@ export function AddressManager() {
   const [openModal, setOpenModal] = useState(false);
 
   // useQuery to fetch addresses
-  const {
-    data: addresses,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery<Address[], Error>({
+  const { data: addresses, isLoading } = useQuery<Address[], Error>({
     queryKey: ["addresses"],
     queryFn: getAddresses,
     staleTime: 60 * 1000, // Data considered fresh for 1 minute

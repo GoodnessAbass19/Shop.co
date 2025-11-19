@@ -59,6 +59,7 @@ interface SellerStoreData {
       address: Address;
     };
   })[];
+  isactive: boolean;
 }
 
 // Function to fetch seller's store data

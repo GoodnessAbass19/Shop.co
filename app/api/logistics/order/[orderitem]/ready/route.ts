@@ -161,6 +161,10 @@ export async function POST(
       sellerLat,
       sellerLng,
       buyerName: deliveryItem.orderItem.order.buyer?.name || "Buyer",
+      buyerContact: deliveryItem.orderItem.order.buyer?.phone || "",
+      buyerLat: deliveryItem.orderItem.order.address?.latitude || 0,
+      buyerLng: deliveryItem.orderItem.order.address?.longitude || 0,
+      offerExpiresAt: deliveryItem.offerExpiresAt,
       timestamp: new Date().toISOString(),
       geohash: sellerGeohash,
     };

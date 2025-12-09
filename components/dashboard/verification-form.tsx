@@ -137,6 +137,7 @@ const VerificationForm = ({
       const result = await res.json();
 
       if (res.ok && result.success) {
+        setLoading(true);
         toast({
           title: "Success!",
           description:

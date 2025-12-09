@@ -1,54 +1,44 @@
 "use client";
+
 import { useToast } from "@/Hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { images } from "@/types";
+import { images as ImagesType } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "./button";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, X } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Scrollbar } from "swiper/modules";
+import { FreeMode, Pagination, Scrollbar } from "swiper/modules";
+import { motion, AnimatePresence } from "framer-motion";
+
 import "swiper/css";
 import "swiper/css/scrollbar";
 import "swiper/css/free-mode";
+import "swiper/css/pagination";
 
-const checkWishlistStatus = async (
-  productId: string
-): Promise<{ isWishlisted: boolean }> => {
+const checkWishlistStatus = async (productId: string) => {
   const res = await fetch(`/api/wishlist/status?productId=${productId}`);
   if (!res.ok) {
-    // If unauthorized, it means user is not logged in, so it's not wishlisted for them
     if (res.status === 401) return { isWishlisted: false };
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Failed to check wishlist status.");
+    throw new Error((await res.json())?.error);
   }
   return res.json();
 };
 
-// Function to add a product to the wishlist
 const addProductToWishlist = async (productId: string) => {
   const res = await fetch("/api/wishlist", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ productId }),
   });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Failed to add to wishlist.");
-  }
+  if (!res.ok) throw new Error((await res.json())?.error);
   return res.json();
 };
 
-// Function to remove a product from the wishlist
 const removeProductFromWishlist = async (productId: string) => {
-  const res = await fetch(`/api/wishlist/${productId}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Failed to remove from wishlist.");
-  }
+  const res = await fetch(`/api/wishlist/${productId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.json())?.error);
   return res.json();
 };
 
@@ -57,191 +47,204 @@ const ThumbnailGallery = ({
   id,
   name,
 }: {
-  images: images;
+  images: ImagesType;
   id: string;
   name: string;
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: wishlistStatus, isLoading: isCheckingWishlist } = useQuery({
-    queryKey: ["wishlistStatus", id], // Unique key for this product's wishlist status
+    queryKey: ["wishlistStatus", id],
     queryFn: () => checkWishlistStatus(id),
-    staleTime: 10 * 60 * 1000, // Cache for 5 minutes
     refetchOnWindowFocus: false,
-    retry: false, // Don't retry on 401 (Unauthorized)
+    retry: false,
   });
 
-  const isWishlisted = wishlistStatus?.isWishlisted || false;
+  const isWishlisted = wishlistStatus?.isWishlisted ?? false;
 
-  // Mutation for adding to wishlist
   const addMutation = useMutation({
     mutationFn: addProductToWishlist,
     onSuccess: () => {
-      toast({
-        title: "Added to Wishlist",
-        description: `${name} has been added to your wishlist.`,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wishlistStatus", id],
-      }); // Invalidate to refetch status
-      queryClient.invalidateQueries({ queryKey: ["wishlist"] }); // Invalidate the full wishlist query
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Add",
-        description: error.message || "Could not add product to wishlist.",
-        variant: "destructive",
-      });
+      toast({ title: "Added to Wishlist" });
+      queryClient.invalidateQueries({ queryKey: ["wishlistStatus", id] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     },
   });
 
-  // Mutation for removing from wishlist
   const removeMutation = useMutation({
     mutationFn: removeProductFromWishlist,
     onSuccess: () => {
-      toast({
-        title: "Removed from Wishlist",
-        description: `${name} has been removed from your wishlist.`,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["wishlistStatus", id],
-      }); // Invalidate to refetch status
-      queryClient.invalidateQueries({ queryKey: ["wishlist"] }); // Invalidate the full wishlist query
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Remove",
-        description: error.message || "Could not remove product from wishlist.",
-        variant: "destructive",
-      });
+      toast({ title: "Removed from Wishlist" });
+      queryClient.invalidateQueries({ queryKey: ["wishlistStatus", id] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     },
   });
 
-  const handleWishlistToggle = useCallback(() => {
-    if (
-      isCheckingWishlist ||
-      addMutation.isPending ||
-      removeMutation.isPending
-    ) {
-      return; // Prevent multiple clicks while loading/mutating
-    }
+  const isUpdating =
+    isCheckingWishlist || addMutation.isPending || removeMutation.isPending;
 
-    if (isWishlisted) {
-      removeMutation.mutate(id);
-    } else {
-      addMutation.mutate(id);
-    }
-  }, [isWishlisted, id, isCheckingWishlist, addMutation, removeMutation]);
+  const handleWishlistToggle = useCallback(() => {
+    if (isUpdating) return;
+    isWishlisted ? removeMutation.mutate(id) : addMutation.mutate(id);
+  }, [isUpdating, isWishlisted]);
 
   useEffect(() => {
-    // Set the first image as the initial selected image when the component mounts.
-    setSelectedImageIndex(0);
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsZoomOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
-  const selectImage = (index: any) => {
-    setSelectedImageIndex(index);
-  };
-
   return (
-    <div className="flex flex-col-reverse md:flex-row flex-1 justify-start items-stretch gap-5 overflow-hidden">
-      <div className="">
+    <>
+      <div className="sm:flex flex-col-reverse md:flex-row gap-3 justify-start items-start hidden">
+        {/* Thumbnails */}
         <Swiper
           scrollbar={{
             draggable: true,
             snapOnRelease: true,
-            dragSize: 20,
+            dragSize: 10,
             hide: true,
           }}
-          spaceBetween={5}
-          direction="horizontal"
-          slidesPerView={4}
-          keyboard={{
-            enabled: true,
-          }}
-          freeMode={true}
+          spaceBetween={10}
+          freeMode
+          slidesPerView={5}
           modules={[Scrollbar, FreeMode]}
+          // direction="horizontal"
           breakpoints={{
-            768: {
-              direction: "vertical",
-              slidesPerView: 6,
-              spaceBetween: 10,
-            },
+            768: { direction: "vertical", slidesPerView: 6.5 },
           }}
-          className="md:max-h-[500px]"
+          className="md:h-[480px]"
         >
           {images.map((image, index) => (
             <SwiperSlide
               key={index}
-              className={`cursor-pointer max-w-[100px] md:w-[100px] max-h-[100px] md:h-[100px] rounded-2xl ${
+              onClick={() => setSelectedImageIndex(index)}
+              className={cn(
+                "cursor-pointer rounded-xl overflow-hidden",
                 index === selectedImageIndex
-                  ? "border-2 brightness-100 contrast-100"
-                  : "brightness-50  hover:brightness-75"
-              }`}
-              onClick={() => selectImage(index)}
+                  ? "ring-2 ring-primary brightness-100"
+                  : "brightness-50 hover:brightness-75 transition"
+              )}
             >
               <Image
+                src={image.url}
                 width={500}
                 height={500}
-                src={image.url}
-                alt={`Thumbnail ${index}`}
-                loading="lazy"
-                className="md:rounded-lg hover:shadow-md transition duration-300 transform rounded-2xl object-cover w-[100px] h-[100px]"
+                alt=""
+                className="md:rounded-lg hover:shadow-md transition duration-300 transform rounded-xl object-cover w-full h-full"
               />
             </SwiperSlide>
           ))}
         </Swiper>
-        {/* <div className="grid md:grid-cols-1 grid-cols-4 gap-4 justify-center items-center md:h-[500px] overflow-hidden">
-          
-        </div> */}
-      </div>
 
-      <div className="w-full h-full md:max-w-[480px] grow order-1 md:order-2 aspect-square relative overflow-hidden">
-        {images.length > 0 && (
-          <div>
-            <Image
-              width={1000}
-              height={1000}
-              priority
-              src={images[selectedImageIndex].url}
-              alt={`Selected Image ${selectedImageIndex}`}
-              className="md:h-full w-[372px] h-[444px] md:w-full w border-2 border-gray-200 object-cover object-center shadow-sm dark:border-gray-800 sm:rounded-2xl sm:rounded-b-2xl overflow-clip"
-            />
-          </div>
-        )}
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "absolute top-2 right-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors duration-200",
-            isWishlisted
-              ? "text-red-500 hover:text-red-600"
-              : "text-gray-500 hover:text-red-500",
-            (isCheckingWishlist ||
-              addMutation.isPending ||
-              removeMutation.isPending) &&
-              "opacity-60 cursor-not-allowed"
-          )}
-          onClick={handleWishlistToggle}
-          disabled={
-            isCheckingWishlist ||
-            addMutation.isPending ||
-            removeMutation.isPending
-          }
-          title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+        {/* Main Image */}
+        <div
+          className="relative w-full aspect-square rounded-2xl overflow-hidden cursor-zoom-in"
+          onClick={() => setIsZoomOpen(true)}
         >
-          {isCheckingWishlist ||
-          addMutation.isPending ||
-          removeMutation.isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
-          )}
-        </Button>
+          <Image
+            src={images[selectedImageIndex].url}
+            width={1000}
+            height={1000}
+            alt="Selected"
+            className="w-full h-full object-cover rounded-2xl"
+            priority
+          />
+
+          {/* Wishlist Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={isUpdating}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlistToggle();
+            }}
+            className={cn(
+              "absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur-sm shadow-md",
+              isWishlisted ? "text-red-500" : "text-gray-600"
+            )}
+          >
+            {isUpdating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Heart
+                className={cn("h-5 w-5", isWishlisted && "fill-red-500")}
+              />
+            )}
+          </Button>
+        </div>
       </div>
-    </div>
+
+      <div className="block sm:hidden">
+        <Swiper
+          pagination={true}
+          modules={[Pagination]}
+          className="block sm:hidden h-[350px]"
+        >
+          {images.map((image, index) => (
+            <SwiperSlide
+              key={index}
+              onClick={() => {
+                setSelectedImageIndex(index), setIsZoomOpen(true);
+              }}
+              className="cursor-pointer rounded-xl overflow-hidden p-2 h-full w-full"
+            >
+              <Image
+                src={image.url}
+                width={500}
+                height={500}
+                alt=""
+                className="md:rounded-lg hover:shadow-md transition duration-300 transform rounded-xl object-cover w-full h-full"
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+
+      {/* ZOOM MODAL */}
+      <AnimatePresence>
+        {isZoomOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsZoomOpen(false)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              className="relative w-[92vw] max-w-4xl rounded-xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={images[selectedImageIndex].url}
+                width={2000}
+                height={2000}
+                alt="Zoomed"
+                className="object-contain w-full h-full"
+              />
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsZoomOpen(false)}
+                className="absolute top-4 right-4 bg-white/80 rounded-full p-2 shadow-md"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

@@ -152,21 +152,6 @@ const ProductCard = ({
     }
   }, [isWishlisted, item.id, isCheckingWishlist, addMutation, removeMutation]);
 
-  // function percentageDifference(num1: number | 0, num2: number | 0) {
-  //   if (num1 === 0 && num2 === 0) {
-  //     return 0; // No difference if both numbers are zero
-  //   }
-
-  //   // Use the absolute difference divided by the average of the two numbers
-  //   const difference = Math.abs(num1 - num2);
-  //   const average = (Math.abs(num1) + Math.abs(num2)) / 2;
-
-  //   // Calculate percentage difference
-  //   const percentage = (difference / average) * 100;
-
-  //   return Math.ceil(percentage); // Round up to the nearest whole number
-  // }
-
   if (loading) {
     return <div>{loading && <SkeletonCard />}</div>;
   }

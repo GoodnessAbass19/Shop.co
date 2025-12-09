@@ -19,7 +19,7 @@ const CategoryPage = async ({ params }: { params: Params }) => {
   const { category } = await params;
 
   return (
-    <section className="max-w-screen-xl mx-auto mt-10">
+    <section className="max-w-screen-xl mx-auto mt-6">
       <Category param={category} />
     </section>
   );

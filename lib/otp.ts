@@ -2,8 +2,7 @@
 import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
+import prisma from "./prisma";
 
 export async function sendOtp(email: string) {
   const otp = crypto.randomInt(100000, 999999).toString();

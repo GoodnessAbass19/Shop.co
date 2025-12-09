@@ -2,11 +2,9 @@
 
 import { useToast } from "@/Hooks/use-toast";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
-import { Product } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Loader2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useCallback } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
@@ -133,21 +131,21 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
   ]);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative">
       <HoverPrefetchLink
         href={`/products/${product.slug}`}
         key={product.id}
-        className="rounded-lg space-y-1"
+        className="rounded-lg space-y-1 overflow-hidden"
       >
         <Image
           src={product?.images?.[0] || "https://placehold.co/300x300"}
           alt={product.name}
           width={300}
           height={300}
-          className="w-full h-[250px] object-cover object-center rounded-sm"
+          className="w-full h-[160px] md:h-[190px] lg:h-full object-cover object-center rounded-sm"
         />
-        <div className="px-1.5 leading-none">
-          <h4 className="text-base font-medium line-clamp-1 capitalize">
+        <div className="px-1 leading-none">
+          <h4 className="text-sm sm:text-base font-serif font-medium line-clamp-1 capitalize">
             {product.name}
           </h4>
           <div>
@@ -160,7 +158,7 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
             )}
           </div>
           <div className="flex gap-0.5 items-center">
-            <p className="text-lg uppercase font-semibold font-sans text-black mt-1">
+            <p className="text-lg uppercase font-semibold font-sans text-black mt-0.5">
               {formatCurrencyValue(product.discountedPrice || product.price)}
             </p>
 
@@ -172,19 +170,11 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
             {product?.discountedPrice !== null && (
               <span className="font-normal text-sm text-center text-black font-sans">
                 ({product?.discounts?.[0]?.percentage}% off)
-                {/* {percentageDifference(
-              // @ts-ignore
-              item?.price,
-              item?.discountedPrice
-            )} */}
               </span>
             )}
           </div>
         </div>
       </HoverPrefetchLink>
-      {/* <span className="font-light text-sm text-center text-black bg-white rounded-full p-2 absolute top-1 right-1">
-          <Heart className="w-4 h-4" />
-        </span> */}
       <Button
         variant="ghost"
         size="icon"

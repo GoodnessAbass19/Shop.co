@@ -35,6 +35,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getFirstName, getInitials, getLastName } from "@/lib/utils";
 import { useUser } from "@/Hooks/user-context";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -49,23 +50,43 @@ const fetcher = async (url: string) => {
 
 const ProductDetails = ({ slug }: { slug: string }) => {
   const { refetchCart } = useUser();
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/products/${slug}`,
-    fetcher
-  );
-  const queryClient = useQueryClient();
   const router = useRouter();
-  const fallbackImages = [
-    { url: "https://via.placeholder.com/200" },
-    { url: "https://via.placeholder.com/200" },
-    { url: "https://via.placeholder.com/200" },
-  ];
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState<
-    (typeof data.product.variants)[0] | null
-  >(null);
+  const queryClient = useQueryClient();
+  const [isExpanded, setIsExpanded] = useState(false);
 
+  // We toggle this state to switch between "clamped" and "visible"
+  const toggleReadMore = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const { data, error, isLoading } = useSWR(`/api/products/${slug}`, fetcher);
+
+  const product = data?.product || null;
+
+  // fallback images if none available
+  const fallbackImages = [
+    { url: "https://via.placeholder.com/800x800?text=No+Image" },
+  ];
+
+  // derive basic product info safely
+  const {
+    images = fallbackImages,
+    productName = "",
+    id = "",
+    price: productBasePrice = 0,
+    variants = [],
+    discounts = [],
+    category,
+    subCategory,
+  } = product || {};
+
+  // VARIANTS & SELECTION STATE
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
+
+  // Add to cart mutation
   const addToCartMutation = useMutation({
     mutationFn: async ({
       productVariantId,
@@ -76,314 +97,151 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     }) => {
       const res = await fetch("/api/cart/add", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productVariantId, quantity }),
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to add item to cart.");
-      }
-      return res.json();
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Failed to add to cart.");
+      return body;
     },
     onSuccess: () => {
-      // Invalidate the 'cart' query so it refetches next time it's accessed (e.g., if user goes to cart page)
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      refetchCart();
-      toast.success("Item added to cart successfully!");
+      refetchCart?.();
+      toast.success("Item added to cart");
     },
-    onError: (mutationError: Error) => {
-      // alert(`Error adding to cart: ${mutationError.message}`);
-      toast.error(`Error adding to cart: ${mutationError.message}`);
+    onError: (err: any) => {
+      toast.error(err.message || "Could not add item to cart");
       router.push(`/sign-in?redirectUrl=/products/${slug}`);
     },
   });
-  // Derive unique sizes and colors from all variants
-  // Derive ALL unique sizes from product variants
+
+  // derive available sizes/colors
   const availableSizes = useMemo(() => {
-    if (!data?.product) return [];
-    const sizes = new Set<string>();
-    data?.product.variants.forEach((v: { size: string }) => {
-      if (v.size) sizes.add(v.size);
-    });
-    return Array.from(sizes).sort();
-  }, [data?.product]);
+    if (!variants) return [];
+    const s = new Set<string>();
+    variants.forEach((v: any) => v.size && v.stock > 0 && s.add(v.size));
+    return Array.from(s);
+  }, [variants]);
 
-  // Derive ALL unique colors from data?.product variants
   const availableColors = useMemo(() => {
-    if (!data?.product) return [];
-    const colors = new Set<string>();
-    data?.product.variants.forEach((v: { color: string }) => {
-      if (v.color) colors.add(v.color);
-    });
-    return Array.from(colors).sort();
-  }, [data?.product]);
+    if (!variants) return [];
+    const s = new Set<string>();
+    variants.forEach((v: any) => v.color && v.stock > 0 && s.add(v.color));
+    return Array.from(s);
+  }, [variants]);
 
-  // Helper: Get sizes that are actually available given the current color selection
-  const getAvailableSizesForColor = useCallback(
+  const getSizesForColor = useCallback(
     (color: string | null) => {
-      if (!data?.product) return new Set<string>();
-      if (!color) {
-        // If no color selected, all sizes that have *any* variant are technically available
-        const sizesWithAnyVariant = new Set<string>();
-        data?.product.variants.forEach((v: { size: string; stock: number }) => {
-          if (v.size && v.stock > 0) sizesWithAnyVariant.add(v.size);
-        });
-        return sizesWithAnyVariant;
-      }
-      const sizes = new Set<string>();
-      data?.product.variants.forEach(
-        (v: { color: string; size: string; stock: number }) => {
-          if (v.color === color && v.size && v.stock > 0) {
-            sizes.add(v.size);
-          }
-        }
-      );
-      return sizes;
+      const s = new Set<string>();
+      variants.forEach((v: any) => {
+        if ((!color || v.color === color) && v.size && v.stock > 0)
+          s.add(v.size);
+      });
+      return s;
     },
-    [data?.product]
+    [variants]
   );
 
-  // Helper: Get colors that are actually available given the current size selection
-  const getAvailableColorsForSize = useCallback(
+  const getColorsForSize = useCallback(
     (size: string | null) => {
-      if (!data?.product) return new Set<string>();
-      if (!size) {
-        // If no size selected, all colors that have *any* variant are technically available
-        const colorsWithAnyVariant = new Set<string>();
-        data?.product.variants.forEach(
-          (v: { color: string; stock: number }) => {
-            if (v.color && v.stock > 0) colorsWithAnyVariant.add(v.color);
-          }
-        );
-        return colorsWithAnyVariant;
-      }
-      const colors = new Set<string>();
-      data?.product.variants.forEach(
-        (v: { size: string; color: string; stock: number }) => {
-          if (v.size === size && v.color && v.stock > 0) {
-            colors.add(v.color);
-          }
-        }
-      );
-      return colors;
+      const s = new Set<string>();
+      variants.forEach((v: any) => {
+        if ((!size || v.size === size) && v.color && v.stock > 0)
+          s.add(v.color);
+      });
+      return s;
     },
-    [data?.product]
+    [variants]
   );
 
-  // Effect to find the matching variant whenever selections change
+  // synchronize variant whenever selections change
   useEffect(() => {
-    if (!data?.product) {
-      setSelectedVariant(null);
-      setQuantity(1);
-      return;
+    if (!variants) return setSelectedVariant(null);
+    const found =
+      variants.find(
+        (v: any) => v.size === selectedSize && v.color === selectedColor
+      ) || null;
+    setSelectedVariant(found);
+
+    // set quantity default
+    if (found && found.stock > 0) setQuantity(1);
+    else setQuantity(0);
+  }, [variants, selectedSize, selectedColor]);
+
+  // keep selections valid when one changes
+  useEffect(() => {
+    if (selectedSize && selectedColor) return; // both chosen
+
+    // if size chosen but color incompatible -> unset color
+    if (selectedSize) {
+      const colors = getColorsForSize(selectedSize);
+      if (selectedColor && !colors.has(selectedColor)) setSelectedColor(null);
     }
 
-    const foundVariant = data?.product.variants.find(
-      (v: { size: string | null; color: string | null }) =>
-        v.size === selectedSize && v.color === selectedColor
+    if (selectedColor) {
+      const sizes = getSizesForColor(selectedColor);
+      if (selectedSize && !sizes.has(selectedSize)) setSelectedSize(null);
+    }
+  }, [selectedSize, selectedColor, getColorsForSize, getSizesForColor]);
+
+  // PRICE CALCULATION: choose variant price if present -> product base price fallback
+  const currentBasePrice = selectedVariant?.price ?? productBasePrice ?? 0;
+
+  const bestDiscount = useMemo(() => {
+    if (!discounts || discounts.length === 0) return 0;
+    const active = discounts.filter((d: any) =>
+      d.expiresAt ? new Date(d.expiresAt) >= new Date() : true
     );
-    setSelectedVariant(foundVariant || null);
+    if (!active.length) return 0;
+    // pick max percentage
+    return Math.max(...active.map((d: any) => d.percentage || 0));
+  }, [discounts]);
 
-    // Reset quantity if selected variant changes or becomes unavailable
-    if (foundVariant && foundVariant.stock > 0) {
-      setQuantity(1); // Default to 1
-    } else {
-      setQuantity(0); // Cannot purchase if no variant or out of stock
-    }
-  }, [data?.product, selectedSize, selectedColor]);
+  const finalPrice = useMemo(() => {
+    if (!currentBasePrice) return 0;
+    if (bestDiscount > 0)
+      return parseFloat(
+        (currentBasePrice * (1 - bestDiscount / 100)).toFixed(2)
+      );
+    return currentBasePrice;
+  }, [currentBasePrice, bestDiscount]);
 
-  // Handle case where selecting one attribute makes the other attribute's current selection invalid
-  // This ensures a valid combination is always sought or resets a non-viable selection.
-  useEffect(() => {
-    if (!data?.product) return;
+  const isDiscountApplied = finalPrice < currentBasePrice;
 
-    // After selectedSize changes, if selectedColor is no longer valid for the new size, reset selectedColor
-    if (selectedSize !== null && selectedColor !== null) {
-      const colorsViableForNewSize = getAvailableColorsForSize(selectedSize);
-      if (!colorsViableForNewSize.has(selectedColor)) {
-        setSelectedColor(null); // Reset color if it's no longer viable
-      }
-    }
+  // Add to cart handler
+  const handleAddToCart = useCallback(() => {
+    if (!selectedVariant) return toast.error("Please select size & color");
+    if (selectedVariant.stock === 0)
+      return toast.error("Selected variant is out of stock");
+    if (quantity < 1 || quantity > selectedVariant.stock)
+      return toast.error("Invalid quantity");
 
-    // After selectedColor changes, if selectedSize is no longer valid for the new color, reset selectedSize
-    if (selectedColor !== null && selectedSize !== null) {
-      const sizesViableForNewColor = getAvailableSizesForColor(selectedColor);
-      if (!sizesViableForNewColor.has(selectedSize)) {
-        setSelectedSize(null); // Reset size if it's no longer viable
-      }
-    }
-  }, [
-    selectedSize,
-    selectedColor,
-    data?.product,
-    getAvailableColorsForSize,
-    getAvailableSizesForColor,
-  ]);
-
-  // Effect to find the matching variant whenever selections change
-  useEffect(() => {
-    if (!data?.product) {
-      setSelectedVariant(null);
-      setQuantity(0);
-      return;
-    }
-
-    const foundVariant = data?.product.variants.find(
-      (v: { size: string | null; color: string | null }) =>
-        v.size === selectedSize && v.color === selectedColor
-    );
-    setSelectedVariant(foundVariant || null);
-
-    // Reset quantity if selected variant changes or becomes unavailable
-    if (foundVariant && foundVariant.stock > 0) {
-      setQuantity(1); // Default to 1
-    } else {
-      setQuantity(0); // Cannot purchase if no variant or out of stock
-    }
-  }, [data?.product, selectedSize, selectedColor]);
-
-  const [quantity, setQuantity] = useState(1);
-  // const items = useCartStore((state) => state.items)
-  //   .filter((item) => item.id === data?.product.id)
-  //   .map((item) => {
-  //     return item;
-  //   });
-  // const updateItemQuantity = useCartStore((state) => state.updateQuantity);
-
-  const {
-    price = 0,
-    productName = "",
-    images = [],
-    id = "",
-  } = data?.product || {};
-
-  // const cartData = useMemo(
-  //   () => ({
-  //     id: data?.product.id as string,
-  //     name: data?.product.productName as string,
-  //     image: data?.product.images[0].url as string,
-  //     slug: data?.product.slug as string,
-  //     price:
-  //       (data?.product.discountedPrice as number) ||
-  //       (data?.product.price as number),
-  //     quantity: quantity as number,
-  //     size: selectedSize as string,
-  //     color: selectedColor as string,
-  //   }),
-  //   [
-  //     quantity,
-  //     selectedSize,
-  //     selectedColor,
-  //     price,
-  //     productName,
-  //     images,
-  //     slug,
-  //     id,
-  //   ]
-  // );
-
-  const image =
-    data?.product.images && data.product.images.length > 0
-      ? data.product.images
-      : fallbackImages;
-
-  const handleAddToCart = () => {
-    if (!selectedVariant) {
-      alert("Please select a size and color combination.");
-      return;
-    }
-
-    if (selectedVariant.stock === 0) {
-      alert("This variant is currently out of stock.");
-      return;
-    }
-
-    if (quantity <= 0 || quantity > selectedVariant.stock) {
-      alert(`Please select a quantity between 1 and ${selectedVariant.stock}.`);
-      return;
-    }
-
-    // Call the mutation
     addToCartMutation.mutate({
       productVariantId: selectedVariant.id,
-      quantity: quantity,
+      quantity,
     });
-  };
+  }, [selectedVariant, quantity, addToCartMutation]);
 
-  // --- NEW PRICE CALCULATION LOGIC ---
-  // Get the base price for the currently selected configuration (variant or product)
-  const currentBasePrice = selectedVariant
-    ? selectedVariant.price
-    : data?.product.basePrice; // Fallback to data?.product's base price if no variant selected
-
-  // Determine the best active discount percentage for the data?.product
-  const bestDiscountPercentage = useMemo(() => {
-    if (
-      !data?.product ||
-      !data?.product.discounts ||
-      data?.product.discounts.length === 0
-    ) {
-      return 0; // No discounts or data?.product data
-    }
-    // Assumes data?.product.discounts are already ordered by percentage: 'desc' from API
-    const activeDiscounts = data?.product.discounts.filter(
-      (d: { expiresAt: string | number | Date }) =>
-        d.expiresAt && new Date(d.expiresAt) >= new Date()
-    );
-    if (activeDiscounts.length > 0) {
-      return activeDiscounts[0].percentage; // Take the highest active discount
-    }
-    return 0;
-  }, [data?.product]);
-
-  // Calculate the final display price by applying the discount to the currentBasePrice
-  const finalDisplayPrice = useMemo(() => {
-    if (currentBasePrice === undefined || currentBasePrice === null) {
-      return 0; // Or handle as desired
-    }
-    if (bestDiscountPercentage > 0) {
-      const priceAfterDiscount =
-        currentBasePrice * (1 - bestDiscountPercentage / 100);
-      return parseFloat(priceAfterDiscount.toFixed(2)); // Ensure proper rounding
-    }
-    return currentBasePrice;
-  }, [bestDiscountPercentage, currentBasePrice]);
-
-  // Determine if there's an actual discount applied for display (line-through price)
-  const isDiscountApplied = finalDisplayPrice < currentBasePrice;
-
-  const isAddToCartButtonDisabled =
-    !selectedVariant ||
-    selectedVariant.stock === 0 ||
-    quantity === 0 ||
-    addToCartMutation.isPending;
-
+  // Loading / Error states
   if (isLoading) {
     return (
-      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-        </div>
-      </section>
+      <div className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[400px] flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 rounded-full border-b-2 border-gray-800" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
-        <div className="text-red-600 text-lg">
-          Error loading product details: {error.message}
-        </div>
-      </section>
+      <div className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[400px] flex items-center justify-center text-red-600">
+        Error loading product: {error.message}
+      </div>
     );
   }
 
   return (
-    <div className="space-y-10">
-      <Breadcrumb className="md:block hidden px-5">
+    <div className="space-y-7">
+      <Breadcrumb className="md:block hidden px-3">
         <BreadcrumbList className="dark:text-white text-black">
           <BreadcrumbItem>
             <BreadcrumbLink
@@ -403,9 +261,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <BreadcrumbItem>
             <BreadcrumbLink
               href={`/${data?.product.category.slug}`}
-              className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1"
+              className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1 text-ellipsis"
             >
-              {data?.product.category.name}
+              {(data?.product.category.name as string).substring(0, 10)}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -419,38 +277,35 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1">
-              {data?.product.productName}
+            <BreadcrumbPage className="dark:text-white text-black capitalize text-xs md:text-sm font-normal font-sans line-clamp-1 text">
+              {(data?.product.productName as string).substring(0, 20)}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       {/* PRODUCT INAGES AND DETAILS */}
-      <div className="mx-auto md:grid-cols-2 grid justify-between md:items-start items-center w-full gap-5 px-5">
-        <ThumbnailGallery images={image} id={id} name={productName} />
-        <div className="flex flex-col space-y-5 items-start justify-start">
-          <div className="grid gap-3 justify-start items-start">
+      <div className="mx-auto grid grid-cols-1 lg:grid-cols-5 items-start justify-start w-full gap-4 px-2.5">
+        <div className="col-span-3 w-full">
+          <ThumbnailGallery images={images} id={id} name={productName} />
+        </div>
+
+        <div className="flex flex-col space-y-3 items-start justify-start col-span-2">
+          <div className="grid gap-2 justify-start items-start">
             <div className="flex justify-start items-center gap-2">
-              <span className="font-bold text-2xl lg:text-3xl text-start">
+              <span className="font-semibold font-serif text-xl md:text-2xl text-start">
                 {formatCurrencyValue(
-                  finalDisplayPrice || data?.product?.discountedPrice
+                  finalPrice || data?.product?.discountedPrice
                 )}
               </span>
               {isDiscountApplied && (
-                <span className="font-light text-base  text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
+                <span className="font-light text-base text-start text-black/30 dark:text-white/50 line-through decoration-black/30 dark:decoration-white/50">
                   {formatCurrencyValue(currentBasePrice)}
                 </span>
               )}
               {data?.product.discountedPrice && (
                 <span className="font-medium tracking-wide text-sm text-center text-white dark:text-black dark:bg-white bg-black/65 rounded-full p-1 px-1.5">
-                  -{data?.product?.discounts?.[0]?.percentage}
-                  {/* {percentageDifference(
-                    // @ts-ignore
-                    data?.product.price,
-                    data?.product.discountedPrice
-                  )} */}
-                  % off
+                  -{data?.product?.discounts?.[0]?.percentage}% off
                 </span>
               )}
             </div>
@@ -459,128 +314,82 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                 ? `${selectedVariant.stock} unit available in stock`
                 : ""}
             </span>
-            {/* <h2 className="font-medium text-lg text-wrap">
+            <h2 className="text-base text-wrap font-medium font-serif mb-2">
               {data?.product.name}
-            </h2> */}
-            <p className="hidden md:line-clamp-3 lg:line-clamp-none text-base text-start text-black/70 dark:text-white/70">
-              {data?.product.description}
-            </p>
+            </h2>
           </div>
           <Separator />
-          {data.product.variants.length > 0 && (
-            <div className="space-y-4 mt-4 w-full">
-              {/* Size Selector */}
-              {availableSizes.length > 0 && (
-                <div>
-                  <Label
-                    htmlFor="size-select"
-                    className="mb-2 block font-semibold"
-                  >
-                    Size
-                  </Label>
-                  <Select
-                    onValueChange={setSelectedSize}
-                    value={selectedSize || undefined}
-                  >
-                    <SelectTrigger id="size-select" className="w-full">
-                      <SelectValue placeholder="Select a size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSizes.map((size) => (
-                        <SelectItem
-                          key={size}
-                          value={size}
-                          // disabled={
-                          // !getAvailableSizesForColor(selectedColor).has(size)
-                          // } // Disable if not available for selected color
-                        >
-                          {size}{" "}
-                          {selectedColor &&
-                          !getAvailableSizesForColor(selectedColor).has(size)
-                            ? "(Unavailable for this color)"
-                            : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
 
-              {/* Color Selector (Visual Swatches are a great upgrade here!) */}
-              {availableColors.length > 0 && (
-                <div>
-                  <Label
-                    htmlFor="color-select"
-                    className="mb-2 block font-semibold"
-                  >
-                    Color
-                  </Label>
-                  <Select
-                    onValueChange={setSelectedColor}
-                    value={selectedColor || undefined}
-                  >
-                    <SelectTrigger id="color-select" className="w-full">
-                      <SelectValue placeholder="Select a color" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {availableColors.map((color) => (
-                          <SelectItem
-                            key={color}
-                            value={color}
-                            // disabled={
-                            //   !getAvailableColorsForSize(selectedSize).has(
-                            //     color
-                            //   )
-                            // } // Disable if not available for selected size
-                          >
-                            {color}{" "}
-                            {selectedSize &&
-                            !getAvailableColorsForSize(selectedSize).has(color)
-                              ? "(Unavailable for this size)"
-                              : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-          {/* COLOR SELECTORS */}
-          <div className="space-y-3">
-            {/* <span className="text-base font-medium capitalize text-start">
-              select color
-            </span> */}
+          {/* Variant selectors */}
+          <div className="mt-4 space-y-4 w-full">
+            {availableSizes.length > 0 && (
+              <div>
+                <Label className="mb-2">Size</Label>
+                <Select
+                  value={selectedSize ?? undefined}
+                  onValueChange={(val: string) => setSelectedSize(val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSizes.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}{" "}
+                        {selectedColor &&
+                        !getSizesForColor(selectedColor).has(s)
+                          ? "(Unavailable)"
+                          : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {/* <div className="flex gap-3 items-start justify-start">
-              {data?.product.colours.map((item) => (
-                <div key={item.hex}>
-                  <Checkbox
-                    onClick={() => handleSelect(item.hex)}
-                    style={{ backgroundColor: item.hex }}
-                    id="colour"
-                    name="colour"
-                    value={item.hex}
-                    checked={selectedColor === item.hex}
-                    className={`w-10 h-10 rounded-full cursor-pointer border flex flex-col justify-center items-center ${
-                      selectedColor === item.hex
-                        ? "border-black"
-                        : "border-gray-300"
-                    }`}
-                  />
+            {availableColors.length > 0 && (
+              <div>
+                <Label className="mb-2">Color</Label>
+
+                {/* Etsy-style color swatches */}
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {availableColors.map((color) => {
+                    const isDisabled =
+                      selectedSize &&
+                      !getColorsForSize(selectedSize).has(color);
+                    const isSelected = selectedColor === color;
+
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        disabled={!!isDisabled}
+                        title={color}
+                        onClick={() => setSelectedColor(color)}
+                        className={`
+w-9 h-9 rounded-full border-2 flex items-center justify-center
+transition shadow-sm
+${isSelected ? "border-black" : "border-gray-300"}
+${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:scale-105"}
+`}
+                        style={{ backgroundColor: color.toLowerCase() }}
+                      >
+                        {isSelected && (
+                          <CheckIcon className="w-4 h-4 text-white drop-shadow" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div> */}
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-4 mt-4 items-center justify-start w-full">
+          <div className="flex flex-col sm:flex-row gap-4 mt-5 items-center justify-start w-full">
             <div className="flex items-center gap-3 border h-10 rounded-full">
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-l-full"
                 onClick={() => {
-                  // setQuantity(quantity > 1 ? quantity - 1 : 1);
                   setQuantity((prev) => Math.max(1, prev - 1));
                 }}
                 disabled={quantity <= 1}
@@ -588,33 +397,12 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                 <MinusIcon className="w-4 h-4" />
               </button>
 
-              {/* <span className="w-fit px-2">{quantity}</span> */}
-              {/* {items.length > 0 ? (
-                <div>
-                  {items.map((item) => (
-                    <span className="w-fit px-2">{item.quantity}</span>
-                  ))}
-                </div>
-              ) : ( */}
               <div>
-                {/* {items.map((item) => ( */}
                 <span className="w-fit px-2">{quantity}</span>
-                {/* ))} */}
               </div>
-              {/* // )} */}
               <button
                 className="h-full w-fit flex justify-center items-center px-3 bg-[#828282]/10 rounded-r-full"
                 onClick={() => {
-                  // if (items.length > 0) {
-                  //   updateItemQuantity(
-                  //     data?.product.id as string,
-                  //     "increase",
-                  //     selectedSize as string,
-                  //     selectedColor as string
-                  //   );
-                  // } else {
-                  //   setQuantity(quantity < 10 ? quantity + 1 : 10);
-                  // }
                   setQuantity((prev) =>
                     Math.min(selectedVariant?.stock, prev + 1)
                   );
@@ -628,7 +416,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
             <AddToCartButton
               productName={data?.product.productName}
               onAddToCartClick={handleAddToCart}
-              isDisabled={isAddToCartButtonDisabled}
+              isDisabled={
+                !selectedVariant || quantity <= 0 || addToCartMutation.isPending
+              }
               isAddingToCart={addToCartMutation.isPending}
             />
             {/* )} */}
@@ -656,7 +446,40 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               Reviews
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="details">{data?.product.description}</TabsContent>
+          <TabsContent value="details">
+            <div>
+              <p
+                className={`text-gray-700 leading-relaxed transition-all duration-300`}
+                style={
+                  isExpanded
+                    ? {}
+                    : {
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }
+                }
+              >
+                {data?.product.description}
+              </p>
+
+              <button
+                onClick={toggleReadMore}
+                className="mt-2 flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors focus:outline-none"
+              >
+                {isExpanded ? (
+                  <>
+                    Show Less <ChevronUp size={16} className="ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Read More <ChevronDown size={16} className="ml-1" />
+                  </>
+                )}
+              </button>
+            </div>
+          </TabsContent>
           <TabsContent value="reviews">
             {data?.product.reviews.length > 0 ? (
               <div className="grid grid-cols-2 items-stretch justify-start space-x-5">

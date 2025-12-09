@@ -10,12 +10,13 @@ import {
   User,
 } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useToast } from "@/Hooks/use-toast";
 import {
   ArrowRight,
   Loader2,
+  MapPin,
   MapPinHouse,
   Star,
   StoreIcon,
@@ -30,7 +31,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
-import Image from "next/image";
+import { encodeGeoHash5 } from "@/lib/geohash";
+import { pusherClient } from "@/lib/pusher-client";
 
 type RiderData = {
   rider: Rider & { user: User } & { deliveries?: DeliveryItem[] };
@@ -57,12 +59,11 @@ const fetchRiderData = async (): Promise<RiderData> => {
 
 const RiderDashboard = () => {
   // fetch rider data
-  const { data, isLoading, isError, error } = useQuery<RiderData, Error>({
+  const { data, isLoading } = useQuery<RiderData, Error>({
     queryKey: ["riderData"],
     queryFn: fetchRiderData,
     staleTime: 10 * 60 * 1000, // Data considered fresh for 10 minutes
     refetchOnWindowFocus: false,
-    // enabled: isRider === true && !!riderToken, // Only run the query if riderToken is available
     retry: 1, // Retry once if it fails
   });
 
@@ -73,6 +74,63 @@ const RiderDashboard = () => {
   const { toast } = useToast();
   const [isActive, setIsActive] = useState<boolean>(!!riderData?.isActive);
   const [loading, setLoading] = useState(false);
+  const [zoneHash, setZoneHash] = useState<string | null>(null);
+  const [offers, setOffers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!isActive || !riderData?.isActive) {
+      return;
+    }
+    let watchId: number | null = null;
+
+    const subscribeToZone = (lat: number, lng: number) => {
+      const hash = encodeGeoHash5(lat, lng);
+      setZoneHash(hash);
+
+      const channelName = `presence-nearby-${hash}`;
+      const channel = pusherClient.subscribe(channelName);
+
+      channel.bind("order-item-offered", (payload: any) => {
+        console.log("📦 New Order Offer:", payload);
+
+        setOffers((prev) => [payload, ...prev]);
+
+        toast({
+          title: "New Delivery Offer",
+          description: `${payload.itemName} from ${payload.storeName}`,
+        });
+      });
+
+      channel.bind("pusher:subscription_succeeded", () => {
+        console.log("🌍 Subscribed to", channelName);
+      });
+
+      return () => {
+        pusherClient.unsubscribe(channelName);
+        console.log("🧹 Unsubscribed", channelName);
+      };
+    };
+
+    // Watch rider position
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // only resubscribe if rider moves out of current geohash zone
+        const newHash = encodeGeoHash5(lat, lng);
+        if (zoneHash && newHash === zoneHash) return;
+
+        subscribeToZone(lat, lng);
+      },
+      (err) => console.error("Geolocation error:", err),
+      { enableHighAccuracy: true }
+    );
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [isActive, toast, zoneHash]);
 
   const toggleOnline = useCallback(async () => {
     const newState = !isActive;
@@ -135,21 +193,21 @@ const RiderDashboard = () => {
           </div>
 
           <Button
-            variant="default"
-            className={`text-base font-semibold capitalize p-2 rounded-md ${
+            className={`text-base font-semibold capitalize p-3 rounded-xl min-w-[120px] ${
               !isActive
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-red-500 text-black hover:bg-gray-200"
+                ? "bg-green-600 text-white hover:bg-green-700 shadow-xl"
+                : "bg-red-500 text-white hover:bg-red-600 shadow-xl"
             }`}
             onClick={toggleOnline}
             aria-pressed={isActive}
+            disabled={loading}
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : isActive ? (
-              "go offline"
+              "Go Offline"
             ) : (
-              "go online"
+              "Go Online"
             )}
           </Button>
         </div>
@@ -290,78 +348,112 @@ const RiderDashboard = () => {
 
           {/* right column */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <Card className="flex flex-col items-stretch justify-between gap-2.5 rounded-xl bg-gray-50 dark:bg-[#13ec6a]/5 shadow-sm border border-gray-200 dark:border-[#13ec6a]/20">
-              <CardHeader className="flex flex-col gap-1">
-                <CardTitle className="text-gray-900 dark:text-white text-base font-bold leading-tight tracking-[-0.015em]">
-                  Active Order
+            {activeDelivery ? (
+              <Card className="flex flex-col items-stretch justify-between gap-2.5 rounded-xl bg-gray-50 dark:bg-[#13ec6a]/5 shadow-sm border border-gray-200 dark:border-[#13ec6a]/20">
+                <CardHeader className="flex flex-col gap-1">
+                  <CardTitle className="text-gray-900 dark:text-white text-base font-bold leading-tight tracking-[-0.015em]">
+                    Active Order
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1">
+                  <div className="flex-[3_3_0%] flex flex-col gap-4 col-span-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
+                          {activeDelivery?.orderItem.store.name}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-[#13ec6a]/70">
+                          Order #
+                          {activeDelivery?.orderItem.orderId
+                            .substring(0, 5)
+                            .toUpperCase()}
+                        </p>
+                      </div>
+                      <div className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                        In Transit
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 text-sm">
+                      <div className="flex items-start gap-3">
+                        <StoreIcon className="w-5 h-5 text-[#13ec6a]/80 mt-0.5 text-[18px]" />
+                        <div className="flex flex-col">
+                          <p className="font-semibold text-base text-gray-600 dark:text-[#13ec6a]/80">
+                            PICKUP
+                          </p>
+                          <p className="text-gray-800 dark:text-white">
+                            123 Market St, Downtown
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <MapPinHouse className="w-5 h-5 text-[#13ec6a]/80 mt-0.5 text-[18px]" />
+                        <div className="flex flex-col">
+                          <p className="font-semibold text-base text-gray-600 dark:text-[#13ec6a]/80">
+                            DELIVERY
+                          </p>
+                          <p className="text-gray-800 dark:text-white">
+                            {activeDelivery?.orderItem.order.address.street},
+                            {activeDelivery?.orderItem.order.address.city},{" "}
+                            {activeDelivery?.orderItem.order.address.state}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundImage: `url("https://placeholder.pics/svg/300")`,
+                      }}
+                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg"
+                      data-alt="A map showing the route from pickup to drop-off"
+                      data-location="Anytown"
+                    ></div>
+
+                    <button className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg py-2 h-12 px-4 bg-[#13ec6a] text-black gap-2 text-sm font-bold leading-normal tracking-[0.015em]">
+                      <span className="truncate">View Order Details</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="p-6 bg-blue-50 dark:bg-gray-800 h-full flex flex-col justify-center items-center text-center">
+                <MapPin className="w-12 h-12 text-green-500 dark:text-green-400 mb-4" />
+                <CardTitle className="text-xl text-gray-900 dark:text-white">
+                  No Active Delivery
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1">
-                <div className="flex-[3_3_0%] flex flex-col gap-4 col-span-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {activeDelivery?.orderItem.store.name}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-[#13ec6a]/70">
-                        Order #
-                        {activeDelivery?.orderItem.orderId
-                          .substring(0, 5)
-                          .toUpperCase()}
-                      </p>
-                    </div>
-                    <div className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
-                      In Transit
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 text-sm">
-                    <div className="flex items-start gap-3">
-                      <StoreIcon className="w-5 h-5 text-[#13ec6a]/80 mt-0.5 text-[18px]" />
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-base text-gray-600 dark:text-[#13ec6a]/80">
-                          PICKUP
-                        </p>
-                        <p className="text-gray-800 dark:text-white">
-                          123 Market St, Downtown
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <MapPinHouse className="w-5 h-5 text-[#13ec6a]/80 mt-0.5 text-[18px]" />
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-base text-gray-600 dark:text-[#13ec6a]/80">
-                          DELIVERY
-                        </p>
-                        <p className="text-gray-800 dark:text-white">
-                          {activeDelivery?.orderItem.order.address.street},
-                          {activeDelivery?.orderItem.order.address.city},{" "}
-                          {activeDelivery?.orderItem.order.address.state}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      backgroundImage: `url("https://placeholder.pics/svg/300")`,
-                    }}
-                    className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg"
-                    data-alt="A map showing the route from pickup to drop-off"
-                    data-location="Anytown"
-                  ></div>
-
-                  <button className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg py-2 h-12 px-4 bg-[#13ec6a] text-black gap-2 text-sm font-bold leading-normal tracking-[0.015em]">
-                    <span className="truncate">View Order Details</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-                {/* </div> */}
-              </CardContent>
-            </Card>
+                <CardDescription className="mt-2 text-base">
+                  Go online to get a new delivery offer!
+                </CardDescription>
+                {isActive && (
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-4">
+                    Searching for offers...
+                  </p>
+                )}
+              </Card>
+            )}
           </div>
         </div>
       </div>
+
+      {offers.length > 0 && (
+        <Card className="rounded-lg border p-4 bg-white shadow-lg">
+          <h3 className="text-lg font-bold mb-2">New Offers</h3>
+
+          <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
+            {offers.map((offer) => (
+              <div
+                key={offer.orderitem}
+                className="p-3 rounded-md border cursor-pointer hover:bg-gray-100"
+              >
+                <p className="font-semibold">{offer.itemName}</p>
+                <p className="text-sm text-gray-600">{offer.storeName}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </main>
   );
 };

@@ -4,13 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { Skeleton } from "../ui/skeleton";
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import Pagination from "../ui/Pagination";
 import CategoryProductCard from "./CategoryProductCard";
 import { ProductFromApi } from "../products/productCard";
-import { SlidersHorizontal } from "lucide-react";
+import { ArrowUp, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 
@@ -128,27 +127,30 @@ const SubCategory = ({ param }: { param: string }) => {
     : subsubcategories.slice(0, limit);
 
   return (
-    <div className="w-full space-y-10">
+    <div className="w-full space-y-7 px-2">
       <div className="space-y-3 flex flex-col items-center justify-center">
+        <h2 className="text-2xl capitalize font-serif font-light md:text-3xl lg:text-4xl">
+          {param.charAt(0).toUpperCase() + param.slice(1)}
+        </h2>
         <section
           className={cn(
-            "flex flex-row w-full justify-center items-center gap-4 max-w-screen-lg mx-auto transition-all duration-500 ease-in-out",
+            "grid grid-cols-2 sm:grid-cols-6 w-full justify-center items-center gap-2 sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto transition-all duration-500 ease-in-out",
             showAll
               ? "max-h-[1000px] opacity-100 flex-wrap"
               : "max-h-[600px] overflow-hidden"
           )}
         >
           {isLoading
-            ? Array.from({ length: 5 }).map((_, i) => (
+            ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton
                   key={i}
-                  className="h-[210px] w-full rounded-md basis-1/6"
+                  className="h-[120px] md:h-[210px] w-full rounded-md"
                 />
               ))
             : visibleItems.map((item) => (
                 <HoverPrefetchLink
                   href={`/c/${item.subCategory.category?.slug}/${subCategory?.slug}/${item.slug}`}
-                  className="w-full transition-transform duration-300 basis-1/6 hover:underline"
+                  className="w-full transition-transform duration-300 hover:underline"
                   key={item.id}
                 >
                   <Image
@@ -159,7 +161,7 @@ const SubCategory = ({ param }: { param: string }) => {
                     alt={item.name}
                     width={500}
                     height={500}
-                    className="object-cover object-center rounded-lg w-full h-[210px]"
+                    className="object-cover object-center rounded-lg w-full h-[120px] md:h-[210px]"
                   />
                   <h3 className="text-sm text-center font-medium font-sans capitalize mt-2">
                     {item.name}
@@ -191,9 +193,12 @@ const SubCategory = ({ param }: { param: string }) => {
             <SlidersHorizontal className="w-4 h-4" /> all filters
           </div>
           <Select onValueChange={handleSortChange} defaultValue={currentSort}>
-            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans">
+            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans md:block hidden">
               {/* <SelectValue placeholder="Sort By" /> */}
               Sort By: {separateStringByComma(sort)}
+            </SelectTrigger>
+            <SelectTrigger className="w-10 rounded-full border border-black capitalize font-medium font-sans md:hidden block">
+              <ArrowUpDown className="inline w-5 h-5 mr-2" />
             </SelectTrigger>
             <SelectContent>
               {SORT_OPTIONS.map((option) => (
@@ -210,9 +215,12 @@ const SubCategory = ({ param }: { param: string }) => {
             <SlidersHorizontal className="w-4 h-4" /> all filters
           </div>
           <Select onValueChange={handleSortChange} defaultValue={currentSort}>
-            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans">
+            <SelectTrigger className="w-60 rounded-full border border-black capitalize font-medium font-sans md:block hidden">
               {/* <SelectValue placeholder="Sort By" /> */}
               Sort By: {separateStringByComma(sort)}
+            </SelectTrigger>
+            <SelectTrigger className="w-10 rounded-full border border-black capitalize font-medium font-sans md:hidden block">
+              <ArrowUpDown className="inline w-5 h-5 mr-2" />
             </SelectTrigger>
             <SelectContent>
               {SORT_OPTIONS.map((option) => (
@@ -225,7 +233,7 @@ const SubCategory = ({ param }: { param: string }) => {
         </div>
       )}
       {/* Product List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 md:gap-3">
         {productLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[300px] rounded-md" />

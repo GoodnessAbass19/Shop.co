@@ -57,7 +57,7 @@ export async function getCurrentRider() {
   if (!token) return null;
 
   try {
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     const user = await prisma.rider.findUnique({
       where: {
         id: decoded.userId,

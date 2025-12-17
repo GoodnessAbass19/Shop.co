@@ -109,3 +109,7 @@ export function getGeoHashNeighbors(geohash: string): string[] {
 
   return [top, bottom, right, left, topright, topleft, bottomright, bottomleft];
 }
+
+export function encodeGeoHash4(latitude: number, longitude: number): string {
+  return encodeGeoHash5(latitude, longitude).substring(0, 4);
+}

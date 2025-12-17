@@ -1,5 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
-import { encodeGeoHash5 } from "@/lib/geohash";
+import { createAndSendNotification } from "@/lib/create-notification";
+import { generateDeliveryCode, hashCode } from "@/lib/delivery";
+import { encodeGeoHash4 } from "@/lib/geohash";
 import prisma from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 import { NextResponse } from "next/server";
@@ -23,33 +25,40 @@ export async function POST(
     }
 
     const body = await req.json().catch(() => null);
-    if (
-      !body ||
-      typeof body.sellerLat !== "number" ||
-      typeof body.sellerLng !== "number"
-    ) {
-      return NextResponse.json(
-        { error: "Invalid or missing coordinates." },
-        { status: 400 }
-      );
+    if (!body) {
+      return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
     }
 
     const { sellerLat, sellerLng } = body;
 
-    // Verify the seller owns this store
+    if (
+      typeof sellerLat !== "number" ||
+      typeof sellerLng !== "number" ||
+      sellerLat < -90 ||
+      sellerLat > 90 ||
+      sellerLng < -180 ||
+      sellerLng > 180
+    ) {
+      return NextResponse.json(
+        { error: "Invalid coordinates." },
+        { status: 400 }
+      );
+    }
+
+    // Verify store ownership
     const store = await prisma.store.findUnique({
       where: { userId: user.id },
-      select: { id: true, name: true, shippingInfo: true },
+      select: { id: true, name: true, shippingInfo: true, userId: true },
     });
 
     if (!store) {
       return NextResponse.json(
-        { error: "Forbidden: Store not found or not owned by user." },
+        { error: "Unauthorized store" },
         { status: 403 }
       );
     }
 
-    // Find the order item
+    // Find order item
     const item = await prisma.orderItem.findFirst({
       where: {
         id: orderitem,
@@ -57,65 +66,63 @@ export async function POST(
         order: { status: "PAID" },
       },
       include: {
-        order: { include: { buyer: true } },
+        order: { include: { buyer: true, address: true } },
+        productVariant: { include: { product: true } },
         store: true,
-        productVariant: {
-          include: { product: true },
-        },
       },
     });
 
     if (!item) {
       return NextResponse.json(
-        { error: "Order item not found or not eligible for delivery." },
+        { error: "Order not eligible." },
         { status: 404 }
       );
     }
 
-    if (item.deliveryStatus !== "PENDING") {
+    if (!["PENDING", "READY_FOR_PICKUP"].includes(item.deliveryStatus)) {
       return NextResponse.json(
-        { error: "Order item cannot transition to READY_FOR_PICKUP." },
+        { error: "Invalid delivery state transition." },
         { status: 400 }
       );
     }
 
-    // Check for existing delivery entry
-    const existingDelivery = await prisma.deliveryItem.findUnique({
-      where: { orderItemId: item.id },
+    // Prevent duplicate offers
+    const existingDelivery = await prisma.deliveryItem.findFirst({
+      where: {
+        orderItemId: item.id,
+        status: { in: ["PENDING", "ASSIGNED", "OUT_FOR_DELIVERY"] },
+      },
     });
 
     if (existingDelivery) {
       return NextResponse.json({
         success: true,
-        message: "Delivery offer already created.",
-        orderItem: item,
+        message: "Offer already active.",
         deliveryItem: existingDelivery,
       });
     }
 
-    const sellerGeohash = encodeGeoHash5(sellerLat, sellerLng);
-    const offerExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const sellerGeohash = encodeGeoHash4(sellerLat, sellerLng);
+    const offerExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Update order item delivery status
     const updatedItem = await prisma.orderItem.update({
       where: { id: item.id },
       data: { deliveryStatus: "READY_FOR_PICKUP" },
       include: {
-        order: { include: { buyer: true } },
-        productVariant: {
-          include: { product: true },
-        },
+        order: { include: { buyer: true, address: true } },
+        productVariant: { include: { product: true } },
         store: true,
       },
     });
 
+    // Rider earnings logic
     const itemPrice = updatedItem.productVariant?.product?.price || 0;
-    const basePay = 1000; // NGN
-    const bonus = 100; // NGN
-    const percentOfPrice = 0.05 * itemPrice; // 5% of item price
-    const riderEarning = basePay + bonus + percentOfPrice;
+    const basePay = 1000;
+    const bonus = 100;
+    const riderEarnings = basePay + bonus + itemPrice * 0.05;
+    const code = generateDeliveryCode();
+    const pickupCodeHash = await hashCode(code);
 
-    // Create the DeliveryItem record
     const deliveryItem = await prisma.deliveryItem.create({
       data: {
         orderItemId: item.id,
@@ -124,66 +131,78 @@ export async function POST(
         sellerGeohash,
         offerExpiresAt,
         status: "PENDING",
-        riderEarnings: riderEarning,
+        riderEarnings,
+        pickupCodeHash,
+        pickupCodeExpires: new Date(Date.now() + 15 * 60 * 1000),
+        pickupDeadline: new Date(Date.now() + 60 * 60 * 1000),
       },
       include: {
         orderItem: {
           include: {
             order: { include: { buyer: true, address: true } },
-            productVariant: {
-              include: { product: true },
-            },
-            store: {
-              include: {
-                shippingInfo: true,
-              },
-            },
+            productVariant: { include: { product: true } },
+            store: { include: { shippingInfo: true } },
           },
         },
       },
     });
 
-    // Notify nearby riders (Pusher broadcast)
-    const offerPayload = {
+    const offer = {
       id: deliveryItem.id,
       orderItemId: deliveryItem.orderItemId,
       storeName: store.name,
-      pickupAddress: `${store.shippingInfo?.shippingAddress1}, ${
-        store.shippingInfo?.shippingAddress2 || ""
-      } ${store.shippingInfo?.shippingCity || ""}, ${
-        store.shippingInfo?.shippingState
-      }`.trim(),
-      dropoffAddress:
-        `${deliveryItem.orderItem.order.address?.street}, ${deliveryItem.orderItem.order.address?.city}, ${deliveryItem.orderItem.order.address?.state}`.trim(),
-      fee: deliveryItem.riderEarnings,
+      pickupAddress: `${store.shippingInfo?.shippingAddress1 || ""} ${
+        store.shippingInfo?.shippingCity || ""
+      } ${store.shippingInfo?.shippingState || ""}`.trim(),
+      dropoffAddress: `${deliveryItem.orderItem.order.address?.street || ""}, ${
+        deliveryItem.orderItem.order.address?.city || ""
+      }, ${deliveryItem.orderItem.order.address?.state || ""}`.trim(),
+      fee: riderEarnings,
       itemName: deliveryItem.orderItem.productVariant.product.name,
-      price: deliveryItem.orderItem.price,
-      sellerLat,
-      sellerLng,
       buyerName: deliveryItem.orderItem.order.buyer?.name || "Buyer",
       buyerContact: deliveryItem.orderItem.order.buyer?.phone || "",
+      sellerLat,
+      sellerLng,
       buyerLat: deliveryItem.orderItem.order.address?.latitude || 0,
       buyerLng: deliveryItem.orderItem.order.address?.longitude || 0,
-      offerExpiresAt: deliveryItem.offerExpiresAt,
-      timestamp: new Date().toISOString(),
       geohash: sellerGeohash,
+      pickupCodeExpires: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 1000).toISOString(), //
     };
 
-    await pusherServer.trigger(
-      `presence-nearby-${sellerGeohash}`,
-      "offer.new",
-      offerPayload
-    );
+    // Broadcast to nearby riders (do not include sensitive pickup code)
+    try {
+      await pusherServer.trigger(
+        `presence-nearby-${sellerGeohash}`,
+        "offer.new",
+        offer
+      );
+    } catch (pusherErr) {
+      console.error("⚠️ Pusher trigger failed, continuing:", pusherErr);
+    }
+
+    await createAndSendNotification({
+      userId: store.userId,
+      userRole: "SELLER",
+      type: "SHIPPING_UPDATE",
+      title: "Pickup code for delivery",
+      message: `Your pickup code is ${code}.`,
+    });
+
+    // Remove sensitive fields before returning
+    const safeDeliveryItem = { ...deliveryItem } as any;
+    if (safeDeliveryItem.pickupCode) delete safeDeliveryItem.pickupCode;
+    if (safeDeliveryItem.pickupCodeHash) delete safeDeliveryItem.pickupCodeHash;
 
     return NextResponse.json({
       success: true,
-      message: "Order item marked as ready for pickup and offer broadcasted.",
-      deliveryItem,
+      message: "Offer broadcasted to riders.",
+      deliveryItem: safeDeliveryItem,
     });
-  } catch (error: any) {
-    console.error("❌ Error creating delivery offer:", error);
+  } catch (err) {
+    console.error("❌ Delivery Ready Error:", err);
     return NextResponse.json(
-      { error: "Failed to create delivery offer." },
+      { error: "Failed to mark order as ready." },
       { status: 500 }
     );
   }

@@ -11,16 +11,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const socketId = formData.get("socket_id") as string;
-    const channelName = formData.get("channel_name") as string;
+    let socketId = "";
+    let channelName = "";
+
+    const contentType = request.headers.get("content-type") || "";
+
+    // ✅ Handle JSON
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      socketId = body.socket_id;
+      channelName = body.channel_name;
+    }
+
+    // ✅ Handle URL Encoded (Pusher default)
+    else if (contentType.includes("application/x-www-form-urlencoded")) {
+      const text = await request.text();
+      const params = new URLSearchParams(text);
+      socketId = params.get("socket_id") || "";
+      channelName = params.get("channel_name") || "";
+    }
+
+    // ✅ Handle FormData
+    else {
+      const formData = await request.formData();
+      socketId = (formData.get("socket_id") as string) || "";
+      channelName = (formData.get("channel_name") as string) || "";
+    }
+
+    if (!socketId || !channelName) {
+      console.error("❌ Missing socket/channel", {
+        socketId,
+        channelName,
+      });
+      return NextResponse.json(
+        { message: "Bad auth payload" },
+        { status: 400 }
+      );
+    }
+
+    console.log("🔥 PUSHER AUTH HIT");
 
     // --- 1. Handle Presence Channels for Riders ---
     if (channelName.startsWith("presence-nearby-")) {
       // Check if the current user is a rider.
       const rider = await prisma.rider.findUnique({
         where: { userId: user.id },
-        select: { id: true, name: true, latitude: true, longitude: true },
+        select: { id: true, firstName: true, latitude: true, longitude: true },
       });
 
       if (!rider) {
@@ -34,7 +70,7 @@ export async function POST(request: Request) {
       const presenceData = {
         user_id: rider.id,
         user_info: {
-          name: rider.name,
+          name: rider.firstName,
           lat: rider.latitude,
           lng: rider.longitude,
         },

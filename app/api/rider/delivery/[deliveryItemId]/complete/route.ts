@@ -3,19 +3,31 @@ import prisma from "@/lib/prisma";
 import { verifyCode } from "@/lib/delivery";
 import { pusherServer } from "@/lib/pusher";
 import { sendStatusEmail, sendStatusSMS } from "@/lib/notify";
-import { getCurrentRider } from "@/lib/auth";
+import { getCurrentRider, getCurrentUser } from "@/lib/auth";
 
-export async function POST(req: Request) {
-  const rider = await getCurrentRider();
+export async function POST(
+  req: Request,
+  { params }: { params: { deliveryItemId: string } }
+) {
+  const { deliveryItemId } = await params;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rider = await prisma.rider.findUnique({
+    where: { userId: user.id },
+  });
   if (!rider)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { orderItemId, code } = await req.json();
+  const { code } = await req.json();
 
   try {
     await prisma.$transaction(async (tx) => {
       const assignment = await tx.deliveryItem.findUnique({
-        where: { orderItemId },
+        where: { id: deliveryItemId },
         include: {
           orderItem: {
             include: {
@@ -40,7 +52,7 @@ export async function POST(req: Request) {
       const match = await verifyCode(code, assignment.deliveryCodeHash);
       if (!match) {
         await tx.deliveryItem.update({
-          where: { orderItemId },
+          where: { id: deliveryItemId },
           data: { attempts: { increment: 1 } },
         });
         throw new Error("Invalid code");
@@ -61,7 +73,7 @@ export async function POST(req: Request) {
        * ✅ Update order item as delivered
        */
       const item = await tx.orderItem.update({
-        where: { id: orderItemId },
+        where: { id: assignment.orderItemId },
         data: {
           deliveryStatus: "DELIVERED",
           deliveredAt: new Date(),
@@ -73,7 +85,7 @@ export async function POST(req: Request) {
        * ✅ Update delivery item
        */
       await tx.deliveryItem.update({
-        where: { orderItemId },
+        where: { id: deliveryItemId },
         data: {
           deliveredAt: new Date(),
           status: "DELIVERED",
@@ -114,11 +126,11 @@ export async function POST(req: Request) {
           `<p>Your item has been delivered successfully. Thank you for shopping with us!</p>`
         );
 
-      if (buyerPhone)
-        await sendStatusSMS(
-          buyerPhone,
-          "✅ Your item has been delivered successfully. Thank you for shopping with us!"
-        );
+      // if (buyerPhone)
+      //   await sendStatusSMS(
+      //     buyerPhone,
+      //     "✅ Your item has been delivered successfully. Thank you for shopping with us!"
+      //   );
 
       /**
        * 🔔 Realtime updates via Pusher
@@ -126,19 +138,19 @@ export async function POST(req: Request) {
       await pusherServer.trigger(
         `private-buyer-${item.order.buyerId}`,
         "order_item.delivered",
-        { orderItemId }
+        { orderItemId: item.id }
       );
 
       await pusherServer.trigger(
         `private-seller-${item.storeId}`,
         "order_item.delivered",
-        { orderItemId }
+        { orderItemId: item.id }
       );
 
       await pusherServer.trigger(
         `private-rider-${rider.id}`,
         "order_item.delivered",
-        { orderItemId, earning: riderEarnings }
+        { orderItemId: item.id, earning: riderEarnings }
       );
 
       /**

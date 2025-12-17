@@ -1,5 +1,5 @@
 // services/riderService.ts
-import { encodeGeoHash5 } from "@/lib/geohash";
+import { encodeGeoHash4, encodeGeoHash5 } from "@/lib/geohash";
 import prisma from "@/lib/prisma";
 
 // Haversine formula to calculate distance in KM
@@ -27,7 +27,7 @@ function haversineDistance(
  * Get all nearby available riders within 1.5km – 3km
  */
 export async function getNearbyRiders(lat: number, lon: number) {
-  const geohash = encodeGeoHash5(lat, lon);
+  const geohash = encodeGeoHash4(lat, lon);
   //   const neighbors = getGeoHashNeighbors(geohash);
   const nearbyGeoHashes = [
     geohash,

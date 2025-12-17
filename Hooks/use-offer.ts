@@ -8,7 +8,7 @@ export function useOffers() {
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-      channelAuthorization: { endpoint: "/api/pusher", transport: "ajax" },
+      channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
     });
     const channel = pusher.subscribe("private-riders");
 

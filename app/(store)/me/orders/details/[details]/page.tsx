@@ -235,7 +235,7 @@ const OrderDetailsPage = () => {
   }
 
   return (
-    <section className="max-w-screen-2xl mx-auto mt-10 px-4 md:px-6 lg:px-8 pb-10">
+    <section className="max-w-screen-xl mx-auto mt-10 px-4 lg:px-6 pb-10">
       <div className="container mx-auto">
         <div className="flex items-center mb-6">
           <HoverPrefetchLink
@@ -283,7 +283,7 @@ const OrderDetailsPage = () => {
                     day: "numeric",
                   })}
                 </p>
-                {/* {order.deliveredAt && (
+                {order.deliveredAt && (
                   <p className="text-green-700">
                     <span className="font-semibold">Delivered On:</span>{" "}
                     {new Date(order.deliveredAt).toLocaleDateString("en-US", {
@@ -293,7 +293,7 @@ const OrderDetailsPage = () => {
                       day: "numeric",
                     })}
                   </p>
-                )} */}
+                )}
                 {order.cancelledAt && (
                   <p className="text-red-700">
                     <span className="font-semibold">Cancelled On:</span>{" "}
@@ -371,27 +371,26 @@ const OrderDetailsPage = () => {
                               <DialogHeader>
                                 <DialogTitle>Package History</DialogTitle>
                               </DialogHeader>
-                              <DeliveryTimeline
-                                deliveryStatus={
-                                  item.deliveryStatus === "OUT_FOR_DELIVERY"
-                                    ? " OUT_FOR_DELIVERY"
-                                    : item.deliveryStatus === "DELIVERED"
-                                    ? " DELIVERED"
-                                    : item.deliveryStatus ===
-                                      "RETURN_IN_TRANSIT"
-                                    ? " RETURN_IN_TRANSIT"
-                                    : item.deliveryStatus
-                                }
-                              />
-                              {/* <DialogHeader>
-                            <DialogTitle>Are you absolutely sure?</DialogTitle>
-                            <DialogDescription>
-                              This action cannot be undone. Are you sure you
-                              want to permanently delete this file from our
-                              servers?
-                            </DialogDescription>
-                          </DialogHeader> */}
-                              {/* <DialogClose>Confirm</DialogClose> */}
+                              {item.deliveryStatus !== "ASSIGNED" && (
+                                <DeliveryTimeline
+                                  deliveryStatus={
+                                    item.deliveryStatus === "OUT_FOR_DELIVERY"
+                                      ? " OUT_FOR_DELIVERY"
+                                      : item.deliveryStatus === "DELIVERED"
+                                      ? " DELIVERED"
+                                      : item.deliveryStatus ===
+                                        "RETURN_IN_TRANSIT"
+                                      ? " RETURN_IN_TRANSIT"
+                                      : (item.deliveryStatus as
+                                          | "PENDING"
+                                          | "READY_FOR_PICKUP"
+                                          | "FAILED"
+                                          | "RETURN_REQUESTED"
+                                          | "RETURN_APPROVED"
+                                          | "RETURNED")
+                                  }
+                                />
+                              )}
                             </DialogContent>
                           </Dialog>
                         </div>
@@ -455,7 +454,7 @@ const OrderDetailsPage = () => {
 
         <div>
           {/* --- NEW: Display Refund Status --- */}
-          {hasRefundStatus && (
+          {/* {hasRefundStatus && (
             <p className="text-lg text-gray-700 mb-2">
               <strong>Refund Status:</strong>
               <span
@@ -471,10 +470,9 @@ const OrderDetailsPage = () => {
                 }`}
               >
                 {order.refundStatus?.replace(/_/g, " ") || "N/A"}{" "}
-                {/* Replace underscores for display */}
               </span>
             </p>
-          )}
+          )} */}
         </div>
 
         {isCancellable && (
@@ -490,11 +488,11 @@ const OrderDetailsPage = () => {
             )}
           </Button>
         )}
-        {!isCancellable && order.status !== "CANCELLED" && (
+        {/* {!isCancellable && order.status !== "CANCELLED" && (
           <p className="mt-4 text-gray-600">
             This order cannot be cancelled at its current status.
           </p>
-        )}
+        )} */}
         {order.status === "CANCELLED" && (
           <p className="mt-4 text-red-600 font-semibold">
             This order has been cancelled.

@@ -312,6 +312,7 @@ model DeliveryItem {
 
   // codes
   pickupCodeHash      String?
+  pickupCode          String?
   pickupCodeExpires   DateTime?
   deliveryCodeHash    String?
   deliveryCodeExpires DateTime?
@@ -478,6 +479,7 @@ enum ProductStatus {
 enum DeliveryStatus {
   PENDING
   READY_FOR_PICKUP
+  ASSIGNED
   OUT_FOR_DELIVERY
   DELIVERED
   FAILED

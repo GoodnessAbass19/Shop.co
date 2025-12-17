@@ -377,3 +377,5 @@ export function splitPhoneNumber(phoneNumber: string) {
   const number = phoneNumber.substring(4);
   return { countryCode, number };
 }
+
+// RIDER UTILITY FUNCTIONS ADDED ABOVE

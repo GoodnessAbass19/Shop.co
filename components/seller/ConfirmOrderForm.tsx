@@ -36,7 +36,7 @@ const confirmDelivery = async ({
   code: string;
 }) => {
   const res = await fetch(
-    `/api/store/orders/item/${orderItemId}/confirm-delivery`,
+    `/api/store/orders/delivery/${orderItemId}/confirm-pickup`,
     {
       method: "PATCH", // Or POST, depending on your API design
       headers: {
@@ -58,7 +58,6 @@ export function ConfirmDeliveryForm({
   onSuccess,
 }: ConfirmDeliveryFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const router = useRouter();
   // Initialize react-hook-form
   const {
@@ -85,9 +84,6 @@ export function ConfirmDeliveryForm({
       reset(); // Clear form fields on success
       onSuccess?.(); // Call the optional success callback
       router.refresh();
-      // Refresh the page or data
-      // Invalidate relevant queries if this action affects other data
-      // e.g., queryClient.invalidateQueries(['orderDetails', orderItemId]);
     },
     onError: (error: any) => {
       toast({
@@ -122,8 +118,8 @@ export function ConfirmDeliveryForm({
         <Input
           id="code"
           type="text"
-          placeholder="Enter confirmation code"
-          {...register("code", { required: "Confirmation code is required." })}
+          placeholder="Enter pickup code"
+          {...register("code", { required: "Pickup code is required." })}
           className={cn(
             "w-full px-4 py-2 border rounded-md",
             errors.code && "border-red-500"

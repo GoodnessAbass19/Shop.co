@@ -1,14 +1,11 @@
-// app/dashboard/seller/orders/[orderId]/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
   ArrowLeft,
   Package,
-  User,
-  MapPin,
   DollarSign,
   Calendar,
   CheckCircle,
@@ -39,16 +36,14 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { AssignRiderForm } from "./AssignRiderForm";
 import { ConfirmDeliveryForm } from "./ConfirmOrderForm";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import AssignRiderMap from "./AssignRiderMap";
 import { useSellerStore } from "@/Hooks/use-store-context";
-import Pusher from "pusher-js";
 import { useOrderRealtime } from "@/Hooks/use-real-time-update";
 import { formatCurrencyValue } from "../../utils/format-currency-value";
 
@@ -126,7 +121,7 @@ export default function OrderDetailsPage({ params }: { params: string }) {
     queryKey: ["sellerOrderDetails", orderId],
     queryFn: () => fetchOrderById(orderId),
     enabled: !!orderId,
-    staleTime: 60 * 1000,
+    staleTime: 20 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -343,50 +338,6 @@ export default function OrderDetailsPage({ params }: { params: string }) {
         </Card>
       </div>
 
-      {/* Customer & Shipping Details */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">
-              Customer Details
-            </CardTitle>
-            <User className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-2 text-gray-700">
-            <p>
-              <span className="font-medium">Name:</span>{" "}
-              {order.buyer?.name || "Guest User"}
-            </p>
-            <p>
-              <span className="font-medium">Email:</span>{" "}
-              {order.buyer?.email || "N/A"}
-            </p>
-            <p>
-              <span className="font-medium">Phone:</span>{" "}
-              {order.buyer?.phone || "N/A"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">
-              Shipping Address
-            </CardTitle>
-            <MapPin className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-2 text-gray-700">
-            <p>{order.address?.street}</p>
-            <p>
-              {order.address?.city}, {order.address?.state}
-            </p>
-            <p>
-              {order.address?.postalCode}, {order.address?.country}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Order Items */}
       <Card className="shadow-md">
         <CardHeader>
@@ -434,9 +385,12 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-blue-600 hover:underline">
-                      {item.productVariant.product.name}
+                  <TableCell colSpan={1}>
+                    <div className="font-medium text-sm hover:underline line-clamp-1">
+                      {item.productVariant.product.name.length > 50
+                        ? item.productVariant.product.name.substring(0, 50) +
+                          "..."
+                        : item.productVariant.product.name}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -473,60 +427,24 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                   </TableCell>
                   {item.deliveryStatus !== "DELIVERED" && (
                     <TableCell className="text-right">
-                      {item.deliveryStatus === "PENDING" ||
-                      "READY_FOR_PICKUP" ? (
-                        <Dialog>
-                          <DialogTrigger
-                            onClick={() => getSellerLocation(item.id)}
-                            disabled={isMarkingReady}
-                            className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50"
-                          >
-                            {isMarkingReady ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Assign to Rider"
-                            )}
-                          </DialogTrigger>
-
-                          <DialogContent className="max-w-3xl w-full">
-                            <DialogHeader>
-                              <DialogTitle>
-                                {item.deliveryStatus === "PENDING"
-                                  ? "Assign a rider"
-                                  : "Track rider"}
-                              </DialogTitle>
-                            </DialogHeader>
-                            {store && sellerLocation ? (
-                              <>
-                                <AssignRiderMap
-                                  orderItemId={item.id}
-                                  sellerLat={sellerLocation.lat}
-                                  sellerLng={sellerLocation.lng}
-                                  storeId={store.id}
-                                />
-                                {/* <AssignRiderForm orderItemId={item.id} /> */}
-                              </>
-                            ) : (
-                              <div className="flex h-full min-h-[400px] items-center justify-center text-gray-500">
-                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                                <p>Loading map and finding riders...</p>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      ) : (
-                        <Dialog>
-                          <DialogTrigger className="text-right border rounded-md px-2 py-1 text-sm text-blue-600 hover:bg-blue-50">
-                            Confirm Delivery
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Confirm Delivery</DialogTitle>
-                            </DialogHeader>
-                            <ConfirmDeliveryForm orderItemId={item.id} />
-                          </DialogContent>
-                        </Dialog>
-                      )}
+                      {["PENDING", "READY_FOR_PICKUP"].includes(
+                        item.deliveryStatus
+                      ) ? (
+                        <button
+                          onClick={() => getSellerLocation(item.id)}
+                          disabled={
+                            isMarkingReady ||
+                            item.deliveryStatus === "READY_FOR_PICKUP"
+                          }
+                          className="border rounded-md px-3 py-1 text-sm text-blue-600 hover:bg-blue-50"
+                        >
+                          {isMarkingReady ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Assign to Rider"
+                          )}
+                        </button>
+                      ) : null}
                     </TableCell>
                   )}
                 </TableRow>
@@ -551,4 +469,52 @@ export default function OrderDetailsPage({ params }: { params: string }) {
       </div>
     </div>
   );
+}
+
+{
+  /* Customer & Shipping Details */
+}
+{
+  /* <div className="grid gap-6 md:grid-cols-2">
+        <Card className="shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">
+              Customer Details
+            </CardTitle>
+            <User className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2 text-gray-700">
+            <p>
+              <span className="font-medium">Name:</span>{" "}
+              {order.buyer?.name || "Guest User"}
+            </p>
+            <p>
+              <span className="font-medium">Email:</span>{" "}
+              {order.buyer?.email || "N/A"}
+            </p>
+            <p>
+              <span className="font-medium">Phone:</span>{" "}
+              {order.buyer?.phone || "N/A"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-semibold">
+              Shipping Address
+            </CardTitle>
+            <MapPin className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2 text-gray-700">
+            <p>{order.address?.street}</p>
+            <p>
+              {order.address?.city}, {order.address?.state}
+            </p>
+            <p>
+              {order.address?.postalCode}, {order.address?.country}
+            </p>
+          </CardContent>
+        </Card>
+      </div> */
 }

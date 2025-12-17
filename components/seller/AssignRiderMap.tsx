@@ -11,7 +11,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 
 const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  authEndpoint: "/api/pusher",
+  authEndpoint: "/api/pusher/auth",
 });
 
 interface AssignRiderMapProps {

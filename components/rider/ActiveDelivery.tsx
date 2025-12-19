@@ -19,6 +19,7 @@ import TimelineStep from "./Timeline";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Link from "next/link";
 import { Input } from "../ui/input";
+import { useRouter } from "next/navigation";
 
 function fitToRoute(map: mapboxgl.Map, bbox: number[]) {
   const bounds = new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
@@ -102,6 +103,7 @@ export default function RiderDeliveryMapPage({
 }: {
   deliveryItemId: string;
 }) {
+  const router = useRouter();
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const riderMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -467,9 +469,13 @@ export default function RiderDeliveryMapPage({
     },
   ];
 
+  // if (delivery?.status === "DELIVERED") {
+  //   router.push("/logistics/rider/dashboard");
+  // }
+
   return (
-    <div className="h-screen w-full grid grid-col-1 lg:grid-cols-4 gap-2">
-      <div className="h-screen w-full relative xl:col-span-3">
+    <div className="h-screen w-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-4 gap-3">
+      <div className="h-[70vh] lg:min-h-screen w-full relative col-span-3">
         <div ref={mapContainerRef} className="h-full w-full" />
         <div className="absolute top-4 left-4 bg-white text-black p-4 rounded shadow space-y-2 w-64">
           <h2 className="font-semibold text-lg">Active Delivery</h2>
@@ -498,9 +504,9 @@ export default function RiderDeliveryMapPage({
         </div>
       </div>
 
-      <div className="col-span-1 h-screen flex flex-col gap-6 bg-[#f8fcf9] dark:bg-[#102216] p-2">
+      <div className="lg:col-span-2 xl:col-span-1 h-screen flex flex-col gap-6 bg-[#f8fcf9] dark:bg-[#102216] p-2 mb-2 lg:overflow-y-auto">
         <div className="w-full flex flex-col gap-3 rounded-lg bg-[#ffffff] dark:bg-[#1a2c20] border border-[#e7f4eb] dark:border-[#2a3c30] p-6">
-          <p className="text-[#0d1c12] dark:text-[#e7f4eb] text-4xl font-black leading-tight tracking-[-0.033em]">
+          <p className="text-[#0d1c12] dark:text-[#e7f4eb] text-3xl font-black leading-tight tracking-[-0.033em]">
             Order #{delivery?.id.slice(0, 5).toUpperCase()}
           </p>
           <p className="text-[#499c65] dark:text-[#cee8d7] text-base font-normal leading-normal">
@@ -590,7 +596,7 @@ export default function RiderDeliveryMapPage({
             </p>
             <Link
               href={"/logistics/rider/dashboard"}
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#0df259] text-[#0d1c12] text-base font-bold leading-normal tracking-[0.015em]"
+              className="flex min-w-[84px] w-full lg:max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#0df259] text-[#0d1c12] text-base font-bold leading-normal tracking-[0.015em]"
             >
               Go to Dashboard
             </Link>

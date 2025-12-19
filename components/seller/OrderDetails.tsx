@@ -79,7 +79,7 @@ const sendReadyForPickupRequest = async ({
   sellerLat: number;
   sellerLng: number;
 }) => {
-  const res = await fetch(`/api/logistics/order/${itemId}/ready`, {
+  const res = await fetch(`/api/store/order/${itemId}/ready`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

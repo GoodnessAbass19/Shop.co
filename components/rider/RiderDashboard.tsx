@@ -625,7 +625,7 @@ const RiderDashboard = () => {
                       href={`/logistics/rider/delivery/${activeDelivery.id}`}
                       className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg py-2 h-12 px-4 bg-[#13ec6a] text-black gap-2 text-sm font-bold leading-normal tracking-[0.015em]"
                     >
-                      <span className="truncate">View Order Details</span>
+                      <span className="truncate">Navigate</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>

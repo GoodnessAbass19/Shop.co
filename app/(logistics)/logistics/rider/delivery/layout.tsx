@@ -10,12 +10,12 @@ export default async function RiderDeliveryLayout({
     <main className="" suppressHydrationWarning>
       <ThemeProvider
         attribute="class"
-        defaultTheme="light"
+        defaultTheme="system"
         enableSystem
         disableTransitionOnChange
       >
-        {/* <RiderDashboardLayout>{children}</RiderDashboardLayout> */}
-        {children}
+        <RiderDashboardLayout>{children}</RiderDashboardLayout>
+        {/* {children} */}
       </ThemeProvider>
     </main>
   );

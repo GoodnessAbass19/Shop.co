@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { signToken } from "@/lib/jwt";
 import { getCurrentUser } from "@/lib/auth";
+import { verifyCode } from "@/lib/delivery";
 
 export async function POST(req: Request) {
   try {
@@ -24,6 +25,18 @@ export async function POST(req: Request) {
         expiresAt: { gt: new Date() }, // OTP must not be expired
       },
     });
+
+    const verify = await verifyCode(otp, otpRecord?.tokenHash!);
+
+    if (!verify) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid or expired OTP. Please try again or request a new one.",
+        },
+        { status: 401 }
+      );
+    }
 
     if (!otpRecord) {
       return NextResponse.json(

@@ -24,6 +24,10 @@ export async function GET(
         subSubCategory: {
           slug: params.slug,
         },
+        status: "ACTIVE",
+        store: {
+          isActive: true,
+        },
       },
     });
 
@@ -37,6 +41,9 @@ export async function GET(
             slug: params.slug,
           },
           status: "ACTIVE",
+          store: {
+            isActive: true,
+          },
         },
         include: {
           variants: true,
@@ -113,7 +120,7 @@ export async function GET(
 
       // Find the best single discount percentage for this product
       if (product.discounts && product.discounts.length > 0) {
-        bestDiscountPercentage = product.discounts[0].percentage; // Already ordered by desc percentage
+        bestDiscountPercentage = product.discounts[0].percentage ?? 0; // Already ordered by desc percentage
         if (bestDiscountPercentage > 0) {
           discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
         }

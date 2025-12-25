@@ -20,7 +20,13 @@ export async function GET(
         slug: subcategory,
       },
       include: {
-        products: true,
+        products: {
+          where: {
+            store: {
+              isActive: true,
+            },
+          },
+        },
         subSubCategories: {
           include: {
             subCategory: {

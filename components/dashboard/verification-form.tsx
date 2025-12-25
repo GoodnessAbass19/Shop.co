@@ -20,7 +20,7 @@ interface SellerStoreData {
     contactEmail: string;
     userId: string;
     user: User;
-    isactive: boolean;
+    isActive: boolean;
   };
 }
 
@@ -63,7 +63,7 @@ const VerificationForm = ({
 
   const contactEmail = data?.store.contactEmail ?? "";
   const isUserSeller = !!data?.store.user?.isSeller;
-  const isActive = !!data?.store?.isactive;
+  const isActive = !!data?.store?.isActive;
 
   const redirect_url =
     searchParams.get("redirectUrl") || "/your/store/dashboard";
@@ -118,47 +118,66 @@ const VerificationForm = ({
   };
 
   const handleVerifyOtp = async (formData: FormState) => {
-    if (formData.otp.length !== 6) {
+    clearErrors("otp");
+
+    if (!contactEmail) {
+      toast({
+        title: "Error",
+        description: "Store email not available. Cannot verify OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const otpValue = formData.otp?.toString().trim() || "";
+    if (otpValue.length !== 6) {
       setError("otp", { type: "manual", message: "OTP must be 6 digits." });
       return;
     }
-    setLoading(true);
 
+    setLoading(true);
     try {
       const res = await fetch("/api/store/verifyOtp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: contactEmail, // Use the fetched email
-          otp: formData.otp,
-        }),
+        body: JSON.stringify({ email: contactEmail, otp: otpValue }),
       });
 
-      const result = await res.json();
+      // Attempt to parse JSON safely
+      let result: any = {};
+      try {
+        result = await res.json();
+      } catch (e) {
+        // ignore JSON parse errors and fall through to error handling
+      }
 
-      if (res.ok && result.success) {
-        setLoading(true);
+      if (res.ok && result?.success) {
         toast({
           title: "Success!",
           description:
             result.message || "Authentication successful! Redirecting...",
           action: <ToastAction altText="Go to Dashboard">Dismiss</ToastAction>,
         });
-        // Redirect upon successful verification
+        // Wait for navigation to complete
         if (!isActive) {
-          router.push(`/your/store/dashboard/profile`);
+          await router.push(`/your/store/dashboard/profile`);
+        } else {
+          await router.push(redirect_url);
         }
 
-        router.push(redirect_url);
-      } else {
-        toast({
-          title: "Verification Failed",
-          description:
-            result.error || "OTP verification failed. Please try again.",
-          variant: "destructive",
-          action: <ToastAction altText="Try again">Dismiss</ToastAction>,
-        });
+        return;
       }
+
+      // Mark field error and show toast on failure
+      const errMsg =
+        result?.error || "OTP verification failed. Please try again.";
+      setError("otp", { type: "manual", message: errMsg });
+      toast({
+        title: "Verification Failed",
+        description: errMsg,
+        variant: "destructive",
+        action: <ToastAction altText="Try again">Dismiss</ToastAction>,
+      });
     } catch (error) {
       console.error("OTP Verify Error:", error);
       toast({
@@ -262,18 +281,19 @@ const VerificationForm = ({
               render={({ field }) => (
                 <InputOTP
                   id="otp-input"
-                  maxLength={6}
+                  maxLength={4}
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
+                  onComplete={(val) => field.onChange(val)}
                 >
                   <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
+                    <InputOTPSlot index={0} className="w-10 h-10" />
+                    <InputOTPSlot index={1} className="w-10 h-10" />
+                    <InputOTPSlot index={2} className="w-10 h-10" />
+                    <InputOTPSlot index={3} className="w-10 h-10" />
+                    {/* <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} /> */}
                   </InputOTPGroup>
                 </InputOTP>
               )}

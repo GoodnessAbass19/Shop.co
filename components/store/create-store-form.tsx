@@ -110,8 +110,8 @@ export default function Form() {
     onSuccess: (data) => {
       // Handle success (e.g., redirect, show toast, etc.)
       // console.log("Store created!", data);
-      router.prefetch("/your/store/dashboard");
-      router.push("/your/store/dashboard");
+      // router.prefetch("/your/store/dashboard/profile");
+      router.push("/your/store/dashboard/profile");
     },
     onError: (error: any) => {
       // Handle error (e.g., show toast)

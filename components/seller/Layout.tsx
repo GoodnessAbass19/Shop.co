@@ -149,6 +149,11 @@ export default function SellerDashboardLayout({
     );
   }
 
+  if (!sellerStore.isactive) {
+    router.push("/your/store/dashboard/profile");
+    return null;
+  }
+
   return (
     <SellerStoreProvider store={sellerStore}>
       <SidebarProvider defaultOpen={defaultOpen}>

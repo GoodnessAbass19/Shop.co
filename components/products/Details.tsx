@@ -339,7 +339,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
                         {selectedColor &&
                         !getSizesForColor(selectedColor).has(s)
                           ? "(Unavailable)"
-                          : ""}
+                          : ``}
                       </SelectItem>
                     ))}
                   </SelectContent>

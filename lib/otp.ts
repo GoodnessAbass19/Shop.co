@@ -3,9 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import prisma from "./prisma";
+import { hashCode } from "./delivery";
 
 export async function sendOtp(email: string) {
-  const otp = crypto.randomInt(100000, 999999).toString();
+  const otp = crypto.randomInt(1000, 10000).toString();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Expires in 10 mins
 
   // --- Correction 1: createdAt for upsert ---
@@ -13,11 +14,13 @@ export async function sendOtp(email: string) {
   // if you're using `@default(now())` and `@updatedAt` in your schema.
   // Prisma will automatically update `updatedAt` for `update` operations.
   // `createdAt` should only be set on `create`.
+  const hash = await hashCode(otp);
   await prisma.otpToken.upsert({
     where: { email },
     update: {
       token: otp,
       expiresAt,
+      tokenHash: hash,
       // createdAt: new Date(), // REMOVED: Prisma's @updatedAt will handle this.
       // If you want to reset creation time on update, reconsider this logic.
       // Usually, createdAt is immutable.
@@ -26,6 +29,7 @@ export async function sendOtp(email: string) {
       email,
       token: otp,
       expiresAt,
+      tokenHash: hash,
       // createdAt: new Date(), // This is redundant if you use @default(now()) in Prisma schema
       // but harmless.
     },

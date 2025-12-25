@@ -72,7 +72,8 @@ model Store {
   contactPhone String?
   isActive     Boolean       @default(false) // Whether the store is active or not
   logo         String?
-  banner       String[]
+  banner       String?
+  rating       Float         @default(0.0)
   userId       String        @unique
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   products     Product[]
@@ -152,48 +153,96 @@ model ShippingInfo {
 }
 
 model Product {
-  id                String          @id @default(uuid())
+  id                String                 @id @default(uuid())
   name              String
-  slug              String          @unique // Slug for SEO-friendly URLs
+  slug              String                 @unique // Slug for SEO-friendly URLs
   description       String
-  price             Float?
-  stock             Int?
+  highlight         String?
+  color             String?
+  colorFamily       String?
   lowStockThreshold Int? // NEW: Alert when stock falls below this
   images            String[]
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  status            ProductStatus   @default(ACTIVE)
+  brandId           String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  status            ProductStatus          @default(ACTIVE)
   storeId           String
-  store             Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store             Store                  @relation(fields: [storeId], references: [id], onDelete: Cascade)
   categoryId        String
-  category          Category        @relation(fields: [categoryId], references: [id])
+  category          Category               @relation(fields: [categoryId], references: [id])
   subCategoryId     String
-  subCategory       SubCategory     @relation(fields: [subCategoryId], references: [id])
-  subSubCategoryId  String?
-  subSubCategory    SubSubCategory? @relation(fields: [subSubCategoryId], references: [id])
-
-  variants      ProductVariant[]
-  reviews       ProductReview[]
-  discounts     Discount[]
-  soldCount     Int              @default(0) // Optional optimization
-  wishlistItems WishlistItem[]
+  subCategory       SubCategory            @relation(fields: [subCategoryId], references: [id])
+  subSubCategoryId  String
+  subSubCategory    SubSubCategory         @relation(fields: [subSubCategoryId], references: [id])
+  variants          ProductVariant[]
+  specifications    ProductSpecification[]
+  reviews           ProductReview[]
+  discounts         Discount[]
+  soldCount         Int                    @default(0) // Optional optimization
+  wishlistItems     WishlistItem[]
 }
 
-model ProductVariant {
-  id        String   @id @default(uuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  // title     String
-  size      String?
-  color     String?
-  price     Float
-  stock     Int
-  sku       String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Product Variant Model
+// model ProductVariant {
+//   id        String   @id @default(uuid())
+//   productId String
+//   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   // title     String
+//   size      String?
+//   color     String?
+//   price     Float
+//   stock     Int
+//   sku       String?  @unique
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
 
+model ProductVariant {
+  id          String  @id @default(cuid())
+  variation   String // e.g. "Black / Large"
+  sellerSku   String  @unique
+  gtinBarcode String?
+  quantity    Int
+
+  price         Decimal   @db.Decimal(10, 2)
+  salePrice     Decimal?  @db.Decimal(10, 2)
+  saleStartDate DateTime?
+  saleEndDate   DateTime?
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]
   cartItems  CartItem[] // NEW: Variants can be in cart items
+}
+
+// Product Specifications Model
+model ProductSpecification {
+  id    String @id @default(cuid())
+  value String
+
+  productId       String
+  specificationId String
+
+  product       Product                 @relation(fields: [productId], references: [id])
+  specification SpecificationDefinition @relation(fields: [specificationId], references: [id])
+
+  @@unique([productId, specificationId])
+}
+
+model SpecificationDefinition {
+  id         String        @id @default(cuid())
+  name       String
+  unit       String?
+  inputType  SpecInputType
+  categoryId String?
+
+  category Category?              @relation(fields: [categoryId], references: [id])
+  values   ProductSpecification[]
+
+  @@unique([name, categoryId])
 }
 
 model ProductReview {
@@ -242,6 +291,8 @@ model Category {
   products      Product[]
   slug          String        @unique // Slug for SEO-friendly URLs
   image         String?
+
+  specificationDefinitions SpecificationDefinition[]
 }
 
 model SubCategory {
@@ -408,6 +459,7 @@ model OtpToken {
   id        String   @id @default(uuid())
   email     String   @unique
   token     String
+  tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
@@ -576,4 +628,12 @@ enum RiderStatus {
   DELIVERING
   UNAVAILABLE
   SUSPENDED
+}
+
+enum SpecInputType {
+  TEXT
+  NUMBER
+  SELECT
+  MULTISELECT
+  RICHTEXT
 }

@@ -53,7 +53,7 @@ export default function NewDeliveryDrawer({
   useEffect(() => {
     if (open) {
       try {
-        const audio = new Audio("/sounds/notification.mp3");
+        const audio = new Audio("/sounds/notification.wav");
         audio.play().catch((err) => console.warn("Sound play failed:", err));
       } catch (err) {
         console.warn("Audio error:", err);

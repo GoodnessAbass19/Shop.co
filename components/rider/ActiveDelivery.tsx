@@ -20,6 +20,7 @@ import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
+import { useRiderContext } from "@/Hooks/use-rider-context";
 
 function fitToRoute(map: mapboxgl.Map, bbox: number[]) {
   const bounds = new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
@@ -103,6 +104,7 @@ export default function RiderDeliveryMapPage({
 }: {
   deliveryItemId: string;
 }) {
+  const { rider } = useRiderContext();
   const router = useRouter();
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -469,9 +471,19 @@ export default function RiderDeliveryMapPage({
     },
   ];
 
-  // if (delivery?.status === "DELIVERED") {
-  //   router.push("/logistics/rider/dashboard");
-  // }
+  if (!rider?.isActive || delivery?.status === "DELIVERED") {
+    router.push("/logistics/rider/dashboard");
+  }
+
+  if (!delivery) {
+    return (
+      <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-300"></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="h-screen w-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-4 gap-3">

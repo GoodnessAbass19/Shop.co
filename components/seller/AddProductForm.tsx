@@ -492,8 +492,9 @@ export function AddProductForm() {
                   Choose Files
                 </Button>
                 <p className="text-xs  mt-2">
-                  Supported formats: PNG, JPEG, JPG (Max 5MB each, up to 5
-                  files)
+                  Image needs to be between 500x500 and 2000x2000 pixels. White
+                  backgrounds are recommended. No watermarks. Supported formats:
+                  PNG, JPEG, JPG (Max 2MB each, up to 5 files)
                 </p>
               </div>
             )}

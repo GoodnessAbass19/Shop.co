@@ -23,6 +23,9 @@ export async function GET(request: Request) {
           mode: "insensitive", // Case-insensitive search
         },
         status: "ACTIVE", // Only fetch active products
+        store: {
+          isActive: true, // Only from active stores
+        },
       },
       take: 20, // Limit the number of results
       // Include necessary relations if you want to display more details on the frontend
@@ -57,8 +60,8 @@ export async function GET(request: Request) {
       let discountedPrice: number | null = null;
       if (product.discounts && product.discounts.length > 0) {
         const bestDiscountPercentage = product.discounts[0].percentage;
-        if (bestDiscountPercentage > 0) {
-          discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
+        if (bestDiscountPercentage! > 0) {
+          discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
         }
       }
 

@@ -25,7 +25,6 @@ import {
   CircleUser,
   CalendarIcon,
 } from "lucide-react"; // Icons
-import Link from "next/link";
 import { useToast } from "@/Hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
@@ -372,25 +371,6 @@ export default function AuthForm({ type }: AuthFormProps) {
                   </div>
                 </div>
 
-                {/* NEW: Birth Date Input */}
-                {/* <div>
-                  <Label
-                    htmlFor="birthDate"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Birth Date
-                  </Label>
-                  <div className="relative flex items-center">
-                    <Calendar className="absolute left-3 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="birthDate"
-                      type="date"
-                      {...register("birthDate")}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
-                    />
-                  </div>
-                </div> */}
-
                 <div className="space-y-1">
                   <Label
                     htmlFor="birthDate"
@@ -494,8 +474,12 @@ export default function AuthForm({ type }: AuthFormProps) {
                   {...register("password", {
                     required: "Password is required.",
                     minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters.",
+                      value: 8,
+                      message: "Password must be at least 8 characters.",
+                    },
+                    pattern: {
+                      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
+                      message: "Include uppercase, lowercase and a number.",
                     },
                   })}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
@@ -538,10 +522,12 @@ export default function AuthForm({ type }: AuthFormProps) {
                     placeholder="********"
                     {...register("confirmPassword", {
                       required: "Password is required.",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters.",
-                      },
+                      // minLength: {
+                      //   value: 6,
+                      //   message: "Password must be at least 6 characters.",
+                      // },
+                      validate: (v) =>
+                        v === getValues("password") || "Passwords must match",
                     })}
                     className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
                   />
@@ -589,6 +575,15 @@ export default function AuthForm({ type }: AuthFormProps) {
                   >
                     Sign up
                   </HoverPrefetchLink>
+                  <br />
+                  or
+                  <br />
+                  <HoverPrefetchLink
+                    href="/reset-password/request"
+                    className="font-medium text-blue-600 hover:text-blue-800 transition-colors capitalize"
+                  >
+                    Forgot Password?
+                  </HoverPrefetchLink>
                 </>
               ) : (
                 <>
@@ -633,17 +628,35 @@ export default function AuthForm({ type }: AuthFormProps) {
                     // },
                   })}
                   pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                  maxLength={6}
+                  maxLength={4}
                   onChange={handleOTPChange}
-                  // onComplete={handleVerifyOtp}
+                  onComplete={async (val: string) => {
+                    // ensure react-hook-form value is synced
+                    setValue("otp", val);
+
+                    // require email to be present
+                    const email = emailWatcher || getValues("email");
+                    if (!email) {
+                      toast({
+                        title: "Missing Email",
+                        description:
+                          "Please enter your email before verifying OTP.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    // call verify handler with an object matching FormState
+                    await handleVerifyOtp({ email, otp: val });
+                  }}
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
                     <InputOTPSlot index={2} />
                     <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
+                    {/* <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} /> */}
                   </InputOTPGroup>
                 </InputOTP>
                 {/* <Input
@@ -698,16 +711,6 @@ export default function AuthForm({ type }: AuthFormProps) {
                 </Button>
               )}
             </div>
-            {/* <Button
-              type="button"
-              variant="ghost"
-              onClick={handleResendOtp}
-              disabled={loading}
-              className="w-full text-gray-600 hover:text-gray-900 px-4 py-3 transition duration-200"
-            >
-              {loading && renderLoadingSpinner()}
-              Resend OTP
-            </Button> */}
 
             <p className="mt-4 text-center text-sm text-gray-600">
               <button

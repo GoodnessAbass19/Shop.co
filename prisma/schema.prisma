@@ -85,6 +85,16 @@ model Store {
   contact      Contact?
   businessInfo BusinessInfo?
   shippingInfo ShippingInfo?
+  status       StoreStatus   @default(ACTIVE)
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum StoreStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
 }
 
 model CustomerCare {
@@ -162,7 +172,7 @@ model Product {
   colorFamily       String?
   lowStockThreshold Int? // NEW: Alert when stock falls below this
   images            String[]
-  brandId           String?
+  brand             String?
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   status            ProductStatus          @default(ACTIVE)
@@ -180,6 +190,15 @@ model Product {
   discounts         Discount[]
   soldCount         Int                    @default(0) // Optional optimization
   wishlistItems     WishlistItem[]
+
+  @@index([storeId, status])
+  @@index([categoryId, storeId])
+  @@index([status])
+  @@index([categoryId, status])
+  @@index([subCategoryId])
+  @@index([subSubCategoryId])
+  @@index([storeId])
+  @@index([soldCount])
 }
 
 // Product Variant Model
@@ -198,9 +217,11 @@ model Product {
 // }
 
 model ProductVariant {
-  id          String  @id @default(cuid())
-  variation   String // e.g. "Black / Large"
-  sellerSku   String  @unique
+  id          String      @id @default(cuid())
+  variantType VariantType // e.g. "Size", "Color"
+  variation   String? // e.g. "Black / Large"
+  size        String?
+  sellerSku   String      @unique
   gtinBarcode String?
   quantity    Int
 
@@ -216,6 +237,13 @@ model ProductVariant {
   updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]
   cartItems  CartItem[] // NEW: Variants can be in cart items
+
+  @@index([productId, price])
+  @@index([sellerSku])
+  @@index([productId])
+  @@index([variantType])
+  @@index([price])
+  @@index([quantity])
 }
 
 // Product Specifications Model
@@ -230,6 +258,8 @@ model ProductSpecification {
   specification SpecificationDefinition @relation(fields: [specificationId], references: [id])
 
   @@unique([productId, specificationId])
+  @@index([productId])
+  @@index([specificationId])
 }
 
 model SpecificationDefinition {
@@ -293,6 +323,8 @@ model Category {
   image         String?
 
   specificationDefinitions SpecificationDefinition[]
+
+  @@index([slug])
 }
 
 model SubCategory {
@@ -336,6 +368,8 @@ model Order {
   items       OrderItem[]
   addressId   String? // NEW: Link to the specific Address used for this order
   address     Address?    @relation(fields: [addressId], references: [id])
+
+  @@index([buyerId])
 }
 
 model OrderItem {
@@ -352,6 +386,8 @@ model OrderItem {
   deliveredAt      DateTime?
   assignedAt       DateTime? // When the rider is assigned
   deliveryItem     DeliveryItem?
+
+  @@index([productVariantId])
 }
 
 model DeliveryItem {
@@ -636,4 +672,11 @@ enum SpecInputType {
   SELECT
   MULTISELECT
   RICHTEXT
+}
+
+enum VariantType {
+  SIZE
+  VARIATION
+  DRINK_SIZE
+  VOLUME
 }

@@ -1,8 +1,12 @@
 import { AddressManager } from "@/components/account/Address";
 import ProfilePage from "@/components/account/Profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cookies } from "next/headers";
 
-const page = () => {
+const page = async () => {
+  const cookieStore = await cookies();
+  const token = await cookieStore.get("token")?.value;
+
   return (
     <div className="mt-5 max-w-screen-lg mx-auto px-4">
       <Tabs defaultValue="account" className="mb-4">
@@ -16,10 +20,10 @@ const page = () => {
           <TabsTrigger value="addresses">Addresses</TabsTrigger>
         </TabsList>
         <TabsContent value="account">
-          <ProfilePage />
+          <ProfilePage token={token!} />
         </TabsContent>
         <TabsContent value="addresses">
-          <AddressManager />
+          <AddressManager token={token!} />
         </TabsContent>
       </Tabs>
     </div>

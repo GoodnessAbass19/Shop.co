@@ -1,16 +1,20 @@
 import Menu from "@/components/layout/menu";
 import { UserProvider } from "@/Hooks/user-context";
 import { User } from "lucide-react";
+import { cookies } from "next/headers";
 import Image from "next/image";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const token = await cookieStore.get("token")?.value;
+
   return (
     <div className="">
-      <UserProvider>
+      <UserProvider token={token!}>
         <Menu />
         {children}
       </UserProvider>

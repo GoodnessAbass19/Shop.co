@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react"; // Assuming you have a loader icon
+import { useRouter } from "next/navigation";
 
 // Ensure this type matches your Prisma Notification model structure
 type Notification = {
@@ -32,8 +33,18 @@ const markNotificationAsRead = async (id: string) => {
   return res.data; // The updated notification
 };
 
-export default function BuyerNotifications() {
+export default function BuyerNotifications({
+  token,
+}: {
+  token: string | null;
+}) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+
+  if (!token) {
+    router.push("/sign-in");
+    return null;
+  }
 
   // Use useQuery to fetch notifications
   const {
@@ -94,10 +105,11 @@ export default function BuyerNotifications() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48 bg-white rounded-lg shadow p-6">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-        <p className="ml-2 text-gray-600">Loading notifications...</p>
-      </div>
+      <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </section>
     );
   }
 

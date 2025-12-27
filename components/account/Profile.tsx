@@ -6,6 +6,7 @@ import { Loader2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button"; // Assuming you have Button
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
+import { useRouter } from "next/navigation";
 
 // Define a type that matches what your API fetches for the current user
 interface FetchedUser {
@@ -28,7 +29,8 @@ async function fetchCurrentUser(): Promise<FetchedUser> {
   return res.json().then((data) => data.user); // Assuming API returns { user: ... }
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ token }: { token: string | null }) {
+  const router = useRouter();
   const {
     data: user,
     isLoading,
@@ -41,6 +43,11 @@ export default function ProfilePage() {
     staleTime: 10 * 60 * 1000, // Data considered fresh for 5 minutes
   });
 
+  if (!token) {
+    router.push("/sign-in");
+    return null;
+  }
+
   if (isLoading) {
     return (
       <section className="max-w-screen-xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
@@ -50,22 +57,6 @@ export default function ProfilePage() {
       </section>
     );
   }
-
-  //   if (isError) {
-  //     return (
-  //       <div className="min-h-[calc(100vh-200px)] flex flex-col items-center justify-center bg-red-50 p-8 text-center rounded-lg shadow-lg">
-  //         <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-  //         <p className="text-xl font-semibold mb-3">Error loading profile:</p>
-  //         <p className="mb-4">{error?.message || "An unknown error occurred."}</p>
-  //         <Button
-  //           onClick={() => refetch()}
-  //           className="bg-red-700 hover:bg-red-800 text-white"
-  //         >
-  //           Retry
-  //         </Button>
-  //       </div>
-  //     );
-  //   }
 
   if (!user) {
     return (

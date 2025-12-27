@@ -17,6 +17,7 @@ import {
   Trash2,
   Pencil,
 } from "lucide-react"; // Icons
+import { useRouter } from "next/navigation";
 
 // API functions (assuming these interact with your backend)
 // You might need to adjust their return types or how they are structured
@@ -54,9 +55,15 @@ async function setDefaultAddressApi(id: string): Promise<void> {
   }
 }
 
-export function AddressManager() {
+export function AddressManager({ token }: { token: string | null }) {
   const queryClient = useQueryClient(); // Access the query client
   const { toast } = useToast(); // Initialize toast hook
+  const router = useRouter();
+
+  if (!token) {
+    router.push("/sign-in");
+    return null;
+  }
 
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [openModal, setOpenModal] = useState(false);

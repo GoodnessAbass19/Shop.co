@@ -9,6 +9,7 @@ import {
   useCallback,
 } from "react";
 import { Cart, CartItem, User } from "@prisma/client";
+import { cookies } from "next/headers";
 
 // Define Notification type if not imported
 type Notification = {
@@ -33,9 +34,10 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 interface UserProviderProps {
   children: ReactNode;
+  token: string | null;
 }
 
-export const UserProvider = ({ children }: UserProviderProps) => {
+export const UserProvider = ({ children, token }: UserProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [cart, setCart] = useState<(Cart & { cartItems: CartItem[] }) | null>(
@@ -91,11 +93,27 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+
+      // Validate token on startup by calling /api/me once. This ensures token is
+      // actually valid before doing additional fetches.
+      try {
+        if (!token) {
+          setUser(null);
+          setNotifications([]);
+          setCart(null);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        // If validation fails for any reason, proceed with the regular fetches
+        console.warn("checkUserToken failed, proceeding with fetches:", err);
+      }
+
       await Promise.all([fetchUser(), fetchNotifications(), fetchCart()]);
       setIsLoading(false);
     };
     fetchData();
-  }, [fetchUser, fetchNotifications, fetchCart]);
+  }, [fetchUser, fetchNotifications, fetchCart, token]);
 
   const value: UserContextType = {
     user,
@@ -117,3 +135,35 @@ export const useUser = () => {
   }
   return context;
 };
+
+// Helper to read a cookie by name (client-side)
+// function readCookie(name: string): string | null {
+//   if (typeof document === "undefined") return null;
+//   const match = document.cookie.match(
+//     new RegExp("(?:^|; )" + name + "=([^;]*)")
+//   );
+//   return match ? decodeURIComponent(match[1]) : null;
+// }
+
+// // Returns the raw token string from cookies (or null)
+// export function getUserToken(): string | null {
+//   return readCookie("token");
+// }
+
+// // Checks whether a token exists and is valid by calling the `/api/me` endpoint.
+// // Returns `true` if a valid token is present, `false` otherwise.
+// export async function checkUserToken(): Promise<boolean> {
+//   if (typeof window === "undefined") return false;
+//   const token = getUserToken();
+//   if (!token) return false;
+//   console.log(token);
+//   try {
+//     const res = await fetch("/api/me");
+//     if (!res.ok) return false;
+//     const data = await res.json();
+//     return !!data?.user;
+//   } catch (err) {
+//     console.error("checkUserToken error:", err);
+//     return false;
+//   }
+// }

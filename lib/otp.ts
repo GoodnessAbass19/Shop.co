@@ -36,6 +36,7 @@ export async function sendOtp(email: string) {
   });
 
   let transporter;
+  let fromAddress: string | undefined;
 
   if (process.env.NODE_ENV === "production") {
     // ✅ Production: Use Gmail OAuth2 or other provider
@@ -63,6 +64,7 @@ export async function sendOtp(email: string) {
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
       },
     });
+    fromAddress = process.env.EMAIL_FROM ?? process.env.EMAIL_USER ?? undefined;
   } else {
     // ✅ Development: Use Ethereal
     // --- Correction 3: Await for createTestAccount outside transporter init ---
@@ -90,12 +92,16 @@ export async function sendOtp(email: string) {
         pass: testAccount.pass,
       },
     });
+    fromAddress = testAccount.user;
   }
 
   // --- Correction 4: Error handling for sendMail ---
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER, // Ensure this matches your EMAIL_USER for Gmail OAuth2
+      from:
+        fromAddress ??
+        process.env.EMAIL_FROM ??
+        (process.env.EMAIL_USER ? process.env.EMAIL_USER : 'no-reply@yourstore.com'),
       to: email,
       subject: "Your OTP Code",
       html: `<p>Your OTP is: <strong>${otp}</strong></p>
@@ -105,6 +111,7 @@ export async function sendOtp(email: string) {
     // For local debugging
     if (process.env.NODE_ENV !== "production") {
       console.log("Preview URL: " + nodemailer.getTestMessageUrl(info));
+      console.log("Ethereal info:", info);
     }
 
     console.log(`OTP sent to ${email}: ${otp}`);

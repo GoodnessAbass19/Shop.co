@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +13,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "../ui/input-otp";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { User } from "@prisma/client";
+import Form from "../store/create-store-form";
 
 interface SellerStoreData {
   store: {
@@ -72,6 +73,8 @@ const VerificationForm = ({
     defaultValues: { otp: "" },
   });
 
+  const otpValue = useWatch({ control, name: "otp" });
+
   const renderLoadingSpinner = () => (
     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
   );
@@ -130,8 +133,8 @@ const VerificationForm = ({
     }
 
     const otpValue = formData.otp?.toString().trim() || "";
-    if (otpValue.length !== 6) {
-      setError("otp", { type: "manual", message: "OTP must be 6 digits." });
+    if (otpValue.length !== 4) {
+      setError("otp", { type: "manual", message: "OTP must be 4 digits." });
       return;
     }
 
@@ -285,7 +288,10 @@ const VerificationForm = ({
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
-                  onComplete={(val) => field.onChange(val)}
+                  onComplete={async (val: string) => {
+                    // call verify handler with an object matching FormState
+                    await handleVerifyOtp({ otp: val });
+                  }}
                 >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} className="w-10 h-10" />
@@ -306,7 +312,7 @@ const VerificationForm = ({
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || otpValue.length < 4}
             className="w-full flex justify-center py-3 px-4 rounded-md shadow-md text-lg font-semibold text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             {loading ? renderLoadingSpinner() : "Continue to Dashboard"}

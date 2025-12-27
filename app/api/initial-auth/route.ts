@@ -1,4 +1,3 @@
-// app/api/auth/initiate-auth/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
@@ -8,7 +7,6 @@ import { Role } from "@prisma/client";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Destructure new fields: gender, birthDate
     const {
       email,
       password,

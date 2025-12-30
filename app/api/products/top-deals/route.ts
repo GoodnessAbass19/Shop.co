@@ -42,7 +42,7 @@ export async function GET() {
         },
         variants: {
           orderBy: { price: "asc" }, // Get lowest variant price
-          select: { price: true },
+          select: { price: true, salePrice: true },
         },
         // Include other relations needed for the ProductCard if not already part of the processing
         category: { select: { id: true, name: true, slug: true } },
@@ -62,20 +62,18 @@ export async function GET() {
     // 2. Process products to calculate discountedPrice and sort them in memory.
     const processedProducts = products.map((product) => {
       const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price
-          : product.price || 0; // Use product.price if no variants or lowest variant is null/undefined
+        product.variants.length > 0 ? product.variants[0].price : 0; // Use product.price if no variants or lowest variant is null/undefined
 
-      let discountedPrice: number | null = null;
+      let discountedPrice: number | null = product.variants[0].salePrice as any;
       let bestDiscountPercentage = 0;
 
-      if (product.discounts && product.discounts.length > 0) {
-        // Since we ordered discounts by percentage: "desc" in the include, the first one is the best
-        bestDiscountPercentage = product?.discounts[0]?.percentage!;
-        if (bestDiscountPercentage > 0) {
-          discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
-        }
-      }
+      // if (product.discounts && product.discounts.length > 0) {
+      //   // Since we ordered discounts by percentage: "desc" in the include, the first one is the best
+      //   bestDiscountPercentage = product?.discounts[0]?.percentage!;
+      //   if (bestDiscountPercentage > 0) {
+      //     discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
+      //   }
+      // }
 
       return {
         ...product,

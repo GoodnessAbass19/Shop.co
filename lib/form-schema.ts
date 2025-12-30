@@ -162,3 +162,82 @@ export const RiderInfoSchema = z.object({
     .min(10, "Account number must be at least 10 digits long"),
   accountName: z.string().min(1, "Account name is required"),
 });
+
+export const ProductVariantSchema = z
+  .object({
+    value: z.string().optional(),
+    size: z.string().optional(),
+    drink_size: z.string().optional(),
+    volume: z.string().optional(),
+    shoe_size: z.string().optional(),
+    sellerSku: z.string().min(5, "Sku is required"),
+    stock: z.coerce.number().int().min(0, "Quantity is required"),
+    gtinBarcode: z.string().optional(),
+    price: z.coerce.number().min(1, "price is required"),
+    salePrice: z.coerce.number().optional(),
+    saleStartDate: z.date().optional(),
+    saleEndDate: z.date().optional(),
+    colorAvailable: z
+      .array(z.string())
+      .max(5, "only 5 color family allowed")
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // 1. Validation: Sale price should not be higher than the regular price
+      if (data.salePrice && data.price) {
+        return Number(data.salePrice) <= Number(data.price);
+      }
+      return true;
+    },
+    {
+      message: "Sale price cannot be greater than the regular price",
+      path: ["salePrice"],
+    }
+  )
+  .refine(
+    (data) => {
+      // 2. Validation: If sale price is provided, regular price must be > 0
+      if (data.salePrice && (!data.price || data.price <= 0)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "A regular price must be set before applying a sale price",
+      path: ["salePrice"],
+    }
+  );
+
+export const CreateProductSchema = z.object({
+  name: z.string().min(5, "product name is required"),
+  category: z.string().min(1, "category is required"),
+  brand: z.string().min(1, "brand is required"),
+  color: z.string().optional(),
+  colorFamily: z
+    .array(z.string())
+    .max(5, "only 5 color family allowed")
+    .optional(),
+  weight: z.number(),
+  description: z.string().min(20, "description is required"),
+  highlight: z.string().min(20, "highlight is required"),
+  images: z
+    .array(z.string().url("Invalid image URL"))
+    .max(7, "You can only upload 7 images"),
+  categoryId: z.string().min(2, "Category is required"),
+  subCategoryId: z.string().min(2, "Category is required"),
+  subSubCategoryId: z.string().min(2, "Category is required"),
+  variants: z
+    .array(ProductVariantSchema)
+    .min(1, "At least one product variant (SKU) is required")
+    .superRefine((variants, ctx) => {
+      // Check for SKU duplicates within the form
+      const skus = variants.map((v) => v.sellerSku).filter(Boolean);
+      if (new Set(skus).size !== skus.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Duplicate SKUs detected in variants",
+        });
+      }
+    }),
+});

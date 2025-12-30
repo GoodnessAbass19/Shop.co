@@ -85,16 +85,10 @@ model Store {
   contact      Contact?
   businessInfo BusinessInfo?
   shippingInfo ShippingInfo?
-  status       StoreStatus   @default(ACTIVE)
+  status       StoreStatus   @default(PENDING_VERIFICATION)
 
-  @@index([userId])
   @@index([status])
-}
-
-enum StoreStatus {
-  ACTIVE
-  SUSPENDED
-  CLOSED
+  @@index([userId])
 }
 
 model CustomerCare {
@@ -122,28 +116,47 @@ model Contact {
 }
 
 model BusinessInfo {
-  id           String  @id @default(cuid())
-  storeId      String  @unique
-  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  fullName     String
-  idType       IdType // e.g., NATIONAL_ID, PASSPORT, etc.
-  idNumber     String // e.g., National ID number, Passport number, etc.
-  idImageFront String // Optional, e.g., image of the ID document
-  idImageBack  String // Optional, e.g., image of the back of the ID document
-  vatNumber    String? // Optional, e.g., for businesses that need to provide a VAT number
-  taxId        String // Optional, e.g., for businesses that need to provide a tax ID
-  taxIdImage   String // Optional, e.g., image of the tax ID document
-  address1     String
-  address2     String?
-  city         String
-  state        String
-  postalCode   String?
-  country      String
-  isComplete   Boolean @default(false) // Whether all required business info is provided
+  id              String             @id @default(cuid())
+  storeId         String             @unique
+  store           Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  fullName        String
+  idType          IdType // e.g., NATIONAL_ID, PASSPORT, etc.
+  idNumber        String // e.g., National ID number, Passport number, etc.
+  idImageFront    String // Optional, e.g., image of the ID document
+  idImageBack     String // Optional, e.g., image of the back of the ID document
+  vatNumber       String? // Optional, e.g., for businesses that need to provide a VAT number
+  taxId           String // Optional, e.g., for businesses that need to provide a tax ID
+  taxIdImage      String // Optional, e.g., image of the tax ID document
+  address1        String
+  address2        String?
+  city            String
+  state           String
+  postalCode      String?
+  country         String
+  isComplete      Boolean            @default(false) // Whether all required business info is provided
+  status          InfoStatus         @default(PENDING)
+  rejectionReason String?
+  documents       BusinessDocument[]
+
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+}
+
+model BusinessDocument {
+  id      String       @id @default(uuid())
+  kycId   String
+  type    DocumentType
+  fileUrl String
+
+  kyc BusinessInfo @relation(fields: [kycId], references: [id])
+
+  uploadedAt DateTime @default(now())
+
+  @@index([kycId])
 }
 
 model ShippingInfo {
-  id                 String  @id @default(cuid())
+  id                 String     @id @default(cuid())
   shippingZone       String
   shippingAddress1   String
   shippingAddress2   String?
@@ -157,9 +170,10 @@ model ShippingInfo {
   returnState        String
   returnCountry      String
   returnPostalCode   String?
-  isComplete         Boolean @default(false) // Whether all required business info is provided
-  storeId            String  @unique
-  store              Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  isComplete         Boolean    @default(false) // Whether all required business info is provided
+  status             InfoStatus @default(PENDING)
+  storeId            String     @unique
+  store              Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 model Product {
@@ -169,7 +183,8 @@ model Product {
   description       String
   highlight         String?
   color             String?
-  colorFamily       String?
+  colorFamily       String[]
+  weight            Int
   lowStockThreshold Int? // NEW: Alert when stock falls below this
   images            String[]
   brand             String?
@@ -217,18 +232,19 @@ model Product {
 // }
 
 model ProductVariant {
-  id          String      @id @default(cuid())
-  variantType VariantType // e.g. "Size", "Color"
-  variation   String? // e.g. "Black / Large"
-  size        String?
-  sellerSku   String      @unique
-  gtinBarcode String?
-  quantity    Int
-
-  price         Decimal   @db.Decimal(10, 2)
-  salePrice     Decimal?  @db.Decimal(10, 2)
-  saleStartDate DateTime?
-  saleEndDate   DateTime?
+  id             String    @id @default(cuid())
+  variation      String? // e.g. "Black / Large"
+  size           String?
+  volume         String?
+  drinkSize      String?
+  sellerSku      String    @unique
+  gtinBarcode    String?
+  quantity       Int
+  colorAvailable String[]
+  price          Float
+  salePrice      Float
+  saleStartDate  DateTime?
+  saleEndDate    DateTime?
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -241,7 +257,7 @@ model ProductVariant {
   @@index([productId, price])
   @@index([sellerSku])
   @@index([productId])
-  @@index([variantType])
+  // @@index([variantType])
   @@index([price])
   @@index([quantity])
 }
@@ -339,13 +355,14 @@ model SubCategory {
 }
 
 model SubSubCategory {
-  id            String      @id @default(uuid())
-  name          String
-  subCategoryId String
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-  products      Product[]
-  slug          String      @unique // Slug for SEO-friendly URLs
-  image         String?
+  id                 String      @id @default(uuid())
+  name               String
+  subCategoryId      String
+  subCategory        SubCategory @relation(fields: [subCategoryId], references: [id])
+  products           Product[]
+  slug               String      @unique // Slug for SEO-friendly URLs
+  image              String?
+  productVariantType VariantType // e.g. "Size", "Color"
 }
 
 model Order {
@@ -678,5 +695,29 @@ enum VariantType {
   SIZE
   VARIATION
   DRINK_SIZE
+  SIZE_SHOE
   VOLUME
+}
+
+enum InfoStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  PASSPORT
+  BUSINESS_CERTIFICATE
+  TAX_DOCUMENT
+  PROOF_OF_ADDRESS
+}
+
+enum StoreStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  CLOSED
 }

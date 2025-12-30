@@ -2,7 +2,13 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { useForm, useFieldArray, FieldErrors } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  FieldErrors,
+  SubmitHandler,
+  useWatch,
+} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,9 +23,12 @@ import {
   Image as ImageIcon,
   ChevronDown,
   Check,
+  ArrowLeft,
+  CalendarIcon,
+  Clock,
 } from "lucide-react";
 import { useToast } from "@/Hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, variantValue } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { uploadToCloudinary } from "@/lib/cloudinary"; // Assuming you have this utility
 import {
@@ -37,6 +46,21 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
+import z from "zod";
+import { CreateProductSchema } from "@/lib/form-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SimpleEditor } from "../tiptap-templates/simple/simple-editor";
+import { Separator } from "../ui/separator";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { VariantType } from "@prisma/client";
 
 // --- Type Definitions ---
 interface Category {
@@ -55,6 +79,7 @@ interface SubSubCategory {
   id: string;
   name: string;
   slug: string;
+  productVariantType: VariantType;
 }
 
 interface ProductFormData {
@@ -62,6 +87,7 @@ interface ProductFormData {
   description?: string;
   price: number;
   images: string[];
+  brand: string;
   categoryId: string;
   subCategoryId?: string;
   subSubCategoryId?: string;
@@ -76,17 +102,21 @@ interface ProductFormData {
   }>;
 }
 
+type Inputs = z.infer<typeof CreateProductSchema>;
+
 interface AddProductFormProps {
   onSuccess?: () => void; // Callback after successful product creation
   onCancel?: () => void; // Callback to cancel/close the form
 }
 
 const initialNewVariant = {
-  size: null,
-  color: null,
   price: 0,
   stock: 0,
-  sku: "",
+  sellerSku: "",
+  salePrice: 0,
+  saleStartDate: new Date(),
+  saleEndDate: new Date(),
+  gtinBarcode: "",
 };
 
 // Function to fetch categories
@@ -99,7 +129,14 @@ const fetchCategories = async (): Promise<Category[]> => {
   return res.json();
 };
 
+interface PriceChangeParams {
+  index: number;
+  field: "price" | "salePrice" | "stock";
+  value: string;
+}
+
 export function AddProductForm() {
+  ``;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -123,18 +160,10 @@ export function AddProductForm() {
     watch,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<ProductFormData>({
+  } = useForm<Inputs>({
+    resolver: zodResolver(CreateProductSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      price: 0,
-      images: [],
-      categoryId: "",
-      subCategoryId: undefined,
-      subSubCategoryId: undefined,
-      stock: 0,
-      isFeatured: false,
-      variants: [initialNewVariant],
+      variants: [{}],
     },
     mode: "onBlur",
   });
@@ -148,11 +177,97 @@ export function AddProductForm() {
     name: "variants",
   });
 
+  const watchedVariants = useWatch({ control, name: "variants" });
   const currentImages = watch("images");
   const currentCategoryId = watch("categoryId");
   const currentSubCategoryId = watch("subCategoryId");
   const currentSubSubCategoryId = watch("subSubCategoryId");
   const router = useRouter();
+
+  /**
+   * CUSTOM PRICE HANDLER
+   * This uses text inputs to avoid the "spinner" arrows of type="number"
+   * while enforcing numeric formatting.
+   */
+  const handlePriceChange = ({ index, field, value }: PriceChangeParams) => {
+    // 1. Convert to string and strip all non-numeric/non-decimal characters immediately
+    let cleanValue = value.toString().replace(/[^0-9.]/g, "");
+
+    // 2. Prevent multiple decimals (e.g., 12.34.56 -> 12.3456)
+    const parts = cleanValue.split(".");
+    if (parts.length > 2) {
+      cleanValue = `${parts[0]}.${parts.slice(1).join("")}`;
+    }
+
+    // 3. Update the form state
+    setValue(`variants.${index}.${field}` as any, cleanValue, {
+      shouldValidate: true,
+    });
+  };
+
+  const renderValueField = (index: number, type: VariantType) => {
+    const currentValue = watchedVariants?.[index]?.value;
+
+    if (type === VariantType.VARIATION) {
+      return (
+        <div className="space-y-1">
+          <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Variant
+          </Label>
+          <Input
+            {...register(`variants.${index}.value`)}
+            placeholder="..."
+            className="bg-white"
+          />
+        </div>
+      );
+    }
+
+    let options: string[] = [];
+    let label = "Value";
+
+    switch (type) {
+      case VariantType.SIZE:
+        options = variantValue.shirts;
+        label = "Shirt Size";
+        break;
+      case VariantType.SIZE_SHOE:
+        options = variantValue.shoes;
+        label = "Shoe Size";
+        break;
+      case VariantType.DRINK_SIZE:
+        options = variantValue.drink;
+        label = "Drink Pack Size";
+        break;
+      case VariantType.VOLUME:
+        options = variantValue.volume;
+        label = "Volume";
+        break;
+    }
+
+    return (
+      <div className="space-y-1">
+        <Label className="text-xs font-bold capitalize tracking-wider text-slate-500">
+          {label}
+        </Label>
+        <Select
+          onValueChange={(val) => setValue(`variants.${index}.value`, val)}
+          value={currentValue}
+        >
+          <SelectTrigger className="bg-white">
+            <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt} value={opt} className="capitalize">
+                {opt}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
 
   // Find selected category names for display
   const selectedTopCategory = categories?.find(
@@ -232,7 +347,7 @@ export function AddProductForm() {
 
   // Mutation for adding a new product
   const addProductMutation = useMutation({
-    mutationFn: async (data: ProductFormData) => {
+    mutationFn: async (data: Inputs) => {
       const res = await fetch("/api/store/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,7 +379,7 @@ export function AddProductForm() {
     },
   });
 
-  const onSubmit = (data: ProductFormData) => {
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
     addProductMutation.mutate(data);
   };
 
@@ -299,411 +414,696 @@ export function AddProductForm() {
   }
 
   return (
-    <div className="space-y-8 p-6  rounded-lg shadow-md">
-      <h2 className="text-3xl font-bold mb-6">Add New Product</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Product Name */}
-        <div>
-          <Label htmlFor="name" className="block text-sm font-medium  mb-1">
-            Product Name <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="e.g., Stylish T-shirt"
-            {...register("name", { required: "Product name is required." })}
-            className={cn(
-              "w-full px-4 py-2 border rounded-md",
-              getErrorMessage("name") && "border-red-500"
-            )}
-          />
-          {getErrorMessage("name") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage("name")}
-            </p>
-          )}
-        </div>
+    <div className="space-y-6 p-2 w-full">
+      <div className="flex flex-row gap-2 items-center justify-start">
+        <button onClick={() => router.back()}>
+          <ArrowLeft className="w-5 h-5 font-bold" />
+        </button>
+        <h2 className="text-xl font-bold">Add New Product</h2>
+      </div>
 
-        {/* Product Description */}
-        <div>
-          <Label
-            htmlFor="description"
-            className="block text-sm font-medium  mb-1"
-          >
-            Description (Optional)
-          </Label>
-          <Textarea
-            id="description"
-            placeholder="Detailed description of the product..."
-            rows={3}
-            {...register("description")}
-            className="w-full px-4 py-2 border rounded-md resize-y"
-          />
-        </div>
-
-        {/* Product Price (Base) */}
-        <div>
-          <Label htmlFor="price" className="block text-sm font-medium  mb-1">
-            Base Price <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="price"
-            type="number"
-            step="0.01"
-            min="0.01"
-            placeholder="0.00"
-            {...register("price", {
-              required: "Base price is required.",
-              valueAsNumber: true,
-              min: { value: 0.01, message: "Price must be greater than 0." },
-            })}
-            className={cn(
-              "w-full px-4 py-2 border rounded-md",
-              getErrorMessage("price") && "border-red-500"
-            )}
-          />
-          {getErrorMessage("price") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage("price")}
-            </p>
-          )}
-        </div>
-
-        {/* Product Stock (Overall) */}
-        <div>
-          <Label htmlFor="stock" className="block text-sm font-medium  mb-1">
-            Overall Stock <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="stock"
-            type="number"
-            min="0"
-            placeholder="0"
-            {...register("stock", {
-              required: "Overall stock is required.",
-              valueAsNumber: true,
-              min: { value: 0, message: "Stock cannot be negative." },
-            })}
-            className={cn(
-              "w-full px-4 py-2 border rounded-md",
-              getErrorMessage("stock") && "border-red-500"
-            )}
-          />
-          {getErrorMessage("stock") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage("stock")}
-            </p>
-          )}
-        </div>
-
-        {/* Product Category Selection */}
-        <div>
-          <Label
-            htmlFor="subSubCategoryId"
-            className="block text-sm font-medium  mb-1"
-          >
-            Product Category <span className="text-red-500">*</span>
-          </Label>
-          <ProductCategorySearchableSelect
-            id="subSubCategoryId"
-            categories={categories || []}
-            selectedValue={currentSubSubCategoryId}
-            onSelect={(subSubCategoryId) => {
-              let inferredCategoryId: string | undefined = undefined;
-              let inferredSubCategoryId: string | undefined = undefined;
-
-              categories?.forEach((cat) => {
-                cat.subCategories?.forEach((sub) => {
-                  sub.subSubCategories?.forEach((subSub) => {
-                    if (subSub.id === subSubCategoryId) {
-                      inferredCategoryId = cat.id;
-                      inferredSubCategoryId = sub.id;
-                    }
-                  });
-                });
-              });
-
-              setValue(`categoryId`, inferredCategoryId || "", {
-                shouldValidate: true,
-              });
-              setValue(`subCategoryId`, inferredSubCategoryId, {
-                shouldValidate: true,
-              });
-              setValue(`subSubCategoryId`, subSubCategoryId, {
-                shouldValidate: true,
-              });
-            }}
-            placeholder="Search by sub-sub-category..."
-            error={
-              getErrorMessage(`categoryId`) ||
-              getErrorMessage(`subSubCategoryId`)
-            }
-          />
-          {getErrorMessage("categoryId") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage("categoryId")}
-            </p>
-          )}
-          {(selectedTopCategory ||
-            selectedSubCategory ||
-            selectedSubSubCategory) && (
-            <div className="mt-2 text-sm text-gray-600">
-              Your product will appear under this categories:{" "}
-              {selectedTopCategory?.name}{" "}
-              {selectedSubCategory ? `> ${selectedSubCategory.name}` : ""}{" "}
-              {selectedSubSubCategory ? `> ${selectedSubSubCategory.name}` : ""}
-            </div>
-          )}
-        </div>
-
-        {/* Product Images Upload */}
-        <div>
-          <Label className="block text-sm font-medium  mb-2">
-            Upload Product Images (Up to 5){" "}
-            <span className="text-red-500">*</span>
-          </Label>
-          <div
-            {...getImageRootProps()}
-            className={cn(
-              "dropzone flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
-              getErrorMessage("images")
-                ? "border-red-500"
-                : "border-blue-400 hover:border-blue-600"
-            )}
-          >
-            <input {...getImageInputProps()} />
-            {uploadingImage ? (
-              <div className="flex flex-col items-center p-4">
-                <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
-                <p className=" text-lg font-medium">Uploading Image...</p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <ImageIcon className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                <p className="text-lg font-semibold  mb-1">
-                  Drag 'n' drop product images here
-                </p>
-                <p className="text-sm mb-3">or click to select files</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                >
-                  Choose Files
-                </Button>
-                <p className="text-xs  mt-2">
-                  Image needs to be between 500x500 and 2000x2000 pixels. White
-                  backgrounds are recommended. No watermarks. Supported formats:
-                  PNG, JPEG, JPG (Max 2MB each, up to 5 files)
-                </p>
-              </div>
-            )}
-          </div>
-          {getErrorMessage("images") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage("images")}
-            </p>
-          )}
-
-          {currentImages && currentImages.length > 0 && (
-            <div className="mt-4">
-              <Label className="block text-sm font-medium  mb-2">
-                Images Preview
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div className="space-y-5">
+          <h3 className="text-lg font-semibold capitalize">
+            product information
+          </h3>
+          {/* Product Information */}
+          <div className="space-y-5">
+            {/* Product Images Upload */}
+            <div>
+              <Label className="block text-sm font-medium mb-2">
+                Upload Product Images (Up to 5){" "}
+                <span className="text-red-500">*</span>
               </Label>
-              <div className="flex flex-wrap gap-3 p-3 border border-gray-200 rounded-md bg-gray-50">
-                {currentImages.map((url, imgIdx) => (
-                  <div
-                    key={imgIdx}
-                    className="relative w-32 h-32 rounded-md overflow-hidden shadow-sm border border-gray-200 group"
-                  >
-                    <img
-                      src={url}
-                      alt={`Product Image ${imgIdx + 1}`}
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://placehold.co/128x128/e0e0e0/555555?text=Image+Error";
-                      }}
-                    />
+              <div
+                {...getImageRootProps()}
+                className={cn(
+                  "dropzone flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
+                  getErrorMessage("images")
+                    ? "border-red-500"
+                    : "border-blue-400 hover:border-blue-600"
+                )}
+              >
+                <input {...getImageInputProps()} />
+                {uploadingImage ? (
+                  <div className="flex flex-col items-center p-4">
+                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
+                    <p className=" text-lg font-medium">Uploading Image...</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <ImageIcon className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                    <p className="text-lg font-medium font-sans mb-1">
+                      Drag 'n' drop product images here
+                    </p>
+                    <p className="text-sm mb-3">or click to select files</p>
                     <Button
                       type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(imgIdx)}
-                      title="Remove image"
+                      variant="outline"
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      Choose Files
                     </Button>
+                    <p className="text-xs mt-2">
+                      Image needs to be between 500x500 and 2000x2000 pixels.
+                      White backgrounds are recommended. No watermarks.
+                      Supported formats: PNG, JPEG, JPG (Max 2MB each, up to 5
+                      files)
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Click on an image to remove it.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Product Variants Section */}
-        <div className="mt-8 border p-6 rounded-lg  border-blue-200">
-          <h4 className="text-lg font-semibold mb-4">
-            Product Variants (Optional)
-          </h4>
-          {variantFields.map((variant, variantIndex) => (
-            <div
-              key={variant.id}
-              className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-blue-100 rounded-md shadow-sm relative"
-            >
-              <h5 className="text-md font-medium  col-span-full">
-                Variant #{variantIndex + 1}
-              </h5>
-              {variantFields.length > 1 && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => removeVariant(variantIndex)}
-                  className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                  title="Remove variant"
-                >
-                  <MinusCircle className="h-4 w-4" />
-                </Button>
+              {getErrorMessage("images") && (
+                <p className="text-red-500 text-sm mt-1">
+                  {getErrorMessage("images")}
+                </p>
               )}
 
-              {/* Size */}
-              <div>
+              {currentImages && currentImages.length > 0 && (
+                <div className="mt-4">
+                  <Label className="block text-sm font-medium  mb-2">
+                    Images Preview
+                  </Label>
+                  <div className="flex flex-wrap gap-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                    {currentImages.map((url, imgIdx) => (
+                      <div
+                        key={imgIdx}
+                        className="relative w-32 h-32 rounded-md overflow-hidden shadow-sm border border-gray-200 group"
+                      >
+                        <img
+                          src={url}
+                          alt={`Product Image ${imgIdx + 1}`}
+                          className="object-cover w-full h-full"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "https://placehold.co/128x128/e0e0e0/555555?text=Image+Error";
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(imgIdx)}
+                          title="Remove image"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Click on an image to remove it.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Name and Category */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="col-span-1">
                 <Label
-                  htmlFor={`variants.${variantIndex}.size`}
+                  htmlFor="name"
                   className="block text-sm font-medium  mb-1"
                 >
-                  Size (Optional)
+                  Product Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id={`variants.${variantIndex}.size`}
+                  id="name"
                   type="text"
-                  placeholder="e.g., S, M, L"
-                  {...register(`variants.${variantIndex}.size` as const)}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
-              {/* Color */}
-              <div>
-                <Label
-                  htmlFor={`variants.${variantIndex}.color`}
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Color (Optional)
-                </Label>
-                <Input
-                  id={`variants.${variantIndex}.color`}
-                  type="text"
-                  placeholder="e.g., Red, Blue"
-                  {...register(`variants.${variantIndex}.color` as const)}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
-              {/* Variant Price */}
-              <div>
-                <Label
-                  htmlFor={`variants.${variantIndex}.price`}
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Price <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={`variants.${variantIndex}.price`}
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  {...register(`variants.${variantIndex}.price` as const, {
-                    required: "Variant price is required.",
-                    valueAsNumber: true,
-                    min: {
-                      value: 0.01,
-                      message: "Price must be greater than 0.",
-                    },
+                  placeholder="e.g., Men's t-shirt"
+                  {...register("name", {
+                    required: "Product name is required.",
+                    maxLength: 70,
                   })}
                   className={cn(
-                    "w-full px-3 py-2 border rounded-md",
-                    getErrorMessage(`variants.${variantIndex}.price`) &&
-                      "border-red-500"
+                    "w-full px-4 py-2 border rounded-md",
+                    getErrorMessage("name") && "border-red-500"
                   )}
                 />
-                {getErrorMessage(`variants.${variantIndex}.price`) && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {getErrorMessage(`variants.${variantIndex}.price`)}
+                {getErrorMessage("name") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("name")}
                   </p>
                 )}
               </div>
-              {/* Variant Stock */}
+
               <div>
                 <Label
-                  htmlFor={`variants.${variantIndex}.stock`}
+                  htmlFor="subSubCategoryId"
                   className="block text-sm font-medium  mb-1"
                 >
-                  Stock <span className="text-red-500">*</span>
+                  Product Category <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id={`variants.${variantIndex}.stock`}
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  {...register(`variants.${variantIndex}.stock` as const, {
-                    required: "Variant stock is required.",
-                    valueAsNumber: true,
-                    min: { value: 0, message: "Stock cannot be negative." },
-                  })}
-                  className={cn(
-                    "w-full px-3 py-2 border rounded-md",
-                    getErrorMessage(`variants.${variantIndex}.stock`) &&
-                      "border-red-500"
-                  )}
+                <ProductCategorySearchableSelect
+                  id="subSubCategoryId"
+                  categories={categories || []}
+                  selectedValue={currentSubSubCategoryId}
+                  onSelect={(subSubCategoryId) => {
+                    let inferredCategoryId: string | undefined = undefined;
+                    let inferredSubCategoryId: string | undefined = undefined;
+
+                    categories?.forEach((cat) => {
+                      cat.subCategories?.forEach((sub) => {
+                        sub.subSubCategories?.forEach((subSub) => {
+                          if (subSub.id === subSubCategoryId) {
+                            inferredCategoryId = cat.id;
+                            inferredSubCategoryId = sub.id;
+                          }
+                        });
+                      });
+                    });
+
+                    setValue(`categoryId`, inferredCategoryId || "", {
+                      shouldValidate: true,
+                    });
+                    setValue(`subCategoryId`, inferredSubCategoryId!, {
+                      shouldValidate: true,
+                    });
+                    setValue(`subSubCategoryId`, subSubCategoryId, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  placeholder="Search for category..."
+                  error={
+                    getErrorMessage(`categoryId`) ||
+                    getErrorMessage(`subSubCategoryId`)
+                  }
                 />
-                {getErrorMessage(`variants.${variantIndex}.stock`) && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {getErrorMessage(`variants.${variantIndex}.stock`)}
+                {getErrorMessage("categoryId") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("categoryId")}
                   </p>
                 )}
-              </div>
-              {/* SKU (Optional) */}
-              <div className="col-span-full">
-                <Label
-                  htmlFor={`variants.${variantIndex}.sku`}
-                  className="block text-sm font-medium  mb-1"
-                >
-                  SKU (Optional)
-                </Label>
-                <Input
-                  id={`variants.${variantIndex}.sku`}
-                  type="text"
-                  placeholder="Unique identifier"
-                  {...register(`variants.${variantIndex}.sku` as const)}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                {(selectedTopCategory ||
+                  selectedSubCategory ||
+                  selectedSubSubCategory) && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    Your product will appear under this categories:{" "}
+                    {selectedTopCategory?.name}{" "}
+                    {selectedSubCategory ? `> ${selectedSubCategory.name}` : ""}{" "}
+                    {selectedSubSubCategory
+                      ? `> ${selectedSubSubCategory.name}`
+                      : ""}
+                  </div>
+                )}
               </div>
             </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => appendVariant(initialNewVariant)}
-            className="mt-4 flex items-center text-blue-600 border-blue-600 hover:bg-blue-50"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Variant
-          </Button>
+
+            {/* Brand, Color, Color Family and Weight */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="col-span-1">
+                <Label
+                  htmlFor="brand"
+                  className="block text-sm font-medium  mb-1"
+                >
+                  Brand <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="brand"
+                  type="text"
+                  placeholder="Brand"
+                  {...register("brand")}
+                  className={cn(
+                    "w-full px-4 py-2 border rounded-md",
+                    getErrorMessage("brand") && "border-red-500"
+                  )}
+                />
+                {getErrorMessage("brand") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("brand")}
+                  </p>
+                )}
+              </div>
+
+              <div className="col-span-1">
+                <Label
+                  htmlFor="color"
+                  className="block text-sm font-medium  mb-1"
+                >
+                  Color
+                </Label>
+                <Input
+                  id="color"
+                  type="text"
+                  placeholder="Main color of the product"
+                  {...register("color")}
+                  className={cn(
+                    "w-full px-4 py-2 border rounded-md",
+                    getErrorMessage("color") && "border-red-500"
+                  )}
+                />
+                {getErrorMessage("color") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("color")}
+                  </p>
+                )}
+              </div>
+
+              <div className="col-span-1">
+                <Label
+                  htmlFor="colorFamily"
+                  className="block text-sm font-medium  mb-1"
+                >
+                  Color Family
+                </Label>
+                <Input
+                  id="colorFamily"
+                  type="text"
+                  placeholder="Ex. 12kg, 800gram"
+                  {...register("colorFamily")}
+                  className={cn(
+                    "w-full px-4 py-2 border rounded-md",
+                    getErrorMessage("colorFamily") && "border-red-500"
+                  )}
+                />
+                {getErrorMessage("colorFamily") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("colorFamily")}
+                  </p>
+                )}
+              </div>
+
+              <div className="col-span-1">
+                <Label
+                  htmlFor="weight"
+                  className="block text-sm font-medium  mb-1"
+                >
+                  Weight <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="weight"
+                  type="text"
+                  placeholder="Ex. 12kg, 800g [Weight of the product for storage and shipping]"
+                  {...register("weight")}
+                  className={cn(
+                    "w-full px-4 py-2 border rounded-md placeholder:text-[10px]",
+                    getErrorMessage("weight") && "border-red-500"
+                  )}
+                />
+                {getErrorMessage("weight") && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {getErrorMessage("weight")}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Product description text field */}
+            <div>
+              <Label
+                htmlFor="description"
+                className="block text-sm font-medium  mb-1"
+              >
+                Product Description <span className="text-red-500">*</span>
+              </Label>
+
+              <SimpleEditor
+                setContents={(e) => {
+                  setValue("description", e);
+                }}
+              />
+              {getErrorMessage("description") && (
+                <p className="text-red-500 text-sm mt-1">
+                  {getErrorMessage("description")}
+                </p>
+              )}
+            </div>
+
+            {/* PRODUCT HIGHLIGHT FIELD */}
+            <div>
+              <Label
+                htmlFor="highlight"
+                className="block text-sm font-medium  mb-1"
+              >
+                Highlights <span className="text-red-500">*</span>
+              </Label>
+
+              <SimpleEditor setContents={(e) => setValue("highlight", e)} />
+              {getErrorMessage("highlight") && (
+                <p className="text-red-500 text-sm mt-1">
+                  {getErrorMessage("highlight")}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Is Featured Checkbox */}
-        <div className="flex items-center space-x-2 mt-4">
-          <Checkbox id="isFeatured" {...register("isFeatured")} />
-          <Label htmlFor="isFeatured" className="text-sm font-medium ">
-            Mark as Featured Product
-          </Label>
-        </div>
+        {/* Product Variants */}
+        {currentSubSubCategoryId && (
+          <div className="space-y-5">
+            <h3 className="text-lg font-semibold capitalize">
+              product variants
+            </h3>
 
-        {/* Form Actions */}
+            {variantFields.map((variant, variantIndex) => {
+              const hasPrice =
+                (watchedVariants?.[variantIndex]?.price || 0) > 0;
+              const hasSalePrice =
+                (watchedVariants?.[variantIndex]?.salePrice || 0) > 0;
+              const hour = new Date().getHours();
+              const minute = new Date().getMinutes();
+              const seconds = new Date().getSeconds();
+
+              return (
+                <div key={variant.id} className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {/* custom field for variants */}
+                    {renderValueField(
+                      variantIndex,
+                      selectedSubSubCategory?.productVariantType!
+                    )}
+
+                    {/* Seller Sku */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.sellerSku`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Seller Sku <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id={`variants.${variantIndex}.sellerSku`}
+                        type="text"
+                        placeholder="Sku for identifying variants"
+                        {...register(`variants.${variantIndex}.sellerSku`)}
+                        className={cn(
+                          "w-full px-4 py-2 border rounded-md",
+                          getErrorMessage(
+                            `variants.${variantIndex}.sellerSku`
+                          ) && "border-red-500"
+                        )}
+                      />
+                      {getErrorMessage(
+                        `variants.${variantIndex}.sellerSku`
+                      ) && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {getErrorMessage(
+                            `variants.${variantIndex}.sellerSku`
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* GTIN CODE */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.gtinBarcode`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        GTIN Barcode
+                      </Label>
+                      <Input
+                        id={`variants.${variantIndex}.gtinBarcode`}
+                        type="text"
+                        placeholder="GTIN Barcode"
+                        {...register(`variants.${variantIndex}.gtinBarcode`)}
+                        className="w-full px-3 py-2 border rounded-md"
+                      />
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.stock`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Quantity
+                      </Label>
+                      <Input
+                        id={`variants.${variantIndex}.stock`}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="quantity"
+                        // {...register(`variants.${variantIndex}.stock`)}
+                        value={watchedVariants?.[variantIndex]?.stock ?? ""}
+                        onChange={(e) =>
+                          handlePriceChange({
+                            index: variantIndex,
+                            field: "stock",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border rounded-md"
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.price`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Price <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id={`variants.${variantIndex}.price`}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Price"
+                        // {...register(`variants.${variantIndex}.price`)}
+                        value={watchedVariants?.[variantIndex]?.price ?? ""}
+                        onChange={(e) =>
+                          handlePriceChange({
+                            index: variantIndex,
+                            field: "price",
+                            value: e.target.value,
+                          })
+                        }
+                        className={cn(
+                          "w-full px-4 py-2 border rounded-md",
+                          getErrorMessage(`variants.${variantIndex}.price`) &&
+                            "border-red-500"
+                        )}
+                      />
+                      {getErrorMessage(`variants.${variantIndex}.price`) && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {getErrorMessage(`variants.${variantIndex}.price`)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Sale Price */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.salePrice`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Sale Price
+                      </Label>
+                      <Input
+                        id={`variants.${variantIndex}.salePrice`}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="Sale Price"
+                        disabled={!hasPrice}
+                        // {...register(`variants.${variantIndex}.salePrice`)}
+                        value={watchedVariants?.[variantIndex]?.salePrice ?? ""}
+                        onChange={(e) =>
+                          handlePriceChange({
+                            index: variantIndex,
+                            field: "salePrice",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
+                      />
+                    </div>
+
+                    {/* Sales Start Date */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.saleStartDate`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Sale Start Date
+                      </Label>
+                      {/* <Input
+                      id={`variants.${variantIndex}.saleStartDate`}
+                      type="datetime-local"
+                      placeholder="Sale Price"
+                      disabled={!hasSalePrice}
+                      {...register(`variants.${variantIndex}.saleStartDate`)}
+                      className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
+                    /> */}
+                      <Popover>
+                        <PopoverTrigger asChild disabled={!hasSalePrice}>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-white",
+                              !watchedVariants?.[variantIndex]?.saleStartDate &&
+                                "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500" />
+                            {watchedVariants?.[variantIndex]?.saleStartDate ? (
+                              format(
+                                watchedVariants[variantIndex].saleStartDate!,
+                                "PPP HH:mm"
+                              )
+                            ) : (
+                              <span>Pick a start date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-0 flex items-start"
+                          align="start"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={
+                              watchedVariants?.[variantIndex]?.saleStartDate
+                            }
+                            onSelect={(date) =>
+                              setValue(
+                                `variants.${variantIndex}.saleStartDate`,
+                                date
+                              )
+                            }
+                            // initialFocus
+                          />
+                          <div className="p-3 border-t flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-slate-400" />
+                            <Input
+                              type="time"
+                              className="h-8"
+                              defaultValue={`${hour}:${minute}:${seconds}`}
+                              onChange={(e) => {
+                                const [hours, minutes] =
+                                  e.target.value.split(":");
+                                const date =
+                                  watchedVariants?.[variantIndex]
+                                    ?.saleStartDate || new Date();
+                                date.setHours(
+                                  parseInt(hours),
+                                  parseInt(minutes)
+                                );
+                                setValue(
+                                  `variants.${variantIndex}.saleStartDate`,
+                                  new Date(date)
+                                );
+                              }}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Sales End Date */}
+                    <div className="col-span-1">
+                      <Label
+                        htmlFor={`variants.${variantIndex}.saleEndDate`}
+                        className="block text-sm font-medium  mb-1"
+                      >
+                        Sale End Date
+                      </Label>
+                      {/* <Input
+                      id={`variants.${variantIndex}.saleEndDate`}
+                      type="datetime-local"
+                      disabled={!hasSalePrice}
+                      placeholder="Sale end date"
+                      {...register(`variants.${variantIndex}.saleEndDate`)}
+                      className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
+                    /> */}
+
+                      <Popover>
+                        <PopoverTrigger asChild disabled={!hasSalePrice}>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-white",
+                              !watchedVariants?.[variantIndex]?.saleEndDate &&
+                                "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 text-rose-500" />
+                            {watchedVariants?.[variantIndex]?.saleEndDate ? (
+                              format(
+                                watchedVariants[variantIndex].saleEndDate!,
+                                "PPP HH:mm"
+                              )
+                            ) : (
+                              <span>Pick an end date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-0 flex items-start"
+                          align="start"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={
+                              watchedVariants?.[variantIndex]?.saleEndDate
+                            }
+                            onSelect={(date) =>
+                              setValue(
+                                `variants.${variantIndex}.saleEndDate`,
+                                date
+                              )
+                            }
+                            initialFocus
+                          />
+                          <div className="p-3 border-t flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-slate-400" />
+                            <Input
+                              type="time"
+                              className="h-8"
+                              defaultValue={`${hour}:${minute}:${seconds}`}
+                              onChange={(e) => {
+                                const [hours, minutes] =
+                                  e.target.value.split(":");
+                                const date =
+                                  watchedVariants?.[variantIndex]
+                                    ?.saleEndDate || new Date();
+                                date.setHours(
+                                  parseInt(hours),
+                                  parseInt(minutes)
+                                );
+                                setValue(
+                                  `variants.${variantIndex}.saleEndDate`,
+                                  new Date(date)
+                                );
+                              }}
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end items-end fex-row w-full">
+                    {variantFields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeVariant(variantIndex)}
+                        className=" h-8 w-8 rounded-full"
+                        title="Remove variant"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <Separator />
+                </div>
+              );
+            })}
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => appendVariant(initialNewVariant)}
+              className="mt-4 flex items-center text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Variant
+            </Button>
+          </div>
+        )}
+
         <div className="flex justify-end space-x-4 mt-8">
           <Button
             type="button"

@@ -7,9 +7,14 @@ import { Heart, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback } from "react";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
-import { ProductFromApi } from "../products/productCard";
+import {
+  calculatePercentageChange,
+  cn,
+  formatPercentage,
+  isSaleActive,
+} from "@/lib/utils";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { Product, ProductReview, ProductVariant } from "@prisma/client";
 
 const checkWishlistStatus = async (
   productId: string
@@ -50,7 +55,13 @@ const removeProductFromWishlist = async (productId: string) => {
   return res.json();
 };
 
-const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
+type ProductData = Product & {
+  variants: ProductVariant[];
+  reviews?: ProductReview[];
+  averageRating?: number;
+};
+
+const CategoryProductCard = ({ product }: { product: ProductData }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -149,27 +160,40 @@ const CategoryProductCard = ({ product }: { product: ProductFromApi }) => {
             {product.name}
           </h4>
           <div>
-            {product.reviews.length > 0 && (
+            {product.reviews!.length > 0 && (
               <span className="text-black text-2xl font-normal flex items-center gap-1">
-                {"★".repeat(product.averageRating)}
-                {"☆".repeat(5 - product.averageRating)}{" "}
-                <span className="text-base">({product.reviews.length})</span>
+                {"★".repeat(product.averageRating!)}
+                {"☆".repeat(5 - product.averageRating!)}{" "}
+                <span className="text-base">({product.reviews!.length})</span>
               </span>
             )}
           </div>
           <div className="flex gap-0.5 items-center">
             <p className="text-lg uppercase font-semibold font-sans text-black mt-0.5">
-              {formatCurrencyValue(product.discountedPrice || product.price)}
+              {formatCurrencyValue(
+                product.variants[0].salePrice || product.variants[0].price
+              )}
             </p>
 
-            {product?.discountedPrice && (
+            {product?.variants[0].salePrice && (
               <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
-                {formatCurrencyValue(product?.price)}
+                {formatCurrencyValue(product?.variants[0].price)}
               </span>
             )}
-            {product?.discountedPrice !== null && (
+            {isSaleActive(
+              product.variants[0].saleStartDate,
+              product.variants[0].saleEndDate
+            ) && (
               <span className="font-normal text-sm text-center text-black font-sans">
-                ({product?.discounts?.[0]?.percentage}% off)
+                {formatPercentage(
+                  calculatePercentageChange(
+                    product.variants[0].price,
+                    product.variants[0].salePrice
+                  ),
+                  0,
+                  true
+                )}{" "}
+                OFF
               </span>
             )}
           </div>

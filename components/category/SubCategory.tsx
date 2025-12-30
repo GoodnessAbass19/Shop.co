@@ -8,10 +8,10 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import Pagination from "../ui/Pagination";
 import CategoryProductCard from "./CategoryProductCard";
-import { ProductFromApi } from "../products/productCard";
 import { ArrowUp, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import { Product, ProductVariant } from "@prisma/client";
 
 interface SubCategory {
   id: string;
@@ -69,6 +69,10 @@ const fetchSubCategoryProducts = async ({
   );
   const data = await res.json();
   return data;
+};
+
+type ProductData = Product & {
+  variants: ProductVariant[];
 };
 
 const SubCategory = ({ param }: { param: string }) => {
@@ -243,7 +247,7 @@ const SubCategory = ({ param }: { param: string }) => {
             No products found in this category.
           </p>
         ) : (
-          products?.products?.map((product: ProductFromApi) => (
+          products?.products?.map((product: ProductData) => (
             <CategoryProductCard product={product} key={product.id} />
           ))
         )}

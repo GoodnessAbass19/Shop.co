@@ -14,15 +14,11 @@ import {
 } from "@/components/ui/select";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { cn, separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
-import { Product } from "@prisma/client";
+import { Product, ProductReview, ProductVariant } from "@prisma/client";
 import { ArrowUpDown, Heart, SlidersHorizontal } from "lucide-react";
 import Pagination from "../ui/Pagination";
-import { formatCurrencyValue } from "@/utils/format-currency-value";
-import Link from "next/link";
 import CategoryProductCard from "./CategoryProductCard";
-import { ProductFromApi } from "../products/productCard";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import KidsFashionPage from "../../app/(store)/kids-fashion/page";
 
 // Types
 interface ProductCategory {
@@ -80,6 +76,12 @@ const fetchCategoryProducts = async ({
   );
   const data = await res.json();
   return data;
+};
+
+type ProductData = Product & {
+  variants: ProductVariant[];
+  reviews: ProductReview[];
+  averageRating: number;
 };
 
 // Function to check if a product is in the wishlist
@@ -240,7 +242,7 @@ const Category = ({ param }: { param: string }) => {
             No products found in this category.
           </p>
         ) : (
-          products?.products?.map((product: ProductFromApi) => (
+          products?.products?.map((product: ProductData) => (
             <CategoryProductCard product={product} key={product.id} />
           ))
         )}

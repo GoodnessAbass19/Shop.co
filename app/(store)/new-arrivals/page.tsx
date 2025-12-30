@@ -1,5 +1,3 @@
-import Sections from "@/components/home/Sections";
-import FilterModal from "@/components/ui/FilterModal";
 import { productTags } from "@/types";
 import {
   Breadcrumb,

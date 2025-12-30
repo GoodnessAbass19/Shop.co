@@ -1,25 +1,21 @@
 "use client";
 
 import { GET_PRODUCT_BY_SIZES, GET_PRODUCTS_BY_TAGS } from "@/lib/query";
-import { ProductData, productTags } from "@/types";
 import { useQuery } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "./productCard";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import Pagination from "../ui/Pagination";
-import { AdjustmentsVerticalIcon } from "@heroicons/react/24/solid";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import FilterModal from "../ui/FilterModal";
 import { SkeletonCard } from "../ui/SkeletonCard";
+import { Product, ProductVariant } from "@prisma/client";
+
+type ProductData = {
+  products: Array<
+    Product & {
+      variants: ProductVariant[];
+    }
+  >;
+};
 
 const FilterProduct = ({ title, tag }: { title: string; tag: any }) => {
   const param = useSearchParams();

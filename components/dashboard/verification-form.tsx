@@ -191,7 +191,7 @@ const VerificationForm = ({
         action: <ToastAction altText="Retry">Dismiss</ToastAction>,
       });
     } finally {
-      setLoading(false);
+      setLoading(true);
     }
   };
 
@@ -312,7 +312,7 @@ const VerificationForm = ({
 
           <Button
             type="submit"
-            disabled={loading || otpValue.length < 4}
+            disabled={loading || otpValue.length < 1}
             className="w-full flex justify-center py-3 px-4 rounded-md shadow-md text-lg font-semibold text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
             {loading ? renderLoadingSpinner() : "Continue to Dashboard"}

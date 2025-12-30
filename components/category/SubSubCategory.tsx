@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { separateStringByComma, SORT_OPTIONS } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import CategoryProductCard from "./CategoryProductCard";
-import { ProductFromApi } from "../products/productCard";
 import Pagination from "../ui/Pagination";
+import { Product, ProductVariant } from "@prisma/client";
 
 // Fetch sorted products in the category
 const fetchSubSubCategoryProducts = async ({
@@ -27,6 +27,10 @@ const fetchSubSubCategoryProducts = async ({
   );
   const data = await res.json();
   return data;
+};
+
+type ProductData = Product & {
+  variants: ProductVariant[];
 };
 
 const SubSubCategory = ({ param }: { param: string }) => {
@@ -123,7 +127,7 @@ const SubSubCategory = ({ param }: { param: string }) => {
             No products found in this category.
           </p>
         ) : (
-          products?.products?.map((product: ProductFromApi) => (
+          products?.products?.map((product: ProductData) => (
             <CategoryProductCard product={product} key={product.id} />
           ))
         )}

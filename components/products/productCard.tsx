@@ -16,21 +16,14 @@ import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/Hooks/use-toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import {
+  calculatePercentageChange,
+  formatPercentage,
+  isSaleActive,
+} from "@/lib/utils";
 
-export type ProductFromApi = Product & {
-  category: Pick<Category, "id" | "name" | "slug">;
-  subCategory: Pick<SubCategory, "id" | "name" | "slug">;
-  subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
-  variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
-  store: Pick<Store, "id" | "name" | "slug">;
-  discounts: Discount[]; // Include discounts
-  averageRating: number; // Average rating from reviews
-  reviews: ProductReview[]; // Include reviews
-  // These are added by the API route's mapping:
-  productName: string;
-  lowestPrice: number; // The lowest base price (from variants or product)
-  discountedPrice: number | null; // The price after discount
-  images: { url: string }[]; // Transformed image array
+type ProductData = Product & {
+  variants: ProductVariant[];
 };
 
 const checkWishlistStatus = async (
@@ -76,7 +69,7 @@ const ProductCard = ({
   item,
   loading,
 }: {
-  item: ProductFromApi;
+  item: ProductData;
   loading: boolean;
 }) => {
   const { toast } = useToast();
@@ -165,11 +158,9 @@ const ProductCard = ({
         {/* {item.images[0]?.url && ( */}
         <Image
           src={
-            loading
-              ? "https://via.placeholder.com/200"
-              : `${item?.images?.[0]?.url}`
+            loading ? "https://via.placeholder.com/200" : `${item?.images?.[0]}`
           }
-          alt={item?.productName || "product"}
+          alt={item?.name || "product"}
           blurDataURL="https://via.placeholder.com/200"
           width={500}
           height={500}
@@ -177,30 +168,36 @@ const ProductCard = ({
         />
         {/* )} */}
         <h2 className="font-medium text-base capitalize text-start font-sans line-clamp-1">
-          {item?.productName}
+          {item?.name}
         </h2>
         <div className="space-y-2">
           <span className="text-lg font-semibold">
-            {formatCurrencyValue(item?.price || item?.discountedPrice)}
+            {formatCurrencyValue(
+              item?.variants[0].price || item?.variants[0].salePrice
+            )}
           </span>
 
-          {item?.discountedPrice && (
+          {item?.variants[0].salePrice && (
             <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
-              {formatCurrencyValue(item?.price)}
+              {formatCurrencyValue(item?.variants[0].price)}
             </span>
           )}
-          {item?.discountedPrice !== null && (
+          {isSaleActive(
+            item.variants[0].saleStartDate,
+            item.variants[0].saleEndDate
+          ) && (
             <span className="font-normal text-sm text-start text-white font-sans absolute top-1 right-1 bg-black rounded-full p-1">
-              <div className="">
-                {item.discounts[0].percentage
-                  ? `-${item.discounts[0].percentage}%`
-                  : `-₦${item.discounts[0].amount}`}
-                {/* {item.discounts[0].expiresAt &&
-                  ` • Ends ${format(
-                    new Date(item.discounts[0].expiresAt),
-                    "PPP"
-                  )}`} */}
-              </div>
+              <p className="">
+                {formatPercentage(
+                  calculatePercentageChange(
+                    item.variants[0].price,
+                    item.variants[0].salePrice
+                  ),
+                  0,
+                  true
+                )}{" "}
+                OFF
+              </p>
             </span>
           )}
         </div>

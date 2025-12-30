@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Cart,
   CartItem,
@@ -22,7 +21,6 @@ import {
 } from "lucide-react"; // Icons for empty state, loading, remove item
 import { Button } from "@/components/ui/button"; // Assuming shadcn/ui Button
 import EmptyCartIcon from "@/components/ui/EmptyCartIcon";
-import useSWR from "swr";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -167,76 +165,6 @@ const CartPage = () => {
     createCheckoutSessionMutation.mutate();
   }, [cart, createCheckoutSessionMutation]);
 
-  // const fetchCart = useCallback(async () => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   try {
-  //     const res = await fetch("/api/cart");
-  //     const data = await res.json();
-
-  //     if (res.ok) {
-  //       setCart(data.cart);
-  //     } else {
-  //       setError(data.error || "Failed to fetch cart.");
-  //       console.error("Failed to fetch cart:", res.status, data);
-  //     }
-  //   } catch (err) {
-  //     console.error("Network or parsing error fetching cart:", err);
-  //     setError("Network error: Could not connect to the server.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchCart();
-  // }, [fetchCart]);
-
-  // Handle quantity changes
-  // const handleQuantityChange = async (itemId: string, newQuantity: number) => {
-  //   if (newQuantity < 1) return; // Prevent quantity from going below 1
-
-  //   // Optimistically update UI
-  //   setCart((prevCart) => {
-  //     if (!prevCart) return null;
-  //     const updatedCartItems = prevCart.cartItems.map((item) =>
-  //       item.id === itemId ? { ...item, quantity: newQuantity } : item
-  //     );
-  //     return { ...prevCart, cartItems: updatedCartItems };
-  //   });
-
-  //   setIsUpdating(true); // Indicate update in progress
-  //   try {
-  //     const res = await fetch(`/api/cart/item/${itemId}`, {
-  //       method: "PATCH",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ quantity: newQuantity }),
-  //     });
-
-  //     if (!res.ok) {
-  //       // If update fails, revert UI and show error
-  //       await fetchCart(); // Re-fetch to get correct state from server
-  //       const errorData = await res.json();
-  //       alert(`Failed to update quantity: ${errorData.error}`);
-  //     } else {
-  //       // If successful, re-fetch to ensure all calculated values are correct
-  //       // (especially important if discount logic is complex on backend)
-  //       await fetchCart();
-  //     }
-  //   } catch (err) {
-  //     console.error("Error updating quantity:", err);
-  //     alert("Network error: Could not update quantity.");
-  //     await fetchCart(); // Re-fetch on network error
-  //   } finally {
-  //     setIsUpdating(false);
-  //   }
-  // };
-
-  // Calculate subtotal
-
-  // Handle quantity changes (existing logic)
   const updateQuantityMutation = useMutation({
     mutationFn: async ({
       itemId,
@@ -393,15 +321,11 @@ const CartPage = () => {
                       {product.name}
                     </HoverPrefetchLink>
                     <p className="text-sm text-gray-600 mt-1">
-                      {variant.color && `Color: ${variant.color}`}
-                      {variant.size &&
-                        (variant.color
-                          ? ` / Size: ${variant.size}`
-                          : `Size: ${variant.size}`)}
-                      {variant.sku && ` (SKU: ${variant.sku})`}
+                      {variant.size && `Size: ${variant.size}`}
+                      {variant.sellerSku && ` (SKU: ${variant.sellerSku})`}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Available: {variant.stock}
+                      Available: {variant.quantity}
                     </p>
                   </div>
 
@@ -438,7 +362,9 @@ const CartPage = () => {
                         onClick={() =>
                           handleQuantityChange(item.id, item.quantity + 1)
                         }
-                        disabled={item.quantity >= variant.stock || isUpdating}
+                        disabled={
+                          item.quantity >= variant.quantity || isUpdating
+                        }
                       >
                         <Plus className="w-4 h-4" />
                       </Button>

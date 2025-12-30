@@ -53,10 +53,7 @@ export async function GET(request: Request) {
     // Process products to match frontend expectations (e.g., for ProductCard)
     const processedProducts = products.map((product) => {
       const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price
-          : product.price || 0;
-
+        product.variants.length > 0 && (product.variants[0].price as any);
       let discountedPrice: number | null = null;
       if (product.discounts && product.discounts.length > 0) {
         const bestDiscountPercentage = product.discounts[0].percentage;

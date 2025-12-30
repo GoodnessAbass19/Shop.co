@@ -50,8 +50,10 @@ export async function GET(request: Request) {
             id: true,
             price: true,
             size: true,
-            color: true,
-            stock: true,
+            quantity: true,
+            salePrice: true,
+            saleEndDate: true,
+            saleStartDate: true,
           },
         },
         store: {
@@ -78,9 +80,8 @@ export async function GET(request: Request) {
     const processedProducts = products.map((product) => {
       // Determine the base price (lowest variant price or product's direct price)
       const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price // Already sorted by price: 'asc'
-          : product.price || 0; // Fallback if no variants or base price
+        product.variants.length > 0 && (product.variants[0].price as any); // Already sorted by price: 'asc'
+      // Fallback if no variants or base price
 
       let discountedPrice: number | null = null;
       let bestDiscountPercentage: number | null = null;
@@ -116,55 +117,53 @@ export async function GET(request: Request) {
 
 // app/api/products/route.ts (POST method excerpt)
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const {
-      name,
-      description,
-      price,
-      images,
-      categoryId,
-      subCategoryId,
-      subSubCategoryId,
-      storeId,
-      stock,
-      isFeatured,
-    } = body;
+// export async function POST(req: Request) {
+//   try {
+//     const body = await req.json();
+//     const {
+//       name,
+//       description,
+//       price,
+//       images,
+//       categoryId,
+//       subCategoryId,
+//       subSubCategoryId,
+//       storeId,
+//       stock,
+//       isFeatured,
+//     } = body;
 
-    // Basic validation
-    if (!name || !description || !price || !images || !categoryId || !storeId) {
-      return NextResponse.json(
-        { error: "Missing required fields." },
-        { status: 400 }
-      );
-    }
+//     // Basic validation
+//     if (!name || !description || !price || !images || !categoryId || !storeId) {
+//       return NextResponse.json(
+//         { error: "Missing required fields." },
+//         { status: 400 }
+//       );
+//     }
 
-    // --- NEW: Generate unique slug explicitly ---
-    const slug = await generateUniqueSlug("Product", name);
+//     // --- NEW: Generate unique slug explicitly ---
+//     const slug = await generateUniqueSlug("Product", name);
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        slug, // Use the generated unique slug
-        description,
-        price: parseFloat(price),
-        images,
-        categoryId,
-        subCategoryId,
-        subSubCategoryId,
-        storeId,
-        stock: parseInt(stock, 10),
-      },
-    });
+//     const product = await prisma.product.create({
+//       data: {
+//         name,
+//         slug, // Use the generated unique slug
+//         description,
+//         images,
+//         categoryId,
+//         subCategoryId,
+//         subSubCategoryId,
+//         storeId,
+//       },
+//     });
 
-    return NextResponse.json(product, { status: 201 });
-  } catch (error) {
-    console.error("Error creating product:", error);
-    // Handle other errors, e.g., if sellerId/categoryId doesn't exist
-    return NextResponse.json(
-      { error: "Failed to create product." },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json(product, { status: 201 });
+//   } catch (error) {
+//     console.error("Error creating product:", error);
+//     // Handle other errors, e.g., if sellerId/categoryId doesn't exist
+//     return NextResponse.json(
+//       { error: "Failed to create product." },
+//       { status: 500 }
+//     );
+//   }
+// }

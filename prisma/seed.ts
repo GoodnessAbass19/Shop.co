@@ -1,6 +1,6 @@
 // prisma/seed.ts
 import prisma from "@/lib/prisma";
-import { SpecInputType } from "@prisma/client";
+import { SpecInputType, VariantType } from "@prisma/client";
 
 async function main() {
   // await prisma.category;
@@ -52,6 +52,7 @@ async function main() {
       name: "Sound Bars",
       slug: "sound-bars",
       subCategoryId: audio.id,
+      productVariantType: VariantType.VARIATION,
     },
   });
 
@@ -62,6 +63,7 @@ async function main() {
       name: "Clothing",
       slug: "mens-clothing",
       subCategoryId: clothing.id,
+      productVariantType: VariantType.SIZE,
     },
   });
 

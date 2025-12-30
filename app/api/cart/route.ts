@@ -26,7 +26,6 @@ export async function GET(request: Request) {
                     name: true,
                     images: true,
                     slug: true,
-                    price: true, // Include base product price for calculation reference
                     discounts: {
                       // Include discounts related to the product
                       where: {
@@ -60,7 +59,7 @@ export async function GET(request: Request) {
     let totalDiscountAmount = 0;
     const processedCartItems = cart.cartItems.map((item) => {
       const product = item.productVariant.product;
-      const variantPrice = item.productVariant.price;
+      const variantPrice = item.productVariant.price as any;
       let itemDiscount = 0;
 
       // Calculate discount for the current cart item

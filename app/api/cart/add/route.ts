@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       include: {
         productVariant: {
           // Include productVariant to check stock
-          select: { stock: true },
+          select: { quantity: true },
         },
       },
     });
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const productVariant = await prisma.productVariant.findUnique({
       where: { id: productVariantId },
       select: {
-        stock: true,
+        quantity: true,
         productId: true,
         product: {
           include: {
@@ -68,10 +68,10 @@ export async function POST(request: Request) {
 
     const newTotalQuantity = (existingCartItem?.quantity || 0) + quantity;
 
-    if (newTotalQuantity > productVariant.stock) {
+    if (newTotalQuantity > productVariant.quantity) {
       return NextResponse.json(
         {
-          error: `Not enough stock. Only ${productVariant.stock} available for this variant.`,
+          error: `Not enough quantity. Only ${productVariant.quantity} available for this variant.`,
         },
         { status: 400 }
       );

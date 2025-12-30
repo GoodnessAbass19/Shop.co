@@ -34,8 +34,8 @@ export async function GET() {
             id: true,
             price: true,
             size: true,
-            color: true,
-            stock: true,
+            quantity: true,
+            salePrice: true,
           },
         },
         store: {
@@ -65,17 +65,17 @@ export async function GET() {
       const lowestPrice =
         product.variants.length > 0
           ? product.variants[0].price // Already sorted by price: 'asc'
-          : product.price || 0; // Fallback if no variants or base price is null
+          : 0; // Fallback if no variants or base price is null
 
-      let discountedPrice: number | null = null;
+      let discountedPrice: number | null = product.variants[0].salePrice as any;
 
       // Calculate discounted price if applicable
-      if (product.discounts && product.discounts.length > 0) {
-        const bestDiscountPercentage = product.discounts[0].percentage;
-        if (bestDiscountPercentage! > 0) {
-          discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
-        }
-      }
+      // if (product.discounts && product.discounts.length > 0) {
+      //   const bestDiscountPercentage = product.discounts[0].percentage;
+      //   if (bestDiscountPercentage! > 0) {
+      //     discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
+      //   }
+      // }
 
       return {
         ...product, // Keep original product data for debugging if needed, but overwrite frontend specific fields

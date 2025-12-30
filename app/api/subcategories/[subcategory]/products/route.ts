@@ -113,9 +113,8 @@ export async function GET(
     const processedProducts = products.map((product) => {
       // Determine the base price (lowest variant price or product's direct price)
       const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price // Already sorted by price: 'asc'
-          : product.price || 0; // Fallback if no variants or base price
+        product.variants.length > 0 && (product.variants[0].price as any); // Already sorted by price: 'asc'
+      // Fallback if no variants or base price
 
       let discountedPrice: number | null = null;
       let bestDiscountPercentage = 0;

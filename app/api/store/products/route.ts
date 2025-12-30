@@ -77,8 +77,12 @@ export async function POST(request: Request) {
     const {
       name,
       description,
-      price, // Base price for product, can be overridden by variants
+      highlight,
+      weight, // Base price for product, can be overridden by variants
       images,
+      color,
+      colorFamily,
+      brand,
       categoryId,
       subCategoryId,
       subSubCategoryId,
@@ -89,7 +93,7 @@ export async function POST(request: Request) {
     // Basic validation
     if (
       !name ||
-      !price ||
+      !brand ||
       !categoryId ||
       !images ||
       images.length === 0 ||
@@ -130,12 +134,17 @@ export async function POST(request: Request) {
       data: {
         name,
         description,
-        price,
+        highlight,
+        color,
+        colorFamily,
+        brand,
+        lowStockThreshold: 10,
         images: images, // Store image URLs directly
         categoryId,
         subCategoryId: subCategoryId || null,
         subSubCategoryId: subSubCategoryId || null,
-        stock,
+        weight,
+
         storeId: sellerStore.id, // Link product to the seller's store
         status: ProductStatus.ACTIVE, // Default status
         slug: name

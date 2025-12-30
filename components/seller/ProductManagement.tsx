@@ -33,16 +33,6 @@ import {
   SubSubCategory,
 } from "@prisma/client";
 import Image from "next/image";
-import Link from "next/link";
-// import { AddProductForm } from "./AddProductForm"; // Import the new AddProductForm
-// import { EditProductForm } from "./EditProductForm"; // Import the new EditProductForm
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog"; // Assuming shadcn/ui Dialog
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useSellerStore } from "@/Hooks/use-store-context";
 import { useRouter } from "next/navigation";
@@ -86,8 +76,6 @@ export function ProductManagement() {
   const { store } = useSellerStore(); // Get store data from context
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   const {
     data: products,

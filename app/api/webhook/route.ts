@@ -85,7 +85,7 @@ export async function POST(req: Request) {
                 productVariant: {
                   select: {
                     id: true,
-                    stock: true, // Include current stock
+                    quantity: true, // Include current stock
 
                     productId: true,
                     product: {
@@ -112,10 +112,10 @@ export async function POST(req: Request) {
           const updatedVariant = await prisma.productVariant.update({
             where: { id: item.productVariant.id },
             data: {
-              stock: { decrement: item.quantity },
+              quantity: { decrement: item.quantity },
             },
             select: {
-              stock: true,
+              quantity: true,
 
               product: {
                 select: {
@@ -130,16 +130,22 @@ export async function POST(req: Request) {
           });
 
           // Deduct stock from main product and increment sold count
+          await prisma.productVariant.update({
+            where: { id: item.productVariant.id },
+            data: {
+              quantity: { decrement: item.quantity },
+            },
+          });
+
           await prisma.product.update({
             where: { id: item.productVariant.productId },
             data: {
-              stock: { decrement: item.quantity },
               soldCount: { increment: item.quantity },
             },
           });
 
           // Check for low stock / out of stock and send notifications
-          const currentStock = updatedVariant.stock;
+          const currentStock = updatedVariant.quantity;
           const stockThreshold = updatedVariant.product.lowStockThreshold ?? 5; // Default to 5 if not set
 
           if (currentStock <= stockThreshold && currentStock > 0) {

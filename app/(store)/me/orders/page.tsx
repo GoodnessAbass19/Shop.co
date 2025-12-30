@@ -298,8 +298,8 @@ const OrderCard: React.FC<OrderCardProps> = ({
             </p>
             <p className="text-sm text-gray-600">
               {firstItem.quantity} x {formatCurrencyValue(firstItem.price)}
-              {firstItem.productVariant.color &&
-                ` - ${firstItem.productVariant.color}`}
+              {/* {firstItem.productVariant.color &&
+                ` - ${firstItem.productVariant.color}`} */}
               {firstItem.productVariant.size &&
                 ` (${firstItem.productVariant.size})`}
             </p>

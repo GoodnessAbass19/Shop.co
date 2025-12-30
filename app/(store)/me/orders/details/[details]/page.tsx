@@ -49,19 +49,6 @@ type OrderWithAllDetails = Order & {
   buyer: User;
 };
 
-const fetcher = (url: string) =>
-  fetch(url).then(async (res) => {
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const error: any = new Error(
-        data.error || "Failed to fetch order details."
-      );
-      error.status = res.status;
-      throw error;
-    }
-    return data;
-  });
-
 const fetchOrderById = async (
   orderId: string
 ): Promise<OrderWithAllDetails> => {
@@ -351,8 +338,8 @@ const OrderDetailsPage = () => {
                             Qty: {item.quantity}{" "}
                             {item.productVariant.size &&
                               ` - Size: ${item.productVariant.size}`}
-                            {item.productVariant.color &&
-                              ` - Color: ${item.productVariant.color}`}
+                            {/* {item.productVariant.color &&
+                              ` - Color: ${item.productVariant.color}`} */}
                           </p>
                           <p className="text-md font-medium text-gray-800 mt-1">
                             {formatCurrencyValue(item.price)} / item

@@ -47,10 +47,10 @@ export async function PATCH(
     }
 
     // Check stock availability
-    if (quantity > existingCartItem.productVariant.stock) {
+    if (quantity > existingCartItem.productVariant.quantity) {
       return NextResponse.json(
         {
-          error: `Not enough stock. Only ${existingCartItem.productVariant.stock} available.`,
+          error: `Not enough stock. Only ${existingCartItem.productVariant.quantity} available.`,
         },
         { status: 400 }
       );

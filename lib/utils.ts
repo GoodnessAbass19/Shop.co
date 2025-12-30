@@ -378,4 +378,182 @@ export function splitPhoneNumber(phoneNumber: string) {
   return { countryCode, number };
 }
 
-// RIDER UTILITY FUNCTIONS ADDED ABOVE
+export const variantValue = {
+  shirts: [
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+    "XXXXL",
+    "XXXXXL",
+    "XXXXXXL",
+  ],
+  shoes: [
+    "EU 35-35.5",
+    "EU 36-37",
+    "EU 38-38.5",
+    "EU 39-40",
+    "EU 41-42",
+    "UK 3.5",
+    "UK 4",
+    "UK 5",
+    "UK 6",
+    "UK 7",
+    "US 5-5.5",
+    "US 6-6.5",
+    "US 7-7.5",
+    "US 8-8.5",
+    "US 9-9.5",
+    "AU 5-5.5",
+    "AU 6-6.5",
+    "AU 7-7.5",
+    "AU 8-8.5",
+    "AU 9-9.5",
+  ],
+  drink: [
+    "12 bottle",
+    "10 bottles",
+    "12 bottles(1 carton)",
+    "12 cans",
+    "12 pieces (1 pack)",
+    "12 sticks(1 pack)",
+    "180ml x 48 bottles(1 carton)",
+    "18 bottles",
+    "1.8L",
+    "1 Bottle",
+    "1 carton",
+    "1 piece",
+    "1 stick",
+    "24 bottles",
+    "24 cans",
+    "24 pieces(1 pack)",
+    "2 bottles",
+    "2 packs",
+    "375ml x24 Bottles(1 Carton)",
+    "48 Bottles(1 Carton)",
+    "4 Bottles",
+    "4 Bottles(1 pack)",
+    "4L",
+    "6 Bottles",
+    "6 Bottles(1 carton)",
+    "6 cans",
+    "750ml (1 Bottle)",
+    "750ml x12 (1 Carton)",
+    "8 bottles",
+    "90ml x96 Bottles (1 carton)",
+    "1 Pack",
+    "6 Pack",
+    "12 Pack",
+    "5 Pack",
+    "20 Pack",
+    "18 pieces (1 Pack)",
+    "20cl x 3",
+    "20cl",
+    "1L",
+    "250ml",
+    "33cl",
+    "90cl",
+    "900ml",
+    "500ml",
+    "1.5L",
+    "25 pieces(1 pack)",
+  ],
+  volume: [
+    "100ml",
+    "200ml",
+    "10ml",
+    "2.5ml",
+    "500ml",
+    "110ml",
+    "115ml",
+    "125ml",
+    "150ml",
+    "130ml",
+    "135ml",
+    "1.5ml",
+    "15ml",
+    "140ml",
+    "160ml",
+    "170ml",
+    "175ml",
+    "180ml",
+    "185ml",
+    "11ml",
+    "200ml",
+    "250ml",
+    "1ml",
+    "20ml",
+    "25ml",
+    "300ml",
+    "30ml",
+    "40ml",
+    "50ml",
+    "5ml",
+    "60ml",
+    "6ml",
+    "75ml",
+    "80ml",
+    "88ml",
+    "85ml",
+    "90ml",
+    "95ml",
+    "9ml",
+    "120ml",
+    "236ml",
+    "2ml",
+    "104ml",
+    "7ml",
+    "65ml",
+    "600ml",
+    "8ml",
+    "3ml",
+    "400ml",
+    "450ml",
+    "35ml",
+    "550ml",
+    "24ml",
+    "380ml",
+    "210ml",
+    "70ml",
+    "28ml",
+    "240ml",
+    "55ml",
+    "2.5ml",
+    "220ml",
+    "45ml",
+  ],
+};
+
+export const calculatePercentageChange = (
+  oldValue: number,
+  newValue: number
+): number => {
+  if (oldValue === 0) return newValue === 0 ? 0 : 100; // Handle division by zero
+  const change = ((newValue - oldValue) / Math.abs(oldValue)) * 100;
+  return change;
+};
+
+export const formatPercentage = (
+  value: number,
+  decimals: number = 2,
+  includeSign: boolean = false
+): string => {
+  const formatted = value.toFixed(decimals);
+  const sign = includeSign && value > 0 ? "+" : "";
+  return `${sign}${formatted}%`;
+};
+
+export const isSaleActive = (
+  startDate: string | Date | null | undefined,
+  endDate: string | Date | null | undefined
+): boolean => {
+  if (!startDate || !endDate) return false;
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  return now >= start && now <= end;
+};

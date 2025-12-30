@@ -405,6 +405,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                       <Calendar
                         mode="single"
                         selected={date}
+                        
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
                         }

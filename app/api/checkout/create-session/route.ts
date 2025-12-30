@@ -81,19 +81,19 @@ export async function POST(req: NextRequest, request: Request) {
       const product = variant.product;
 
       // Ensure variant and stock are valid
-      if (!variant || variant.stock < cartItem.quantity) {
+      if (!variant || variant.quantity < cartItem.quantity) {
         return NextResponse.json(
           {
             error: `Insufficient stock for ${product.name} (${
               variant.size || ""
-            } ${variant.color || ""}). Available: ${variant.stock}`,
+            }  Available: ${variant.quantity}`,
           },
           { status: 400 }
         );
       }
 
       // --- Calculate the actual unit price after discount ---
-      let unitPrice = variant.price;
+      let unitPrice = variant.price as any;
 
       const bestDiscount = product.discounts?.[0]; // Access the first (best) discount
 

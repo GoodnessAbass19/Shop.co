@@ -250,7 +250,7 @@ export function SimpleEditor({
   }, [isMobile, mobileView]);
 
   return (
-    <div className="simple-editor-wrapper max-w-screen-xl mx-auto h-[400px] border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+    <div className="simple-editor-wrapper max-w-full w-full mx-auto max-h-[300px] border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}

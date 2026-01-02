@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 // import { Checkbox } from "../ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/store/cart-store";
-// import RelatedProducts from "./RelatedProducts";
 import RecentlyViewed from "./Recent";
 import {
   Breadcrumb,
@@ -20,7 +19,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { AddToCartButton } from "../layout/Toast";
 import { toast } from "react-toastify";
-// import { createCartItem } from "@/lib/actions";
+import parse from "html-react-parser";
 import useSWR from "swr";
 import { Label } from "../ui/label";
 import {
@@ -461,7 +460,7 @@ ${isDisabled ? "opacity-30 cursor-not-allowed" : "hover:scale-105"}
                       }
                 }
               >
-                {data?.product.description}
+                {parse(data?.product.description || "")}
               </p>
 
               <button

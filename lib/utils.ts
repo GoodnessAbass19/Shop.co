@@ -557,3 +557,127 @@ export const isSaleActive = (
   const end = new Date(endDate);
   return now >= start && now <= end;
 };
+
+export const COLOR_FAMILIES = [
+  // Neutrals (10)
+  "Black",
+  "White",
+  "Gray",
+  "Silver",
+  "Charcoal",
+  "Off-White",
+  "Ivory",
+  "Pewter",
+  "Slate",
+  "Ash",
+
+  // Reds & Pinks (10)
+  "Red",
+  "Crimson",
+  "Burgundy",
+  "Maroon",
+  "Rose",
+  "Pink",
+  "Hot Pink",
+  "Blush",
+  "Fuchsia",
+  "Salmon",
+
+  // Blues (10)
+  "Blue",
+  "Navy",
+  "Royal Blue",
+  "Sky Blue",
+  "Teal",
+  "Azure",
+  "Cyan",
+  "Indigo",
+  "Baby Blue",
+  "Turquoise",
+
+  // Greens (10)
+  "Green",
+  "Olive",
+  "Emerald",
+  "Mint",
+  "Forest Green",
+  "Lime",
+  "Sage",
+  "Khaki",
+  "Jade",
+  "Seafoam",
+
+  // Yellows & Oranges (10)
+  "Yellow",
+  "Gold",
+  "Lemon",
+  "Mustard",
+  "Amber",
+  "Orange",
+  "Coral",
+  "Peach",
+  "Tangerine",
+  "Apricot",
+
+  // Purples (10)
+  "Purple",
+  "Lavender",
+  "Violet",
+  "Plum",
+  "Magenta",
+  "Orchid",
+  "Mauve",
+  "Lilac",
+  "Grape",
+  "Eggplant",
+
+  // Browns & Tans (10)
+  "Brown",
+  "Beige",
+  "Tan",
+  "Camel",
+  "Bronze",
+  "Coffee",
+  "Chocolate",
+  "Cream",
+  "Nude",
+  "Sand",
+
+  // Earth Tones & Wood (10)
+  "Terracotta",
+  "Rust",
+  "Ochre",
+  "Mahogany",
+  "Oak",
+  "Walnut",
+  "Clay",
+  "Copper",
+  "Brick",
+  "Sienna",
+
+  // Metallics & Gems (10)
+  "Champagne",
+  "Platinum",
+  "Rose Gold",
+  "Ruby",
+  "Sapphire",
+  "Pearl",
+  "Iridescent",
+  "Gunmetal",
+  "Brass",
+  "Chrome",
+
+  // Specialized & Trends (10)
+  "Neon Green",
+  "Neon Orange",
+  "Neon Pink",
+  "Multicolor",
+  "Transparent",
+  "Clear",
+  "Marble",
+  "Denim",
+  "Camo",
+  "Animal Print",
+] as const;
+
+export type ColorFamily = (typeof COLOR_FAMILIES)[number];

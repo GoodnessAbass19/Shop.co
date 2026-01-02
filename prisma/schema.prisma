@@ -184,7 +184,7 @@ model Product {
   highlight         String?
   color             String?
   colorFamily       String[]
-  weight            Int
+  weight            String
   lowStockThreshold Int? // NEW: Alert when stock falls below this
   images            String[]
   brand             String?
@@ -232,19 +232,19 @@ model Product {
 // }
 
 model ProductVariant {
-  id             String    @id @default(cuid())
-  variation      String? // e.g. "Black / Large"
-  size           String?
-  volume         String?
-  drinkSize      String?
-  sellerSku      String    @unique
-  gtinBarcode    String?
-  quantity       Int
-  colorAvailable String[]
-  price          Float
-  salePrice      Float
-  saleStartDate  DateTime?
-  saleEndDate    DateTime?
+  id            String    @id @default(cuid())
+  variation     String? // e.g. "Black / Large"
+  size          String?
+  volume        String?
+  drinkSize     String?
+  sellerSku     String    @unique
+  gtinBarcode   String?
+  quantity      Int
+  // colorAvailable String[]
+  price         Float
+  salePrice     Float
+  saleStartDate DateTime?
+  saleEndDate   DateTime?
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -366,18 +366,17 @@ model SubSubCategory {
 }
 
 model Order {
-  id                    String      @id @default(uuid())
-  total                 Float
-  status                OrderStatus @default(PENDING)
-  stripePaymentIntentId String?
-  stripeRefundId        String? // Refund ID from Stripe
-  refundStatus          String? // "PENDING", "SUCCEEDED", "FAILED", etc.
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  deliveredAt           DateTime? // NEW: When the order was delivered
-  paidAt                DateTime? // NEW: When the order was paid
-  shippedAt             DateTime? // NEW: When the order was shipped
-  refundRequestedAt     DateTime? // NEW: When the refund was requested
+  id                String      @id @default(uuid())
+  total             Float
+  status            OrderStatus @default(PENDING)
+  paystackReference String?
+  refundStatus      String? // "PENDING", "SUCCEEDED", "FAILED", etc.
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deliveredAt       DateTime? // NEW: When the order was delivered
+  paidAt            DateTime? // NEW: When the order was paid
+  shippedAt         DateTime? // NEW: When the order was shipped
+  refundRequestedAt DateTime? // NEW: When the refund was requested
 
   cancelledAt DateTime? // NEW: When the order was cancelled
   buyerId     String

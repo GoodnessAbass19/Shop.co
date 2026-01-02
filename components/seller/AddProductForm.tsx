@@ -26,9 +26,10 @@ import {
   ArrowLeft,
   CalendarIcon,
   Clock,
+  X,
 } from "lucide-react";
 import { useToast } from "@/Hooks/use-toast";
-import { cn, variantValue } from "@/lib/utils";
+import { cn, COLOR_FAMILIES, variantValue } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { uploadToCloudinary } from "@/lib/cloudinary"; // Assuming you have this utility
 import {
@@ -46,10 +47,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
-import z from "zod";
+import z, { object } from "zod";
 import { CreateProductSchema } from "@/lib/form-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SimpleEditor } from "../tiptap-templates/simple/simple-editor";
 import { Separator } from "../ui/separator";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
@@ -61,6 +61,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { VariantType } from "@prisma/client";
+import SimpleEditor from "../tiptap-templates/simple/simple-editor";
 
 // --- Type Definitions ---
 interface Category {
@@ -82,25 +83,25 @@ interface SubSubCategory {
   productVariantType: VariantType;
 }
 
-interface ProductFormData {
-  name: string;
-  description?: string;
-  price: number;
-  images: string[];
-  brand: string;
-  categoryId: string;
-  subCategoryId?: string;
-  subSubCategoryId?: string;
-  stock: number;
-  isFeatured?: boolean;
-  variants: Array<{
-    size: string | null;
-    color: string | null;
-    price: number;
-    stock: number;
-    sku?: string;
-  }>;
-}
+// interface ProductFormData {
+//   name: string;
+//   description?: string;
+//   price: number;
+//   images: string[];
+//   brand: string;
+//   categoryId: string;
+//   subCategoryId?: string;
+//   subSubCategoryId?: string;
+//   stock: number;
+//   isFeatured?: boolean;
+//   variants: Array<{
+//     size: string | null;
+//     color: string | null;
+//     price: number;
+//     stock: number;
+//     sku?: string;
+//   }>;
+// }
 
 type Inputs = z.infer<typeof CreateProductSchema>;
 
@@ -135,8 +136,14 @@ interface PriceChangeParams {
   value: string;
 }
 
+type VariantFieldKey =
+  | "variant"
+  | "size"
+  | "shoe_size"
+  | "drink_size"
+  | "volume";
+
 export function AddProductForm() {
-  ``;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -178,11 +185,36 @@ export function AddProductForm() {
   });
 
   const watchedVariants = useWatch({ control, name: "variants" });
-  const currentImages = watch("images");
-  const currentCategoryId = watch("categoryId");
-  const currentSubCategoryId = watch("subCategoryId");
-  const currentSubSubCategoryId = watch("subSubCategoryId");
+  const currentImages = useWatch({ control, name: "images" }) || [];
+  const currentSubSubCategoryId = useWatch({
+    control,
+    name: "subSubCategoryId",
+  });
+  const currentCategoryId = useWatch({ control, name: "categoryId" });
+  const currentSubCategoryId = useWatch({ control, name: "subCategoryId" });
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+
+  // Toggle selection of a color
+  const toggleColor = (color: string) => {
+    setSelectedColors((prev) => {
+      const newColors = prev.includes(color)
+        ? prev.filter((c) => c !== color)
+        : [...prev, color];
+
+      // Update form state with the NEW value immediately
+      setValue("colorFamily", newColors, { shouldValidate: true });
+      return newColors;
+    });
+  };
+
+  const removeColor = (e: React.MouseEvent, color: string) => {
+    e.stopPropagation();
+    const newColors = selectedColors.filter((c) => c !== color);
+    setSelectedColors(newColors);
+    setValue("colorFamily", newColors, { shouldValidate: true });
+  };
 
   /**
    * CUSTOM PRICE HANDLER
@@ -206,7 +238,7 @@ export function AddProductForm() {
   };
 
   const renderValueField = (index: number, type: VariantType) => {
-    const currentValue = watchedVariants?.[index]?.value;
+    const currentValue = watchedVariants?.[index]?.variant;
 
     if (type === VariantType.VARIATION) {
       return (
@@ -215,7 +247,7 @@ export function AddProductForm() {
             Variant
           </Label>
           <Input
-            {...register(`variants.${index}.value`)}
+            {...register(`variants.${index}.variant`)}
             placeholder="..."
             className="bg-white"
           />
@@ -224,38 +256,46 @@ export function AddProductForm() {
     }
 
     let options: string[] = [];
-    let label = "Value";
+    let label = "Variant";
+    let field: VariantFieldKey = "variant";
 
     switch (type) {
       case VariantType.SIZE:
         options = variantValue.shirts;
-        label = "Shirt Size";
+        label = "Size";
+        field = "size";
         break;
       case VariantType.SIZE_SHOE:
         options = variantValue.shoes;
-        label = "Shoe Size";
+        label = "Size";
+        field = "shoe_size";
         break;
       case VariantType.DRINK_SIZE:
         options = variantValue.drink;
         label = "Drink Pack Size";
+        field = "drink_size";
         break;
       case VariantType.VOLUME:
         options = variantValue.volume;
         label = "Volume";
+        field = "volume";
         break;
     }
 
     return (
       <div className="space-y-1">
         <Label className="text-xs font-bold capitalize tracking-wider text-slate-500">
-          {label}
+          {label}{" "}
+          {(type === VariantType.SIZE || type === VariantType.SIZE_SHOE) && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
         </Label>
         <Select
-          onValueChange={(val) => setValue(`variants.${index}.value`, val)}
+          onValueChange={(val) => setValue(`variants.${index}.${field}`, val)}
           value={currentValue}
         >
           <SelectTrigger className="bg-white">
-            <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+            <SelectValue placeholder={`${label.toLowerCase()}`} />
           </SelectTrigger>
           <SelectContent>
             {options.map((opt) => (
@@ -270,10 +310,10 @@ export function AddProductForm() {
   };
 
   // Find selected category names for display
-  const selectedTopCategory = categories?.find(
+  const selectedCategory = categories?.find(
     (cat) => cat.id === currentCategoryId
   );
-  const selectedSubCategory = selectedTopCategory?.subCategories?.find(
+  const selectedSubCategory = selectedCategory?.subCategories?.find(
     (sub) => sub.id === currentSubCategoryId
   );
   const selectedSubSubCategory = selectedSubCategory?.subSubCategories?.find(
@@ -379,7 +419,12 @@ export function AddProductForm() {
     },
   });
 
+  const onError = (errors: any) => {
+    console.error("Validation Errors:", errors);
+  };
+
   const onSubmit: SubmitHandler<Inputs> = (data) => {
+    console.log(data);
     addProductMutation.mutate(data);
   };
 
@@ -422,7 +467,7 @@ export function AddProductForm() {
         <h2 className="text-xl font-bold">Add New Product</h2>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-8">
         <div className="space-y-5">
           <h3 className="text-lg font-semibold capitalize">
             product information
@@ -590,17 +635,17 @@ export function AddProductForm() {
                     getErrorMessage(`subSubCategoryId`)
                   }
                 />
-                {getErrorMessage("categoryId") && (
+                {getErrorMessage("subSubCategoryId") && (
                   <p className="text-red-500 text-sm mt-1">
                     {getErrorMessage("categoryId")}
                   </p>
                 )}
-                {(selectedTopCategory ||
+                {(selectedCategory ||
                   selectedSubCategory ||
                   selectedSubSubCategory) && (
                   <div className="mt-2 text-sm text-gray-600">
                     Your product will appear under this categories:{" "}
-                    {selectedTopCategory?.name}{" "}
+                    {selectedCategory?.name}{" "}
                     {selectedSubCategory ? `> ${selectedSubCategory.name}` : ""}{" "}
                     {selectedSubSubCategory
                       ? `> ${selectedSubSubCategory.name}`
@@ -610,142 +655,257 @@ export function AddProductForm() {
               </div>
             </div>
 
-            {/* Brand, Color, Color Family and Weight */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="col-span-1">
-                <Label
-                  htmlFor="brand"
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Brand <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="brand"
-                  type="text"
-                  placeholder="Brand"
-                  {...register("brand")}
-                  className={cn(
-                    "w-full px-4 py-2 border rounded-md",
-                    getErrorMessage("brand") && "border-red-500"
+            {currentSubSubCategoryId && (
+              <>
+                {/* Brand, Color, Color Family and Weight */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="col-span-1">
+                    <Label
+                      htmlFor="brand"
+                      className="block text-sm font-medium  mb-1"
+                    >
+                      Brand <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="brand"
+                      type="text"
+                      placeholder="Brand"
+                      {...register("brand")}
+                      className={cn(
+                        "w-full px-4 py-2 border rounded-md",
+                        getErrorMessage("brand") && "border-red-500"
+                      )}
+                    />
+                    {getErrorMessage("brand") && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {getErrorMessage("brand")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label
+                      htmlFor="color"
+                      className="block text-sm font-medium  mb-1"
+                    >
+                      Color
+                    </Label>
+                    <Input
+                      id="color"
+                      type="text"
+                      placeholder="Main color of the product"
+                      {...register("color")}
+                      className={cn(
+                        "w-full px-4 py-2 border rounded-md",
+                        getErrorMessage("color") && "border-red-500"
+                      )}
+                    />
+                    {getErrorMessage("color") && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {getErrorMessage("color")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label
+                      htmlFor="colorFamily"
+                      className="block text-sm font-medium  mb-1"
+                    >
+                      Color Family
+                    </Label>
+                    {/* <Input
+                      id="colorFamily"
+                      type="text"
+                      placeholder="Ex. 12kg, 800gram"
+                      {...register("colorFamily")}
+                      className={cn(
+                        "w-full px-4 py-2 border rounded-md",
+                        getErrorMessage("colorFamily") && "border-red-500"
+                      )}
+                    /> */}
+                    <div className="relative">
+                      {/* Trigger / Display area */}
+                      <div
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`w-full p-1 flex flex-wrap gap-2 border rounded-lg cursor-pointer transition-all bg-white hover:border-blue-400 ${
+                          isOpen
+                            ? "ring-2 ring-blue-100 border-blue-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {selectedColors.length === 0 ? (
+                          <span className="text-gray-400 py-1 px-2">
+                            Choose colors...
+                          </span>
+                        ) : (
+                          selectedColors.map((color) => (
+                            <span
+                              key={color}
+                              className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-black text-sm font-medium rounded-full border border-blue-100 animate-in fade-in zoom-in duration-200"
+                            >
+                              {color}
+                              <X
+                                size={10}
+                                className="hover:text-blue-900 cursor-pointer"
+                                onClick={(e) => removeColor(e, color)}
+                              />
+                            </span>
+                          ))
+                        )}
+
+                        <div className="ml-auto pr-2 flex items-center">
+                          <ChevronDown
+                            size={18}
+                            className={`text-gray-400 transition-transform duration-200 ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dropdown Menu */}
+                      {isOpen && (
+                        <div className="absolute z-40 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                          <div className="max-h-60 overflow-y-auto p-1">
+                            {COLOR_FAMILIES.map((color) => {
+                              const isSelected = selectedColors.includes(color);
+                              return (
+                                <div
+                                  key={color}
+                                  onClick={() => toggleColor(color)}
+                                  className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer rounded-md transition-colors ${
+                                    isSelected
+                                      ? "bg-blue-50 text-blue-700 font-medium"
+                                      : "text-gray-700 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {/* Visual Color Swatch */}
+                                    <span
+                                      className="w-4 h-4 rounded-full border border-gray-200"
+                                      style={{
+                                        backgroundColor:
+                                          color === "Multicolor"
+                                            ? "transparent"
+                                            : color.toLowerCase(),
+                                        backgroundImage:
+                                          color === "Multicolor"
+                                            ? "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)"
+                                            : "none",
+                                      }}
+                                    />
+                                    {color}
+                                  </div>
+                                  {isSelected && (
+                                    <Check
+                                      size={16}
+                                      className="text-blue-600"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Footer */}
+                          <div className="p-2 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedColors([])}
+                              className="text-xs text-gray-500 hover:text-red-600 font-medium px-2 py-1"
+                            >
+                              Clear all
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsOpen(false)}
+                              className="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {getErrorMessage("colorFamily") && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {getErrorMessage("colorFamily")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label
+                      htmlFor="weight"
+                      className="block text-sm font-medium  mb-1"
+                    >
+                      Weight <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="weight"
+                      type="text"
+                      placeholder="Ex. 12kg, 800g [Weight of the product for storage and shipping]"
+                      {...register("weight")}
+                      className={cn(
+                        "w-full px-4 py-2 border rounded-md placeholder:text-[10px]",
+                        getErrorMessage("weight") && "border-red-500"
+                      )}
+                    />
+                    {getErrorMessage("weight") && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {getErrorMessage("weight")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product description text field */}
+                <div>
+                  <Label
+                    htmlFor="description"
+                    className="block text-sm font-medium  mb-1"
+                  >
+                    Product Description <span className="text-red-500">*</span>
+                  </Label>
+
+                  <SimpleEditor
+                    contents={watch("description")}
+                    setContents={(content: string) =>
+                      setValue("description", content)
+                    }
+                  />
+                  {getErrorMessage("description") && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {getErrorMessage("description")}
+                    </p>
                   )}
-                />
-                {getErrorMessage("brand") && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {getErrorMessage("brand")}
-                  </p>
-                )}
-              </div>
+                </div>
 
-              <div className="col-span-1">
-                <Label
-                  htmlFor="color"
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Color
-                </Label>
-                <Input
-                  id="color"
-                  type="text"
-                  placeholder="Main color of the product"
-                  {...register("color")}
-                  className={cn(
-                    "w-full px-4 py-2 border rounded-md",
-                    getErrorMessage("color") && "border-red-500"
+                {/* PRODUCT HIGHLIGHT FIELD */}
+                <div>
+                  <Label
+                    htmlFor="highlight"
+                    className="block text-sm font-medium  mb-1"
+                  >
+                    Highlights <span className="text-red-500">*</span>
+                  </Label>
+
+                  <SimpleEditor
+                    contents={watch("highlight")}
+                    setContents={(content: string) =>
+                      setValue("highlight", content)
+                    }
+                  />
+                  {getErrorMessage("highlight") && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {getErrorMessage("highlight")}
+                    </p>
                   )}
-                />
-                {getErrorMessage("color") && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {getErrorMessage("color")}
-                  </p>
-                )}
-              </div>
-
-              <div className="col-span-1">
-                <Label
-                  htmlFor="colorFamily"
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Color Family
-                </Label>
-                <Input
-                  id="colorFamily"
-                  type="text"
-                  placeholder="Ex. 12kg, 800gram"
-                  {...register("colorFamily")}
-                  className={cn(
-                    "w-full px-4 py-2 border rounded-md",
-                    getErrorMessage("colorFamily") && "border-red-500"
-                  )}
-                />
-                {getErrorMessage("colorFamily") && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {getErrorMessage("colorFamily")}
-                  </p>
-                )}
-              </div>
-
-              <div className="col-span-1">
-                <Label
-                  htmlFor="weight"
-                  className="block text-sm font-medium  mb-1"
-                >
-                  Weight <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="weight"
-                  type="text"
-                  placeholder="Ex. 12kg, 800g [Weight of the product for storage and shipping]"
-                  {...register("weight")}
-                  className={cn(
-                    "w-full px-4 py-2 border rounded-md placeholder:text-[10px]",
-                    getErrorMessage("weight") && "border-red-500"
-                  )}
-                />
-                {getErrorMessage("weight") && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {getErrorMessage("weight")}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Product description text field */}
-            <div>
-              <Label
-                htmlFor="description"
-                className="block text-sm font-medium  mb-1"
-              >
-                Product Description <span className="text-red-500">*</span>
-              </Label>
-
-              <SimpleEditor
-                setContents={(e) => {
-                  setValue("description", e);
-                }}
-              />
-              {getErrorMessage("description") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {getErrorMessage("description")}
-                </p>
-              )}
-            </div>
-
-            {/* PRODUCT HIGHLIGHT FIELD */}
-            <div>
-              <Label
-                htmlFor="highlight"
-                className="block text-sm font-medium  mb-1"
-              >
-                Highlights <span className="text-red-500">*</span>
-              </Label>
-
-              <SimpleEditor setContents={(e) => setValue("highlight", e)} />
-              {getErrorMessage("highlight") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {getErrorMessage("highlight")}
-                </p>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -919,13 +1079,13 @@ export function AddProductForm() {
                         Sale Start Date
                       </Label>
                       {/* <Input
-                      id={`variants.${variantIndex}.saleStartDate`}
-                      type="datetime-local"
-                      placeholder="Sale Price"
-                      disabled={!hasSalePrice}
-                      {...register(`variants.${variantIndex}.saleStartDate`)}
-                      className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
-                    /> */}
+                        id={`variants.${variantIndex}.saleStartDate`}
+                        type="datetime-local"
+                        placeholder="Sale Price"
+                        disabled={!hasSalePrice}
+                        {...register(`variants.${variantIndex}.saleStartDate`)}
+                        className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
+                      /> */}
                       <Popover>
                         <PopoverTrigger asChild disabled={!hasSalePrice}>
                           <Button
@@ -1000,13 +1160,13 @@ export function AddProductForm() {
                         Sale End Date
                       </Label>
                       {/* <Input
-                      id={`variants.${variantIndex}.saleEndDate`}
-                      type="datetime-local"
-                      disabled={!hasSalePrice}
-                      placeholder="Sale end date"
-                      {...register(`variants.${variantIndex}.saleEndDate`)}
-                      className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
-                    /> */}
+                        id={`variants.${variantIndex}.saleEndDate`}
+                        type="datetime-local"
+                        disabled={!hasSalePrice}
+                        placeholder="Sale end date"
+                        {...register(`variants.${variantIndex}.saleEndDate`)}
+                        className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100 disabled:dark:bg-gray-800"
+                      /> */}
 
                       <Popover>
                         <PopoverTrigger asChild disabled={!hasSalePrice}>

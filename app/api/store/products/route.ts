@@ -33,13 +33,20 @@ export async function GET(request: Request) {
       );
     }
 
-    const products = await prisma.product.findMany({
-      where: { storeId: storeId }, // Filter by storeId
+    const products = await prisma.productVariant.findMany({
+      where: {
+        product: {
+          storeId: storeId,
+        },
+      }, // Filter by storeId
       include: {
-        variants: true,
-        category: true,
-        subCategory: true,
-        subSubCategory: true,
+        product: {
+          include: {
+            category: true,
+            subCategory: true,
+            subSubCategory: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" }, // Example ordering
     });
@@ -86,28 +93,20 @@ export async function POST(request: Request) {
       categoryId,
       subCategoryId,
       subSubCategoryId,
-      stock, // Overall stock for product, can be managed by variants
       variants, // Array of variant objects
     } = body;
 
     // Basic validation
-    if (
-      !name ||
-      !brand ||
-      !categoryId ||
-      !images ||
-      images.length === 0 ||
-      stock === undefined ||
-      stock < 0
-    ) {
+    if (!name || !brand || !categoryId || !images || images.length === 0) {
       return NextResponse.json(
         {
           error:
-            "Missing required product fields: name, price, categoryId, images, stock.",
+            "Missing required product fields: name, brand, categoryId, images, or quantity",
         },
         { status: 400 }
       );
     }
+
     if (variants && variants.length > 0) {
       // If variants are provided, ensure they have necessary fields
       for (const variant of variants) {
@@ -116,12 +115,12 @@ export async function POST(request: Request) {
           variant.price < 0 ||
           variant.stock === undefined ||
           variant.stock < 0 ||
-          (!variant.size && !variant.color)
+          !variant.sellerSku
         ) {
           return NextResponse.json(
             {
               error:
-                "Invalid variant data: price, stock, and at least one of size/color are required for each variant.",
+                "Invalid variant data: price, stock, and Sku are required for each variant.",
             },
             { status: 400 }
           );
@@ -144,7 +143,6 @@ export async function POST(request: Request) {
         subCategoryId: subCategoryId || null,
         subSubCategoryId: subSubCategoryId || null,
         weight,
-
         storeId: sellerStore.id, // Link product to the seller's store
         status: ProductStatus.ACTIVE, // Default status
         slug: name
@@ -155,11 +153,18 @@ export async function POST(request: Request) {
         variants: {
           createMany: {
             data: variants.map((v: any) => ({
+              variation: v.variant || null, // e.g. "Black / Large"
               size: v.size || null,
-              color: v.color || null,
+              volume: v.volume || null,
+              drinkSize: v.drink_size || null,
+              sellerSku: v.sellerSku,
+              gtinBarcode: v.gtinBarcode || null,
+              quantity: v.stock,
+              // colorAvailable: v.colorAvailable || null,
               price: v.price,
-              stock: v.stock,
-              sku: v.sku || null,
+              salePrice: v.salePrice || null,
+              saleStartDate: v.saleStartDate || null,
+              saleEndDate: v.saleEndDate || null,
             })),
           },
         },

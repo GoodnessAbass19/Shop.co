@@ -15,7 +15,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { product: productId } = params;
+    const { product: productId } = await params;
     if (!productId) {
       return NextResponse.json(
         { error: "Product ID is required." },
@@ -27,14 +27,15 @@ export async function PATCH(
     const {
       name,
       description,
-      price,
+      weight,
       images,
       categoryId,
       subCategoryId,
       subSubCategoryId,
-      stock,
+      highlight,
       variants, // Array of variant objects (with/without id)
-      status,
+      color,
+      colorFamily,
     } = body;
 
     // Verify product exists and belongs to the user
@@ -69,14 +70,15 @@ export async function PATCH(
     const productUpdateData: any = {
       name,
       description,
-      price,
+      highlight,
       images,
       categoryId,
       subCategoryId: subCategoryId || null,
       subSubCategoryId: subSubCategoryId || null,
-      stock,
-      status,
       slug,
+      weight,
+      color,
+      colorFamily,
     };
 
     // Handle Variants
@@ -91,11 +93,17 @@ export async function PATCH(
         await prisma.productVariant.update({
           where: { id: variant.id },
           data: {
+            variation: variant || null, // e.g. "Black / Large"
             size: variant.size || null,
-            color: variant.color || null,
+            volume: variant.volume || null,
+            drinkSize: variant.drink_size || null,
+            sellerSku: variant.sellerSku,
+            gtinBarcode: variant.gtinBarcode || null,
+            quantity: variant.stock,
             price: variant.price,
-            stock: variant.stock,
-            sku: variant.sku || null,
+            salePrice: variant.salePrice || null,
+            saleStartDate: variant.saleStartDate || null,
+            saleEndDate: variant.saleEndDate || null,
           },
         });
       }
@@ -104,11 +112,18 @@ export async function PATCH(
       if (variantsToCreate.length > 0) {
         await prisma.productVariant.createMany({
           data: variantsToCreate.map((v) => ({
+            variation: v.variant || null, // e.g. "Black / Large"
             size: v.size || null,
-            color: v.color || null,
+            volume: v.volume || null,
+            drinkSize: v.drink_size || null,
+            sellerSku: v.sellerSku,
+            gtinBarcode: v.gtinBarcode || null,
+            quantity: v.stock,
+            // colorAvailable: v.colorAvailable || null,
             price: v.price,
-            stock: v.stock,
-            sku: v.sku || null,
+            salePrice: v.salePrice || null,
+            saleStartDate: v.saleStartDate || null,
+            saleEndDate: v.saleEndDate || null,
             productId,
           })),
         });

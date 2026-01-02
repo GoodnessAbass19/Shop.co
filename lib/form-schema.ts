@@ -165,22 +165,33 @@ export const RiderInfoSchema = z.object({
 
 export const ProductVariantSchema = z
   .object({
-    value: z.string().optional(),
+    variant: z.string().optional(),
     size: z.string().optional(),
     drink_size: z.string().optional(),
     volume: z.string().optional(),
     shoe_size: z.string().optional(),
     sellerSku: z.string().min(5, "Sku is required"),
-    stock: z.coerce.number().int().min(0, "Quantity is required"),
+    stock: z.preprocess(
+      (val) => Number(val),
+      z.number().min(0, "Quantity is required")
+    ),
+    // z.coerce.number().int().min(0, "Quantity is required"),
     gtinBarcode: z.string().optional(),
     price: z.coerce.number().min(1, "price is required"),
-    salePrice: z.coerce.number().optional(),
-    saleStartDate: z.date().optional(),
-    saleEndDate: z.date().optional(),
-    colorAvailable: z
-      .array(z.string())
-      .max(5, "only 5 color family allowed")
-      .optional(),
+    salePrice: z.preprocess(
+      (val) => (val === "" || val === undefined ? undefined : Number(val)),
+      z.number().optional()
+    ),
+    // Use coerce for dates to handle string inputs from HTML
+    saleStartDate: z.coerce
+      .date()
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    saleEndDate: z.coerce
+      .date()
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+    colorAvailable: z.array(z.string()).max(5).optional(),
   })
   .refine(
     (data) => {
@@ -208,25 +219,28 @@ export const ProductVariantSchema = z
       path: ["salePrice"],
     }
   );
+// .refine(
+//   (data) => data.size || data.shoe_size,
+
+//   { message: "size is required", path: ["variant"] }
+// );
 
 export const CreateProductSchema = z.object({
   name: z.string().min(5, "product name is required"),
-  category: z.string().min(1, "category is required"),
+  // category: z.string().min(1, "category is required"),
   brand: z.string().min(1, "brand is required"),
   color: z.string().optional(),
-  colorFamily: z
-    .array(z.string())
-    .max(5, "only 5 color family allowed")
-    .optional(),
-  weight: z.number(),
+  colorFamily: z.array(z.string()).optional(),
+  // .max(5, "only 5 color family allowed")
+  weight: z.string().min(2, "weight is required"),
   description: z.string().min(20, "description is required"),
   highlight: z.string().min(20, "highlight is required"),
   images: z
     .array(z.string().url("Invalid image URL"))
     .max(7, "You can only upload 7 images"),
   categoryId: z.string().min(2, "Category is required"),
-  subCategoryId: z.string().min(2, "Category is required"),
-  subSubCategoryId: z.string().min(2, "Category is required"),
+  subCategoryId: z.string().min(2, "Sub-category is required"),
+  subSubCategoryId: z.string().min(2, "subsub-category is required"),
   variants: z
     .array(ProductVariantSchema)
     .min(1, "At least one product variant (SKU) is required")

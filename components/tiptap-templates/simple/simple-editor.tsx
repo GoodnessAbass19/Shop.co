@@ -183,11 +183,12 @@ const MobileToolbarContent = ({
   </>
 );
 
-export function SimpleEditor({
-  setContents,
-}: {
+interface TiptapProps {
+  contents: string;
   setContents: (content: string) => void;
-}) {
+}
+
+const SimpleEditor: React.FC<TiptapProps> = ({ contents, setContents }) => {
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
@@ -238,6 +239,13 @@ export function SimpleEditor({
     },
   });
 
+  // Sync editor content when the 'contents' prop changes externally (e.g., productData loading/reset)
+  useEffect(() => {
+    if (editor && contents !== editor.getHTML()) {
+      editor.commands.setContent(contents || "");
+    }
+  }, [contents, editor]);
+
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
@@ -284,4 +292,6 @@ export function SimpleEditor({
       </EditorContext.Provider>
     </div>
   );
-}
+};
+
+export default SimpleEditor;

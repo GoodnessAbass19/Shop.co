@@ -8,7 +8,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 import { Product, ProductVariant } from "@prisma/client";
-import { HoverPrefetchLink } from "@/lib/HoverLink";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 

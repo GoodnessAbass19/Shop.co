@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import ProductCard from "../products/productCard";
 import { Skeleton } from "../ui/skeleton";
-import { ProductFromApi } from "../home/Sections";
+import { Product, ProductVariant } from "@prisma/client";
 
 const fetchWishlist = async () => {
   const res = await fetch("/api/wishlist", {
@@ -22,6 +22,11 @@ const fetchWishlist = async () => {
   }
 
   return res.json();
+};
+
+type ProductData = Product & {
+  variants: ProductVariant[];
+  images: { url: string }[];
 };
 
 const Wishlist = () => {
@@ -50,7 +55,7 @@ const Wishlist = () => {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.wishlist.map((product: ProductFromApi) => (
+          {products.wishlist.map((product: ProductData) => (
             <ProductCard
               item={product}
               key={product.id}

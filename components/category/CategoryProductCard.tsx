@@ -1,21 +1,17 @@
 "use client";
 
-import { useToast } from "@/hooks/use-toast";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Loader2 } from "lucide-react";
-import Image from "next/image";
+import { Heart } from "lucide-react";
 import React, { useCallback } from "react";
-import { Button } from "../ui/button";
 import {
   calculatePercentageChange,
-  cn,
   formatPercentage,
   isSaleActive,
 } from "@/lib/utils";
-import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { Product, ProductReview, ProductVariant } from "@prisma/client";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 const checkWishlistStatus = async (
   productId: string

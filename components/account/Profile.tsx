@@ -2,8 +2,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button"; // Assuming you have Button
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
 import { useRouter } from "next/navigation";

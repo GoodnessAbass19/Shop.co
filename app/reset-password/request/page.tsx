@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { set } from "date-fns";
-import { se } from "date-fns/locale";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { Loader2, Mail } from "lucide-react";
 import { useEffect, useState } from "react";

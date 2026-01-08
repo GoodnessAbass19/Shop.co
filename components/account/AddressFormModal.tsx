@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label"; // Added Label for accessibility
 import { useMutation } from "@tanstack/react-query"; // Use useMutation for API calls
-import { useToast } from "@/hooks/use-toast"; // Your custom useToast hook
 import { ToastAction } from "@/components/ui/toast"; // ToastAction component
 import type { Address } from "@prisma/client";
 import { Loader2 } from "lucide-react"; // Loader icon
+import { useToast } from "@/hooks/use-toast";
 
 // Placeholder API functions - replace with your actual API calls
 // These should ideally be defined in a separate `lib/address-api.ts` or similar
@@ -76,6 +76,9 @@ export function AddressFormModal({
     state: "",
     country: "",
     postalCode: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
+    geohash: null as string | null,
   });
 
   // Use useEffect to reset form when modal opens for 'add' or initialData changes for 'edit'
@@ -88,6 +91,9 @@ export function AddressFormModal({
         state: initialData?.state || "",
         country: initialData?.country || "",
         postalCode: initialData?.postalCode || "",
+        latitude: initialData?.latitude || null,
+        longitude: initialData?.longitude || null,
+        geohash: initialData?.geohash || null,
       });
     }
   }, [open, initialData]);

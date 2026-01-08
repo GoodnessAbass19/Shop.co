@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { EmailPasswordStep } from "./EmailPasswordStep";
 import { PersonalDetailsStep } from "./PersonalDetails";
 import { ContactInfoStep } from "./ContactInfo";
 import { OtpVerificationStep } from "./Otp";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the overall shape of the form data for sign-up
 interface SignUpFormData {

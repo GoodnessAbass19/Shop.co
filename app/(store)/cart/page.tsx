@@ -25,9 +25,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import { useUser } from "@/hooks/user-context";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
-// import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
+import { useUser } from "@/hooks/user-context";
 
 // --- Extended Types to match API response ---
 type ProductWithDiscounts = Product & { discounts: Discount[] };
@@ -40,21 +39,9 @@ type CartItemWithDetails = CartItem & {
 };
 type CartWithItems = Cart & { cartItems: CartItemWithDetails[] };
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) {
-    const error: any = new Error(data.error || "Failed to fetch cart.");
-    error.status = res.status;
-    throw error;
-  }
-  return data;
-};
-
 const CartPage = () => {
   const { refetchCart } = useUser();
   const queryClient = useQueryClient();
-  // const { data, error, isLoading, mutate } = useSWR("/api/cart", fetcher);
   const [isUpdating, setIsUpdating] = useState(false); // For showing loading on quantity update
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null

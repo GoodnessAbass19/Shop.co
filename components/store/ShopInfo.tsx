@@ -1,6 +1,6 @@
 "use client";
 
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useSellerStore } from "@/hooks/use-store-context";
 import { cn, countries, splitPhoneNumber } from "@/lib/utils";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -20,7 +20,7 @@ import "react-phone-number-input/style.css";
 import { CountryCode, E164Number } from "libphonenumber-js/core";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { toast } from "@/Hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ShopInfoSchema } from "@/lib/form-schema";
 
 // Zod schema for form validation

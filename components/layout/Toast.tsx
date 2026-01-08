@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { createCartItem } from "@/lib/actions";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { useCartStore } from "@/store/cart-store";

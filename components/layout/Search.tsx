@@ -18,7 +18,7 @@ import Link from "next/link";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { Data, ProductEdge, ProductsConnection } from "@/types";
 import { useRouter } from "next/navigation";
-import { useBoolean } from "@/Hooks/useBoolean";
+import { useBoolean } from "@/hooks/useBoolean";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 const Search = () => {

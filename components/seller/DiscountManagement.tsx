@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/table";
 import { Loader2, PlusCircle, Edit, Trash2, Tag } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Discount, Product } from "@prisma/client";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link"; // Import Link for navigation
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useSellerStore } from "@/hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { useRouter } from "next/navigation";
 

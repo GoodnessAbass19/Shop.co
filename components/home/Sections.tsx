@@ -2,7 +2,7 @@
 
 import ProductCard from "../products/productCard";
 import { Navigation, FreeMode } from "swiper/modules";
-import useSwiperRef from "@/Hooks/useSwiperRef";
+import useSwiperRef from "@/hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";

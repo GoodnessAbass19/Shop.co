@@ -13,7 +13,7 @@ import "swiper/css/navigation";
 
 // import required modules
 import { Navigation, FreeMode } from "swiper/modules";
-import useSwiperRef from "@/Hooks/useSwiperRef";
+import useSwiperRef from "@/hooks/useSwiperRef";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { SkeletonCard } from "../ui/SkeletonCard";
 

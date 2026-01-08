@@ -1,6 +1,6 @@
 "use client";
 
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Loader2 } from "lucide-react";

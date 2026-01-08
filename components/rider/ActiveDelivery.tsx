@@ -20,7 +20,7 @@ import { formatCurrencyValue } from "@/utils/format-currency-value";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
-import { useRiderContext } from "@/Hooks/use-rider-context";
+import { useRiderContext } from "@/hooks/use-rider-context";
 
 function fitToRoute(map: mapboxgl.Map, bbox: number[]) {
   const bounds = new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);

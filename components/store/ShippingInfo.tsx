@@ -4,14 +4,14 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 import { Switch } from "../ui/switch";
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useSellerStore } from "@/hooks/use-store-context";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShippingInfoSchema } from "@/lib/form-schema";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { toast } from "@/Hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 
 type Inputs = z.infer<typeof ShippingInfoSchema>;

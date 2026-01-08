@@ -36,7 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useSellerStore } from "@/hooks/use-store-context";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker"; // Importing DateRange type from react-day-picker
 

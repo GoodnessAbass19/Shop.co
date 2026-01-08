@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/Hooks/use-toast"; // Assuming this is your shadcn toast hook
+import { useToast } from "@/hooks/use-toast"; // Assuming this is your shadcn toast hook
 import { Loader2 } from "lucide-react"; // For loading indicator
 import { cn } from "@/lib/utils"; // For conditional class names
 import { useRouter } from "next/navigation";

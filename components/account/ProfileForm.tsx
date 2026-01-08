@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"; // Assuming shadcn/ui Button
 import { Input } from "@/components/ui/input"; // Assuming shadcn/ui Input
 import { Label } from "@/components/ui/label"; // Assuming shadcn/ui Label
 import { Loader2, User, Phone, Image as ImageIcon } from "lucide-react"; // Icons
-import { useToast } from "@/Hooks/use-toast"; // Your custom useToast hook
+import { useToast } from "@/hooks/use-toast"; // Your custom useToast hook
 import { ToastAction } from "@/components/ui/toast"; // ToastAction component
 
 // Define a type for your user object for better type safety

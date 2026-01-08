@@ -32,8 +32,8 @@ import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/Hooks/use-toast";
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useToast } from "@/hooks/use-toast";
+import { useSellerStore } from "@/hooks/use-store-context";
 
 // Extend Product type for data fetching
 type ProductWithRelations = Product & {

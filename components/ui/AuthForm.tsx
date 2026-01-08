@@ -25,7 +25,7 @@ import {
   CircleUser,
   CalendarIcon,
 } from "lucide-react"; // Icons
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import {
@@ -405,7 +405,6 @@ export default function AuthForm({ type }: AuthFormProps) {
                       <Calendar
                         mode="single"
                         selected={date}
-                        
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
                         }

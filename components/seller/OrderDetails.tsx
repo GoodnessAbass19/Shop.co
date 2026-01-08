@@ -43,8 +43,8 @@ import {
 } from "../ui/dialog";
 import { ConfirmDeliveryForm } from "./ConfirmOrderForm";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import { useSellerStore } from "@/Hooks/use-store-context";
-import { useOrderRealtime } from "@/Hooks/use-real-time-update";
+import { useSellerStore } from "@/hooks/use-store-context";
+import { useOrderRealtime } from "@/hooks/use-real-time-update";
 import { formatCurrencyValue } from "../../utils/format-currency-value";
 
 // Define the full order structure including all relations

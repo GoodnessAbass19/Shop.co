@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useForm, FieldErrors } from "react-hook-form"; // Import useForm and FieldErrors
 

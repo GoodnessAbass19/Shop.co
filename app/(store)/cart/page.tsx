@@ -25,7 +25,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import { useUser } from "@/Hooks/user-context";
+import { useUser } from "@/hooks/user-context";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 // import { Input } from "@/components/ui/input"; // No longer directly using Input component for quantity
 

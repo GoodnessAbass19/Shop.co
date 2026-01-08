@@ -20,12 +20,12 @@ import {
   BusinessInfo,
   ShippingInfo,
 } from "@prisma/client";
-import { SellerStoreProvider } from "@/Hooks/use-store-context";
+import { SellerStoreProvider } from "@/hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../dashboard/NewSidebar";
 import { usePathname, useRouter } from "next/navigation";
-import { useUserRole } from "@/Hooks/use-user-role";
+import { useUserRole } from "@/hooks/use-user-role";
 import { useEffect } from "react";
 
 // Define the structure of the SellerStore data expected from the API

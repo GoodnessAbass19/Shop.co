@@ -14,7 +14,7 @@ import {
 } from "@prisma/client";
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import {
   calculatePercentageChange,

@@ -16,7 +16,7 @@ import {
   ChevronDown,
   Check,
 } from "lucide-react";
-import { useToast } from "@/Hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Discount, Product } from "@prisma/client";
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation"; // Import useRouter
-import { useSellerStore } from "@/Hooks/use-store-context";
+import { useSellerStore } from "@/hooks/use-store-context";
 
 // --- Type Definitions ---
 interface DiscountFormData {

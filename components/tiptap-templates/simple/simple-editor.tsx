@@ -72,8 +72,8 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import content from "@/components/tiptap-templates/simple/data/content.json";
-import { useIsBreakpoint } from "@/Hooks/use-is-breakpoint";
-import { useCursorVisibility } from "@/Hooks/use-cursor-visibility";
+import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
+import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
 
 const MainToolbarContent = ({
   onHighlighterClick,

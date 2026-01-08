@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import React, { useState, useEffect } from "react";
 import { Mail, Loader2, Hourglass } from "lucide-react"; // Icons
-import { useToast } from "@/Hooks/use-toast"; // Your useToast hook
+import { useToast } from "@/hooks/use-toast"; // Your useToast hook
 import { ToastAction } from "@/components/ui/toast"; // ToastAction component
 import { useMutation } from "@tanstack/react-query"; // For resending OTP
 

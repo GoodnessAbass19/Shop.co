@@ -1,6 +1,6 @@
 "use client";
 
-import useSwiperRef from "@/Hooks/useSwiperRef";
+import useSwiperRef from "@/hooks/useSwiperRef";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import Image from "next/image";

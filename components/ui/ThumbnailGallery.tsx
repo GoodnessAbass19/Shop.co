@@ -145,7 +145,7 @@ const ThumbnailGallery = ({
 
         {/* Main Image */}
         <div
-          className="relative w-full aspect-square rounded-2xl overflow-hidden cursor-zoom-in"
+          className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden cursor-zoom-in"
           onClick={() => setIsZoomOpen(true)}
         >
           <Image
@@ -153,7 +153,7 @@ const ThumbnailGallery = ({
             width={1000}
             height={1000}
             alt="Selected"
-            className="w-full h-full object-cover rounded-2xl"
+            className="object-cover w-full h-full transform transition-transform duration-500"
             priority
           />
 

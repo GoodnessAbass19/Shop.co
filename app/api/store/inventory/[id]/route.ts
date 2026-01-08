@@ -63,10 +63,10 @@ export async function PATCH(
         );
       }
 
-      updatedItem = await prisma.product.update({
-        where: { id: id },
-        data: { stock: newStock },
-      });
+      // updatedItem = await prisma.product.update({
+      //   where: { id: id },
+      //   data: { qu: newStock },
+      // });
     } else if (type === "variant") {
       // Update product variant stock
       const variant = await prisma.productVariant.findUnique({
@@ -108,7 +108,7 @@ export async function PATCH(
 
       updatedItem = await prisma.productVariant.update({
         where: { id: id },
-        data: { stock: newStock },
+        data: { quantity: newStock },
       });
     }
 

@@ -8,6 +8,7 @@ export async function GET() {
       status: "ACTIVE", // Only fetch active products
       store: {
         isActive: true, // Fetch products from active store
+        status: "ACTIVE",
       },
     },
     take: 10,

@@ -5,7 +5,7 @@ import Link from "next/link";
 import CartIcon from "../Icons/cartIcon";
 import { useBoolean } from "@/Hooks/useBoolean";
 import MobileNav from "./mobileNav";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Store } from "lucide-react";
 import { Input } from "../ui/input";
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -72,12 +72,6 @@ const Menu = () => {
         isOpen ? "h-full" : "h-fit"
       } md:h-fit`}
     >
-      {/* <div className="bg-black text-white text-center py-2">
-        <p className="md:text-lg text-sm font-medium text-white">
-          Sign up and get 20% off on your first order.{" "}
-          <span className="uppercase underline inline-flex">sign up now</span>
-        </p>
-      </div> */}
       <div className="flex justify-between items-center p-2 py-4 max-w-screen-xl mx-auto gap-5">
         <div className="flex items-center justify-between md:gap-x-5 gap-x-3">
           {/* <div className="md:hidden">
@@ -86,9 +80,12 @@ const Menu = () => {
 
           <HoverPrefetchLink
             href={"/"}
-            className="text-black lg:text-3xl md:text-2xl text-xl font-extrabold uppercase"
+            className="flex items-center gap-4 text-[#0d131b] dark:text-white"
           >
-            shop.co
+            <Store className="size-8 text-[#136dec]" />
+            <h2 className="text-[#0d131b] dark:text-white text-xl font-black leading-tight tracking-[-0.015em] uppercase">
+              shop.co
+            </h2>
           </HoverPrefetchLink>
           <div className="lg:block hidden">
             <CategoryMenu />
@@ -169,17 +166,6 @@ const Menu = () => {
           </div>
         </div>
         <div className="flex justify-between items-center gap-2 md:gap-4">
-          {/* <div className="lg:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <SearchIcon className="w-6 h-6 text-gray-500" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="max-w-screen-sm w-full mx-auto flex justify-center items-center">
-                <Search />
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div> */}
-
           <HoverPrefetchLink href={"/cart"} className="relative">
             <CartIcon className="w-6 h-6 text-black" />
             {items?.cartItems?.length > 0 && (
@@ -187,63 +173,7 @@ const Menu = () => {
             )}
           </HoverPrefetchLink>
 
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger>
-              <SignedIn>
-                <div className="flex justify-center items-center gap-2">
-                  <UserCheck2Icon className="w-6 h-6 text-black md:hidden block" />
-                  <UserRound className="w-6 h-6 text-black hidden md:block" />
-                  <h2 className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block">
-                    hi, {user?.username}
-                  </h2>
-                </div>
-              </SignedIn>
-              <SignedOut>
-                <div className="flex justify-center items-center gap-1">
-                  <UserRound className="w-6 h-6 text-black" />
-                  <h2 className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block">
-                    account
-                  </h2>
-                </div>
-              </SignedOut>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="p-1 space-y-1 lg:min-w-[200px]">
-              <SignedOut>
-                <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
-                  <SignInButton></SignInButton>
-                </Button>
-
-                <DropdownMenuSeparator />
-              </SignedOut>
-
-              <DropdownMenuItem>
-                <HoverPrefetchLink
-                  href={""}
-                  className="flex justify-start items-center gap-2 capitalize"
-                >
-                  <UserRound className="w-6 h-6 text-black" />
-                  my account
-                </HoverPrefetchLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href={"/orders"}
-                  className="flex justify-start items-center gap-2 capitalize"
-                >
-                  <ShoppingBagIcon className="w-6 h-6 text-black" />
-                  orders
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <SignedIn>
-                <Button className="bg-black text-white rounded-md flex flex-col justify-center items-center w-full">
-                  <SignOutButton />
-                </Button>
-              </SignedIn>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
           <UserButton />
-          {/* <ThemeButton /> */}
         </div>
       </div>
       <div className="block lg:hidden p-2">

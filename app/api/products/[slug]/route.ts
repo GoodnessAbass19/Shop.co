@@ -29,7 +29,12 @@ export async function GET(
           select: { id: true, name: true, slug: true },
         },
         subSubCategory: {
-          select: { id: true, name: true, slug: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            productVariantType: true,
+          },
         },
         variants: {
           orderBy: { price: "asc" }, // Get all variants, ordered by price
@@ -74,7 +79,7 @@ export async function GET(
     const lowestPrice =
       product.variants.length > 0
         ? product.variants.sort((a, b) => a.price - b.price)[0].price
-        : product.price || 0;
+        : 0;
 
     let discountedPrice: number | null = null;
     if (product.discounts && product.discounts.length > 0) {

@@ -15,7 +15,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { product: productId } = await params;
+    // In Next.js 15+, params is a Promise. Await it to be safe across versions.
+    const resolvedParams = await params;
+    const productId = resolvedParams.product;
+
     if (!productId) {
       return NextResponse.json(
         { error: "Product ID is required." },
@@ -33,7 +36,7 @@ export async function PATCH(
       subCategoryId,
       subSubCategoryId,
       highlight,
-      variants, // Array of variant objects (with/without id)
+      variants,
       color,
       colorFamily,
     } = body;
@@ -61,11 +64,11 @@ export async function PATCH(
       );
     }
 
-    const slug = await generateUniqueSlug(
-      "Product",
-      name,
-      existingProduct.slug
-    );
+    // Only generate a new slug if the name has actually changed
+    let slug = existingProduct.slug;
+    if (name && name !== existingProduct.name) {
+      slug = await generateUniqueSlug("Product", name, existingProduct.slug);
+    }
 
     const productUpdateData: any = {
       name,
@@ -81,73 +84,80 @@ export async function PATCH(
       colorFamily,
     };
 
-    // Handle Variants
-    if (Array.isArray(variants)) {
-      const existingVariants = existingProduct.variants;
+    // Handle Variants with a transaction to ensure data integrity
+    await prisma.$transaction(async (tx) => {
+      if (Array.isArray(variants)) {
+        const existingVariants = existingProduct.variants;
 
-      const variantsToUpdate = variants.filter((v) => v.id);
-      const variantsToCreate = variants.filter((v) => !v.id);
+        const variantsToUpdate = variants.filter((v) => v.id);
+        const variantsToCreate = variants.filter((v) => !v.id);
 
-      // Update existing variants
-      for (const variant of variantsToUpdate) {
-        await prisma.productVariant.update({
-          where: { id: variant.id },
-          data: {
-            variation: variant || null, // e.g. "Black / Large"
-            size: variant.size || null,
-            volume: variant.volume || null,
-            drinkSize: variant.drink_size || null,
-            sellerSku: variant.sellerSku,
-            gtinBarcode: variant.gtinBarcode || null,
-            quantity: variant.stock,
-            price: variant.price,
-            salePrice: variant.salePrice || null,
-            saleStartDate: variant.saleStartDate || null,
-            saleEndDate: variant.saleEndDate || null,
-          },
-        });
+        // Update existing variants
+        for (const variant of variantsToUpdate) {
+          await tx.productVariant.update({
+            where: { id: variant.id },
+            data: {
+              // FIX: Changed 'variant' to 'variant.variant' to match the object property
+              variation: variant.variant || null,
+              size: variant.size || null,
+              volume: variant.volume || null,
+              drinkSize: variant.drink_size || null,
+              sellerSku: variant.sellerSku,
+              gtinBarcode: variant.gtinBarcode || null,
+              quantity: variant.stock,
+              price: variant.price,
+              salePrice: variant.salePrice || null,
+              saleStartDate: variant.saleStartDate || null,
+              saleEndDate: variant.saleEndDate || null,
+            },
+          });
+        }
+
+        // Create new variants
+        if (variantsToCreate.length > 0) {
+          await tx.productVariant.createMany({
+            data: variantsToCreate.map((v) => ({
+              variation: v.variant || null,
+              size: v.size || null,
+              volume: v.volume || null,
+              drinkSize: v.drink_size || null,
+              sellerSku: v.sellerSku,
+              gtinBarcode: v.gtinBarcode || null,
+              quantity: v.stock,
+              price: v.price,
+              salePrice: v.salePrice || null,
+              saleStartDate: v.saleStartDate || null,
+              saleEndDate: v.saleEndDate || null,
+              productId,
+            })),
+          });
+        }
+
+        // Delete removed variants
+        const incomingIds = variantsToUpdate.map((v) => v.id);
+        const toDelete = existingVariants.filter(
+          (v) => !incomingIds.includes(v.id)
+        );
+
+        if (toDelete.length > 0) {
+          await tx.productVariant.deleteMany({
+            where: {
+              id: { in: toDelete.map((v) => v.id) },
+            },
+          });
+        }
       }
 
-      // Create new variants
-      if (variantsToCreate.length > 0) {
-        await prisma.productVariant.createMany({
-          data: variantsToCreate.map((v) => ({
-            variation: v.variant || null, // e.g. "Black / Large"
-            size: v.size || null,
-            volume: v.volume || null,
-            drinkSize: v.drink_size || null,
-            sellerSku: v.sellerSku,
-            gtinBarcode: v.gtinBarcode || null,
-            quantity: v.stock,
-            // colorAvailable: v.colorAvailable || null,
-            price: v.price,
-            salePrice: v.salePrice || null,
-            saleStartDate: v.saleStartDate || null,
-            saleEndDate: v.saleEndDate || null,
-            productId,
-          })),
-        });
-      }
+      // Final Product update within the transaction
+      await tx.product.update({
+        where: { id: productId },
+        data: productUpdateData,
+      });
+    });
 
-      // Delete removed variants
-      const incomingIds = variantsToUpdate.map((v) => v.id);
-      const toDelete = existingVariants.filter(
-        (v) => !incomingIds.includes(v.id)
-      );
-
-      if (toDelete.length > 0) {
-        await prisma.productVariant.deleteMany({
-          where: {
-            id: { in: toDelete.map((v) => v.id) },
-          },
-        });
-      }
-    }
-
-    // Update product
-    const updatedProduct = await prisma.product.update({
+    // Re-fetch the fully updated product to return to the client
+    const updatedProduct = await prisma.product.findUnique({
       where: { id: productId },
-      data: productUpdateData,
       include: {
         variants: true,
         category: true,

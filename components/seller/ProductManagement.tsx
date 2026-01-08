@@ -36,12 +36,11 @@ import { useToast } from "@/Hooks/use-toast";
 import { useSellerStore } from "@/Hooks/use-store-context";
 
 // Extend Product type for data fetching
-type ProductWithRelations = ProductVariant & {
-  product: Product & {
-    category: Category;
-    subCategory: SubCategory | null;
-    subSubCategory: SubSubCategory | null;
-  };
+type ProductWithRelations = Product & {
+  variants: ProductVariant[];
+  category: Category;
+  subCategory: SubCategory | null;
+  subSubCategory: SubSubCategory | null;
 };
 
 /**
@@ -165,18 +164,29 @@ export function ProductManagement() {
   };
 
   const filteredProducts = useMemo(() => {
-    return products.filter(
-      (p) =>
-        p.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sellerSku.toLowerCase().includes(searchTerm.toLowerCase())
+    // We must explicitely return the result of the filter
+    return (
+      products?.filter((product) => {
+        const term = searchTerm.toLowerCase();
+
+        // Using optional chaining and fallback strings to prevent toLowerCase errors
+        return (
+          product.name?.toLowerCase().includes(term) ||
+          product.category?.name?.toLowerCase().includes(term) ||
+          product.subCategory?.name?.toLowerCase().includes(term) ||
+          product.subSubCategory?.name?.toLowerCase().includes(term)
+        );
+      }) || []
     );
   }, [products, searchTerm]);
 
   if (isLoading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-      </div>
+      <section className="max-w-screen-2xl mx-auto mt-10 p-4 min-h-[500px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-300"></div>
+        </div>
+      </section>
     );
   }
 
@@ -228,7 +238,7 @@ export function ProductManagement() {
         />
       </div>
 
-      <div className="rounded-md border bg-white shadow-sm overflow-hidden">
+      <div className="rounded-md border bg-white shadow-sm overflow-hidden text-black">
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
@@ -237,7 +247,7 @@ export function ProductManagement() {
               <TableHead>SKU</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Sale price</TableHead>
-              <TableHead>Stock</TableHead>
+              {/* <TableHead>Stock</TableHead> */}
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -253,16 +263,16 @@ export function ProductManagement() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((variant) => (
-                <TableRow key={variant.id}>
+              filteredProducts.map((product) => (
+                <TableRow key={product.id}>
                   <TableCell>
                     <div className="relative h-12 w-12 border rounded overflow-hidden bg-gray-50">
                       <Image
                         src={
-                          variant.product.images?.[0] ||
+                          product.images?.[0] ||
                           "https://placehold.co/100x100?text=No+Image"
                         }
-                        alt={variant.product.name}
+                        alt={product.name}
                         fill
                         className="object-cover"
                       />
@@ -270,47 +280,46 @@ export function ProductManagement() {
                   </TableCell>
                   <TableCell className="max-w-[200px]">
                     <p className="font-medium truncate capitalize">
-                      {variant.product.name}
+                      {product.name}
                     </p>
                   </TableCell>
                   <TableCell className="font-mono text-sm text-gray-500">
-                    {variant.sellerSku}
+                    {product.variants[0].sellerSku}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-semibold text-sm">
-                        {formatCurrencyValue(variant.price)}
+                        {formatCurrencyValue(product.variants[0].price)}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="font-semibold text-sm">
-                      {formatCurrencyValue(variant.salePrice)}
+                      {formatCurrencyValue(product.variants[0].salePrice)}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <span
                       className={`text-sm ${
-                        variant.quantity <= 7 ? "text-red-500 font-bold" : ""
+                        product.variants[0].quantity <= 7
+                          ? "text-red-500 font-bold"
+                          : "font-bold"
                       }`}
                     >
-                      {variant.quantity}
+                      {product.variants[0].quantity}
                     </span>
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Switch
-                        checked={variant.product.status === "ACTIVE"}
+                        checked={product.status === "ACTIVE"}
                         onCheckedChange={() =>
-                          handleStatusToggle(
-                            variant.product.id,
-                            variant.product.status
-                          )
+                          handleStatusToggle(product.id, product.status)
                         }
                         disabled={statusMutation.isPending}
                       />
                       <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        {variant.product.status}
+                        {product.status}
                       </span>
                     </div>
                   </TableCell>
@@ -321,16 +330,17 @@ export function ProductManagement() {
                         size="icon"
                         onClick={() =>
                           router.push(
-                            `/your/store/dashboard/products/${variant.product.id}/edit`
+                            `/your/store/dashboard/products/${product.id}/edit`
                           )
                         }
+                        className="bg-white"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="icon"
-                        onClick={() => handleDelete(variant.product.id)}
+                        onClick={() => handleDelete(product.id)}
                         disabled={deleteMutation.isPending}
                       >
                         {deleteMutation.isPending ? (

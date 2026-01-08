@@ -1,4 +1,3 @@
-// app/api/products/new-arrivals/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -11,6 +10,7 @@ export async function GET() {
         status: "ACTIVE", // Only fetch active products
         store: {
           isActive: true, // Fetch products from active store
+          status: "ACTIVE",
         },
       },
       orderBy: {
@@ -36,6 +36,8 @@ export async function GET() {
             size: true,
             quantity: true,
             salePrice: true,
+            saleEndDate: true,
+            saleStartDate: true,
           },
         },
         store: {

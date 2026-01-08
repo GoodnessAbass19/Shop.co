@@ -165,6 +165,7 @@ export const RiderInfoSchema = z.object({
 
 export const ProductVariantSchema = z
   .object({
+    id: z.string().optional(),
     variant: z.string().optional(),
     size: z.string().optional(),
     drink_size: z.string().optional(),

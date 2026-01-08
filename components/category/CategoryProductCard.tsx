@@ -15,6 +15,7 @@ import {
 } from "@/lib/utils";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { Product, ProductReview, ProductVariant } from "@prisma/client";
+import Link from "next/link";
 
 const checkWishlistStatus = async (
   productId: string
@@ -141,93 +142,78 @@ const CategoryProductCard = ({ product }: { product: ProductData }) => {
     removeMutation,
   ]);
 
-  return (
-    <div className="relative">
-      <HoverPrefetchLink
-        href={`/products/${product.slug}`}
-        key={product.id}
-        className="rounded-lg space-y-1 overflow-hidden"
-      >
-        <Image
-          src={product?.images?.[0] || "https://placehold.co/300x300"}
-          alt={product.name}
-          width={300}
-          height={300}
-          className="w-full h-[160px] md:h-[190px] lg:h-full object-cover object-center rounded-sm"
-        />
-        <div className="px-1 leading-none">
-          <h4 className="text-sm sm:text-base font-serif font-medium line-clamp-1 capitalize">
-            {product.name}
-          </h4>
-          <div>
-            {product.reviews!.length > 0 && (
-              <span className="text-black text-2xl font-normal flex items-center gap-1">
-                {"★".repeat(product.averageRating!)}
-                {"☆".repeat(5 - product.averageRating!)}{" "}
-                <span className="text-base">({product.reviews!.length})</span>
-              </span>
-            )}
-          </div>
-          <div className="flex gap-0.5 items-center">
-            <p className="text-lg uppercase font-semibold font-sans text-black mt-0.5">
-              {formatCurrencyValue(
-                product.variants[0].salePrice || product.variants[0].price
-              )}
-            </p>
+  const firstVariant = product?.variants?.[0];
+  const isOnSale =
+    firstVariant &&
+    isSaleActive(firstVariant.saleStartDate, firstVariant.saleEndDate);
+  const currentPrice = isOnSale ? firstVariant.salePrice : firstVariant?.price;
 
-            {product?.variants[0].salePrice && (
-              <span className="line-through text-sm text-gray-500 decoration-gray-500 ml-2 dark:text-white dark:decoration-white">
-                {formatCurrencyValue(product?.variants[0].price)}
-              </span>
+  return (
+    <div className="group flex flex-col rounded-xl border border-[#cfd9e7] dark:border-gray-700 bg-white dark:bg-surface-dark overflow-hidden hover:shadow-lg transition-all duration-300">
+      {/* Image Container */}
+      <div className="aspect-square w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+        <Link
+          href={`/products/${product?.slug}`}
+          className="block w-full h-full"
+        >
+          <img
+            src={product?.images?.[0] || "https://via.placeholder.com/500x667"}
+            alt={product?.name || "product"}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        </Link>
+
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlistToggle}
+          disabled={addMutation.isPending || removeMutation.isPending}
+          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition-transform active:scale-90 hover:bg-white"
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart
+            className={`h-5 w-5 transition-colors ${
+              isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
+            }`}
+          />
+        </button>
+
+        {/* Sale Badge */}
+        {isOnSale && (
+          <div className="absolute top-3 left-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-sm z-10">
+            {/* <span className="bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider rounded-md shadow-sm"> */}
+            {formatPercentage(
+              calculatePercentageChange(
+                product.variants[0].price,
+                product.variants[0].salePrice
+              ),
+              0,
+              true
             )}
-            {isSaleActive(
-              product.variants[0].saleStartDate,
-              product.variants[0].saleEndDate
-            ) && (
-              <span className="font-normal text-sm text-center text-black font-sans">
-                {formatPercentage(
-                  calculatePercentageChange(
-                    product.variants[0].price,
-                    product.variants[0].salePrice
-                  ),
-                  0,
-                  true
-                )}{" "}
-                OFF
+            {/* </span> */}
+          </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="p-2 flex flex-col gap-2 flex-1">
+        <Link href={`/products/${product?.slug}`}>
+          <h3 className="text-[#0d131b] dark:text-white text-sm font-semibold line-clamp-2 min-h-[2.5em]">
+            {product?.name}
+          </h3>
+
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[#0d131b] dark:text-white font-bold text-lg">
+              {formatCurrencyValue(currentPrice)}
+            </span>
+            {isOnSale && (
+              <span className="text-xs text-gray-400 line-through">
+                {formatCurrencyValue(firstVariant.price)}
               </span>
             )}
           </div>
-        </div>
-      </HoverPrefetchLink>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "absolute top-2 right-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors duration-200",
-          isWishlisted
-            ? "text-red-500 hover:text-red-600"
-            : "text-gray-500 hover:text-red-500",
-          (isCheckingWishlist ||
-            addMutation.isPending ||
-            removeMutation.isPending) &&
-            "opacity-60 cursor-not-allowed"
-        )}
-        onClick={handleWishlistToggle}
-        disabled={
-          isCheckingWishlist ||
-          addMutation.isPending ||
-          removeMutation.isPending
-        }
-        title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-      >
-        {isCheckingWishlist ||
-        addMutation.isPending ||
-        removeMutation.isPending ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
-        )}
-      </Button>
+        </Link>
+      </div>
     </div>
   );
 };

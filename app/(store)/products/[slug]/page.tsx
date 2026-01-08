@@ -17,7 +17,7 @@ export async function generateMetadata({
 const SingleProductPage = async ({ params }: { params: Params }) => {
   const { slug } = await params;
   return (
-    <div className="max-w-screen-xl mx-auto mt-6">
+    <div className="max-w-screen-xl mx-auto mt-3">
       <ProductDetails slug={slug} />
     </div>
   );

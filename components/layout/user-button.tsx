@@ -216,12 +216,17 @@ const UserButton = () => {
       ) : (
         // <div className="flex justify-center items-center gap-1">
         //   <UserRound className="w-6 h-6 text-black" />
-        <HoverPrefetchLink
-          href="/sign-in"
-          className="text-base font-semibold font-sans text-start capitalize text-black hidden md:block rounded-full hover:bg-gray-200 p-1"
+        <Button
+          variant={"outline"}
+          className="hidden md:block rounded-full hover:bg-gray-200 p-1"
         >
-          sign in
-        </HoverPrefetchLink>
+          <HoverPrefetchLink
+            href="/sign-in"
+            className="text-base font-semibold font-sans text-start capitalize text-black"
+          >
+            sign in
+          </HoverPrefetchLink>
+        </Button>
 
         // </div>
       )}

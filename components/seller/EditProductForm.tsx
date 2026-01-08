@@ -239,7 +239,7 @@ export function EditProductForm({ productId }: EditProductFormProps) {
                 saleStartDate: v.saleStartDate || undefined,
                 price: v.price,
                 salePrice: v.salePrice || undefined,
-                saleEndDate: v.saleStartDate || undefined,
+                saleEndDate: v.saleEndDate || undefined,
                 stock: v.quantity,
                 sku: v.sellerSku ?? undefined, // Convert null to undefined
               }))

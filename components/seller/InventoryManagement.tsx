@@ -24,8 +24,6 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -328,7 +326,7 @@ export function InventoryManagement() {
                 <TableHead>Variant</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead className="text-center">Current Stock</TableHead>
+                <TableHead className="text-center">Stock</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -336,33 +334,28 @@ export function InventoryManagement() {
               {inventoryItems.map((item: InventoryItem) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <HoverPrefetchLink href={`/products/${item.productSlug}`}>
-                      {item.productImage ? (
-                        <Image
-                          src={item.productImage}
-                          alt={item.productName}
-                          width={60}
-                          height={60}
-                          className="rounded-md object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              "https://placehold.co/60x60/e0e0e0/555555?text=No+Img";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs">
-                          No Img
-                        </div>
-                      )}
-                    </HoverPrefetchLink>
+                    {item.productImage ? (
+                      <Image
+                        src={item.productImage}
+                        alt={item.productName}
+                        width={60}
+                        height={60}
+                        className="rounded-md object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://placehold.co/60x60/e0e0e0/555555?text=No+Img";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs">
+                        No Img
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell>
-                    <HoverPrefetchLink
-                      href={`/products/${item.productSlug}`}
-                      className="font-medium hover:text-blue-600 hover:underline"
-                    >
+                  <TableCell className="max-w-[200px]">
+                    <p className="font-medium truncate capitalize">
                       {item.productName}
-                    </HoverPrefetchLink>
+                    </p>
                   </TableCell>
                   <TableCell>
                     {item.variantName !== "N/A" ? (
@@ -371,7 +364,7 @@ export function InventoryManagement() {
                       <span className="">N/A</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-mono text-sm text-gray-500">
                     {item.sku || <span className="">N/A</span>}
                   </TableCell>
                   <TableCell>{formatCurrencyValue(item.unitPrice)}</TableCell>

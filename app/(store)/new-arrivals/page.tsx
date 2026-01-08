@@ -43,7 +43,7 @@ const NewArrivalPage = () => {
           <FilterModal />
         </div> */}
         <div className="md:col-span-5 w-full">
-          <FilterProduct title="new arrivals" tag={productTags.newArrivals} />
+          <FilterProduct title="new arrivals" url={`new-arrivals`} />
         </div>
 
         {/* <FilterProduct /> */}

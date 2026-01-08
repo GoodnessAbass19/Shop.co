@@ -1,11 +1,12 @@
 import Banner from "@/components/home/Banner";
+import Categories from "@/components/home/Categories";
 import Sections from "@/components/home/Sections";
 
 export default function Home() {
   return (
     <div className="mx-auto">
       <Banner />
-      {/* <Product /> */}
+      <Categories />
       <Sections
         title={"new arrivals"}
         url="/api/products/new-arrivals"
@@ -16,11 +17,6 @@ export default function Home() {
         url="/api/products/top-deals"
         href="top-deals"
       />
-      {/* <Sections
-        title={"top selling"}
-        url="/api/products/top-selling"
-        href="top-selling"
-      /> */}
     </div>
   );
 }

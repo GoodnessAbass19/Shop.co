@@ -7,17 +7,10 @@ import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import useSWR from "swr";
-import {
-  Category,
-  Product,
-  ProductVariant,
-  SubCategory,
-  SubSubCategory,
-  Store,
-  Discount,
-  ProductReview, // Import Discount type
-} from "@prisma/client";
+import { Product, ProductVariant } from "@prisma/client";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -30,20 +23,9 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-export type ProductFromApi = Product & {
-  category: Pick<Category, "id" | "name" | "slug">;
-  subCategory: Pick<SubCategory, "id" | "name" | "slug">;
-  subSubCategory: Pick<SubSubCategory, "id" | "name" | "slug"> | null;
-  variants: Pick<ProductVariant, "id" | "price" | "size" | "color" | "stock">[];
-  store: Pick<Store, "id" | "name" | "slug">;
-  discounts: Discount[]; // Include discounts
-  averageRating: number; // Average rating from reviews
-  reviews: ProductReview[]; // Include reviews
-  // These are added by the API route's mapping:
-  productName: string;
-  lowestPrice: number; // The lowest base price (from variants or product)
-  discountedPrice: number | null; // The price after discount
-  images: { url: string }[]; // Transformed image array
+type ProductData = Product & {
+  variants: ProductVariant[];
+  images: { url: string }[];
 };
 
 const Sections = ({
@@ -56,7 +38,7 @@ const Sections = ({
   url: string;
 }) => {
   const { data, error, isLoading } = useSWR(url, fetcher);
-  const products: ProductFromApi[] | null = data?.products || null;
+  const products: ProductData[] | null = data?.products || null;
 
   const [nextEl, nextElRef] = useSwiperRef<HTMLButtonElement>();
   const [prevEl, prevElRef] = useSwiperRef<HTMLButtonElement>();
@@ -64,7 +46,7 @@ const Sections = ({
   if (isLoading) {
     return (
       <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5">
-        <h2 className="uppercase text-center text-3xl font-extrabold">
+        <h2 className="capitalize text-start text-xl font-extrabold">
           {title}
         </h2>
         <div className="grid grid-cols-5 justify-center items-center w-full h-full mx-auto gap-5">
@@ -89,7 +71,23 @@ const Sections = ({
       animate={{ opacity: 1 }}
       className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5"
     >
-      <h2 className="uppercase text-center text-3xl font-extrabold">{title}</h2>
+      <div className="flex justify-between items-end mb-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-start text-xl md:text-2xl font-extrabold capitalize">
+            {title}
+          </h2>
+          {/* <h2 className="text-[#0d131b] dark:text-white tracking-tight text-[28px] font-bold leading-tight capitalize">
+            {title}
+          </h2> */}
+        </div>
+        <Link
+          className="text-[#136dec] font-bold text-sm hover:underline flex items-center gap-1"
+          href={`/${href}`}
+        >
+          View All Deals <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+
       <div className="relative flex items-center">
         {/* Previous Button */}
         <button
@@ -143,7 +141,7 @@ const Sections = ({
         </button>
       </div>
 
-      {!isLoading && (
+      {/* {!isLoading && (
         <div className="flex justify-center items-center w-[200px] mx-auto">
           <HoverPrefetchLink
             href={`/${href}`}
@@ -152,7 +150,7 @@ const Sections = ({
             view all
           </HoverPrefetchLink>
         </div>
-      )}
+      )} */}
     </motion.div>
   );
 };

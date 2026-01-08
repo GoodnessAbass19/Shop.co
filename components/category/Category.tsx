@@ -232,9 +232,9 @@ const Category = ({ param }: { param: string }) => {
         </div>
       ) : null}
       {/* Product List */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 md:gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-1 md:gap-3">
         {productLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-[300px] rounded-md" />
           ))
         ) : products?.products?.length === 0 ? (

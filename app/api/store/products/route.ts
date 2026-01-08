@@ -33,20 +33,13 @@ export async function GET(request: Request) {
       );
     }
 
-    const products = await prisma.productVariant.findMany({
-      where: {
-        product: {
-          storeId: storeId,
-        },
-      }, // Filter by storeId
+    const products = await prisma.product.findMany({
+      where: { storeId: storeId }, // Filter by storeId
       include: {
-        product: {
-          include: {
-            category: true,
-            subCategory: true,
-            subSubCategory: true,
-          },
-        },
+        variants: true,
+        category: true,
+        subCategory: true,
+        subSubCategory: true,
       },
       orderBy: { createdAt: "desc" }, // Example ordering
     });

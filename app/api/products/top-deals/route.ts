@@ -25,6 +25,7 @@ export async function GET() {
         status: "ACTIVE", // Only fetch active products
         store: {
           isActive: true, // Fetch products from active store
+          status: "ACTIVE",
         },
       },
       include: {
@@ -42,7 +43,15 @@ export async function GET() {
         },
         variants: {
           orderBy: { price: "asc" }, // Get lowest variant price
-          select: { price: true, salePrice: true },
+          select: {
+            id: true,
+            price: true,
+            size: true,
+            quantity: true,
+            salePrice: true,
+            saleEndDate: true,
+            saleStartDate: true,
+          },
         },
         // Include other relations needed for the ProductCard if not already part of the processing
         category: { select: { id: true, name: true, slug: true } },

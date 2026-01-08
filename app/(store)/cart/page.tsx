@@ -137,10 +137,10 @@ const CartPage = () => {
       }
       return res.json();
     },
-    onSuccess: (data: { sessionId: string; url: string }) => {
+    onSuccess: (data: { reference: string; authorizationUrl: string }) => {
       // Redirect user to Stripe Checkout page
-      if (data.url) {
-        router.push(data.url);
+      if (data.authorizationUrl) {
+        router.push(data.authorizationUrl);
       } else {
         alert("Stripe session URL not received.");
       }

@@ -10,7 +10,7 @@ import { HoverPrefetchLink } from "@/lib/HoverLink";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams.get("trxref");
 
   useEffect(() => {
     if (sessionId) {

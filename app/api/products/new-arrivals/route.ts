@@ -1,95 +1,103 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { ITEM_PER_PAGE } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        status: "ACTIVE", // Only fetch active products
-        store: {
-          isActive: true, // Fetch products from active store
-          status: "ACTIVE",
-        },
-      },
-      orderBy: {
-        createdAt: "desc", // Order by creation date for new arrivals
-      },
-      take: 10, // Limit to the top 10 newest products
-      include: {
-        // Include necessary relations for the frontend ProductCard
-        category: {
-          select: { id: true, name: true, slug: true },
-        },
-        subCategory: {
-          select: { id: true, name: true, slug: true },
-        },
-        subSubCategory: {
-          select: { id: true, name: true, slug: true },
-        },
-        variants: {
-          orderBy: { price: "asc" }, // Get lowest variant price for display
-          select: {
-            id: true,
-            price: true,
-            size: true,
-            quantity: true,
-            salePrice: true,
-            saleEndDate: true,
-            saleStartDate: true,
-          },
-        },
-        store: {
-          select: { id: true, name: true, slug: true },
-        },
-        discounts: {
-          // Include discounts to calculate discountedPrice
-          where: {
-            expiresAt: {
-              gte: new Date(), // Only active discounts
-            },
-            startsAt: {
-              lte: new Date(),
-            },
-          },
-          orderBy: {
-            percentage: "desc", // Best discount first
-          },
-          take: 1, // Optionally, only take the best discount for each product
-        },
-      },
-    });
+    const { searchParams } = new URL(req.url);
 
-    // Process products to match the frontend ProductCard's expected structure
+    // 1. Extract and Parse Parameters
+    const categoryId = searchParams.get("categoryId");
+    const brand = searchParams.get("brand");
+    const minPrice = Number(searchParams.get("min")) || 0;
+    const maxPrice = Number(searchParams.get("max")) || 1000000;
+    const rating = Number(searchParams.get("rating")) || 0;
+    const sort = searchParams.get("sort") || "newest";
+    const page = Number(searchParams.get("page")) || 1;
+    const perPage = Number(searchParams.get("perPage")) || 24;
+    const skip = (page - 1) * perPage;
+
+    // 2. Build the 'where' clause dynamically
+    const where: any = {
+      status: "ACTIVE",
+      store: {
+        isActive: true,
+        status: "ACTIVE",
+      },
+      // Price filtering (checking variants price)
+      variants: {
+        some: {
+          price: { gte: minPrice, lte: maxPrice },
+        },
+      },
+    };
+
+    if (categoryId && categoryId !== "all") {
+      where.categoryId = categoryId;
+    }
+
+    if (brand && brand !== "all") {
+      where.brand = brand;
+    }
+
+    // 3. Determine Sorting
+    let orderBy: any = { createdAt: "desc" };
+    if (sort === "price_asc") orderBy = { variants: { _count: "asc" } }; // Simplified: Prisma sorting by relation values requires specific setup, usually you'd sort by a 'basePrice' column
+    if (sort === "price_desc") orderBy = { variants: { _count: "desc" } };
+    if (sort === "rating") orderBy = { rating: "desc" };
+
+    // 4. Fetch Data and Total Count in Parallel
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        take: ITEM_PER_PAGE,
+        skip: skip,
+        orderBy,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          store: { select: { id: true, name: true, slug: true } },
+          variants: {
+            orderBy: { price: "asc" },
+            select: {
+              id: true,
+              price: true,
+              salePrice: true,
+              saleEndDate: true,
+              saleStartDate: true,
+              size: true,
+              quantity: true,
+            },
+          },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    // 5. Process products for the frontend
     const processedProducts = products.map((product) => {
-      // Determine the base price (lowest variant price or product's direct price)
-      const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price // Already sorted by price: 'asc'
-          : 0; // Fallback if no variants or base price is null
-
-      let discountedPrice: number | null = product.variants[0].salePrice as any;
-
-      // Calculate discounted price if applicable
-      // if (product.discounts && product.discounts.length > 0) {
-      //   const bestDiscountPercentage = product.discounts[0].percentage;
-      //   if (bestDiscountPercentage! > 0) {
-      //     discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
-      //   }
-      // }
+      const firstVariant = product.variants[0];
+      const lowestPrice = firstVariant?.price || 0;
+      const salePrice = firstVariant?.salePrice || null;
 
       return {
-        ...product, // Keep original product data for debugging if needed, but overwrite frontend specific fields
-        productName: product.name, // Map 'name' to 'productName'
-        price: lowestPrice, // Use lowest price as base price for the card
-        discountedPrice: discountedPrice, // Calculated discounted price
-        images: product.images.map((url) => ({ url })), // Transform images to { url: string }[]
+        ...product,
+        productName: product.name,
+        price: lowestPrice,
+        discountedPrice: salePrice,
+        images: product.images.map((url: string) => ({ url })),
       };
     });
-    return NextResponse.json({ products: processedProducts }); // Return as { products: [...] } for consistency
+
+    return NextResponse.json({
+      products: processedProducts,
+      total,
+      page,
+      perPage,
+    });
   } catch (error) {
-    console.error("New arrivals fetch failed:", error);
+    console.error("Products fetch failed:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -232,19 +232,19 @@ model Product {
 // }
 
 model ProductVariant {
-  id            String    @id @default(cuid())
-  variation     String? // e.g. "Black / Large"
-  size          String?
-  volume        String?
-  drinkSize     String?
-  sellerSku     String    @unique
-  gtinBarcode   String?
-  quantity      Int
-  // colorAvailable String[]
-  price         Float
-  salePrice     Float
-  saleStartDate DateTime?
-  saleEndDate   DateTime?
+  id             String    @id @default(cuid())
+  variation      String? // e.g. "Black / Large"
+  size           String?
+  volume         String?
+  drinkSize      String?
+  sellerSku      String    @unique
+  gtinBarcode    String?
+  quantity       Int
+  colorAvailable String[]
+  price          Float
+  salePrice      Float
+  saleStartDate  DateTime?
+  saleEndDate    DateTime?
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -402,6 +402,9 @@ model OrderItem {
   deliveredAt      DateTime?
   assignedAt       DateTime? // When the rider is assigned
   deliveryItem     DeliveryItem?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  colorSelected    String?
 
   @@index([productVariantId])
 }
@@ -529,13 +532,13 @@ model Cart {
 
 // NEW MODEL: CartItem
 model CartItem {
-  id        String   @id @default(uuid())
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  cartId String
-  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  quantity      Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  colorSelected String?
+  cartId        String
+  cart          Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
   productVariantId String
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
@@ -720,3 +723,49 @@ enum StoreStatus {
   REJECTED
   CLOSED
 }
+
+// // 1. Define the Campaign itself (Created by Admin)
+// model Campaign {
+//   id            String         @id @default(cuid())
+//   name          String         @unique // e.g., "11.11 Mega Sale"
+//   description   String
+//   bannerImage   String?
+//   startDate     DateTime
+//   endDate       DateTime
+//   status        CampaignStatus @default(UPCOMING) // UPCOMING, ACTIVE, ENDED
+
+//   // Rules for the campaign
+//   minDiscount   Float?         // e.g., "Must be at least 10% off"
+
+//   // Relationships
+//   participatingProducts CampaignProduct[]
+
+//   createdAt     DateTime       @default(now())
+// }
+
+// enum CampaignStatus {
+//   UPCOMING
+//   ACTIVE
+//   ENDED
+// }
+
+// // 2. Junction Table (Sellers "Join" by adding products here)
+// model CampaignProduct {
+//   id          String   @id @default(cuid())
+//   campaignId  String
+//   productId   String
+//   campaign    Campaign @relation(fields: [campaignId], references: [id])
+//   product     Product  @relation(fields: [productId], references: [id])
+
+//   // Specific price for this campaign (overrides variant salePrice)
+//   campaignPrice Float?   
+//   status        ParticipationStatus @default(PENDING) // PENDING, APPROVED, REJECTED
+
+//   @@unique([campaignId, productId]) // Prevent duplicate entries
+// }
+
+// enum ParticipationStatus {
+//   PENDING
+//   APPROVED
+//   REJECTED
+// }

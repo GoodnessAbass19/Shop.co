@@ -7,6 +7,9 @@ import {
   PlusIcon,
   ChevronDown,
   ChevronUp,
+  Truck,
+  ShoppingBag,
+  Package,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -38,8 +41,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-
-// Helper for currency formatting if the util is missing
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Dropdown } from "react-day-picker";
+import Link from "next/link";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -57,14 +66,6 @@ const ProductDetails = ({ slug }: { slug: string }) => {
 
   const { data, error, isLoading } = useSWR(`/api/products/${slug}`, fetcher);
   const product = data?.product || null;
-
-  // const availableColors = useMemo(() => {
-  //   if (!product?.colorFamily) return [];
-  //   const colors = product.colorFamily
-  //     .map((v: any) => v)
-  //     .filter(Boolean) as string[];
-  //   return Array.from(new Set(colors));
-  // }, [product]);
 
   // Derive selected variant object
   const selectedVariant = useMemo(() => {
@@ -100,17 +101,17 @@ const ProductDetails = ({ slug }: { slug: string }) => {
   const addToCartMutation = useMutation({
     mutationFn: async ({
       productVariantId,
-
       quantity,
+      color,
     }: {
       productVariantId: string;
-
       quantity: number;
+      color?: string;
     }) => {
       const res = await fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productVariantId, quantity }),
+        body: JSON.stringify({ productVariantId, quantity, color }),
       });
       if (!res.ok) throw new Error("Failed to add to cart");
       return res.json();
@@ -159,6 +160,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
     addToCartMutation.mutate({
       productVariantId: selectedVariant.id,
       quantity,
+      color: selectedColor,
     });
   }, [selectedVariant, quantity, addToCartMutation]);
 
@@ -217,9 +219,9 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           />
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-lg capitalize font-medium text-gray-900 leading-tight">
               {product.name}
             </h1>
             <p className="text-sm text-gray-500 tracking-wide uppercase">
@@ -260,13 +262,6 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           <Separator />
 
           {/* Variant Selector */}
-          {/* {(product.subSubCategory.productVariantType === VariantType.SIZE ||
-            product.subSubCategory.productVariantType ===
-              VariantType.SIZE_SHOE ||
-            product.subSubCategory.productVariantType ===
-              VariantType.DRINK_SIZE ||
-            product.subSubCategory.productVariantType ===
-              VariantType.VOLUME) && ( */}
           <div className="space-y-4">
             <Label className="text-xs font-black uppercase text-gray-400 tracking-widest">
               Select{" "}
@@ -392,6 +387,7 @@ const ProductDetails = ({ slug }: { slug: string }) => {
               }
               className="h-14 flex-grow bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold rounded-full transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
             >
+              <ShoppingBag size="icon" className="w-5 h-5 text-white" />{" "}
               {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
             </button>
           </div>
@@ -483,16 +479,57 @@ const ProductDetails = ({ slug }: { slug: string }) => {
           </TabsContent>
         </Tabs>
 
-        {product.highlight && (
-          <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 col-span-2">
+        <div className="lg:col-span-2 gap-6 mt-5 lg:mt-0 flex flex-col lg:flex-col-reverse">
+          <div className="space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+            <div className="flex space-x-2 items-center">
+              <h4 className="text-gray-900 font-black text-sm capitalize">
+                Sold by:
+              </h4>
+              <Link
+                href={`/store/${product.store.slug}`}
+                className="text-blue-600 font-bold hover:underline"
+              >
+                {product.store.name}
+              </Link>
+            </div>
+
+            {product.highlight && (
+              <div>
+                <h4 className="text-gray-900 font-black text-xs uppercase tracking-widest mb-2">
+                  Product Highlights
+                </h4>
+
+                <div className="text-gray-600 text-sm leading-relaxed">
+                  {parse(product.highlight)}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-100">
             <h4 className="text-gray-900 font-black text-xs uppercase tracking-widest mb-2">
-              Product Highlights
+              Delivery & Returns
             </h4>
-            <div className="text-gray-600 text-sm leading-relaxed">
-              {parse(product.highlight)}
+            <Separator />
+            <div className="space-y-3 text-gray-700 text-sm leading-relaxed">
+              <div className="flex items-center gap-2">
+                <Truck className="w-8 h-8 text-black" />
+                <p>
+                  <span className="font-bold">Delivery:</span> Standard delivery
+                  takes 3-5 business days. Expedited options are available at
+                  checkout.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="w-8 h-8 text-black" />
+                <p>
+                  <span className="font-bold">Returns:</span> Free returns
+                  within 7 days after. Item must be in original condition.
+                </p>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

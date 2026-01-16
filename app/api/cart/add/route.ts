@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { productVariantId, quantity } = await request.json();
+    const { productVariantId, quantity, color } = await request.json();
 
     if (!productVariantId || typeof quantity !== "number" || quantity < 1) {
       return NextResponse.json(
@@ -94,6 +94,7 @@ export async function POST(request: Request) {
           cartId: userCart.id,
           productVariantId: productVariantId,
           quantity: quantity,
+          colorSelected: color,
         },
       });
       console.log(`Created new cart item ${cartItem.id}`);

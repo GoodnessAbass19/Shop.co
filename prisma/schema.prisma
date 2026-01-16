@@ -15,27 +15,28 @@ datasource db {
 // prisma/schema.prisma
 
 model User {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  password      String
-  name          String
-  role          Role            @default(BUYER) // Default role is BUYER
-  phone         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  gender        String?
-  birthDate     DateTime?
-  isVerified    Boolean         @default(false)
-  store         Store?
-  orders        Order[]         @relation("UserOrders")
-  reviews       ProductReview[]
-  addresses     Address[] // User can have multiple addresses
-  cart          Cart?
-  wishlistItems WishlistItem[]
-  notifications Notification[]
-  Rider         Rider?
-  isSeller      Boolean         @default(false)
-  isRider       Boolean         @default(false)
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  password            String
+  name                String
+  role                Role                 @default(BUYER) // Default role is BUYER
+  phone               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  gender              String?
+  birthDate           DateTime?
+  isVerified          Boolean              @default(false)
+  store               Store?
+  orders              Order[]              @relation("UserOrders")
+  reviews             ProductReview[]
+  addresses           Address[] // User can have multiple addresses
+  cart                Cart?
+  wishlistItems       WishlistItem[]
+  notifications       Notification[]
+  Rider               Rider?
+  isSeller            Boolean              @default(false)
+  isRider             Boolean              @default(false)
+  discountRedemptions DiscountRedemption[]
 }
 
 model Address {
@@ -304,17 +305,30 @@ model ProductReview {
 }
 
 model Discount {
-  id                String  @id @default(uuid())
-  code              String  @unique // e.g., "SUMMER20"
-  description       String?
-  percentage        Float? // e.g., 20.0 for 20%
-  amount            Float? // e.g., 10.00 for $10 off
-  minOrderAmount    Float? // Minimum order amount for discount to apply
-  maxDiscountAmount Float? // Maximum discount amount for percentage discounts
+  id          String  @id @default(uuid())
+  code        String  @unique // e.g., "SUMMER20"
+  description String?
 
+  // Discount value: either percentage or fixed amount depending on `type`
+  type       DiscountType @default(PERCENTAGE)
+  percentage Float? // e.g., 20.0 for 20%
+  amount     Float? // e.g., 10.00 for $10 off (fixed)
+
+  // Eligibility constraints
+  minOrderAmount       Float? // Minimum order amount for discount to apply
+  maxDiscountAmount    Float? // Maximum discount amount for percentage discounts
+  appliesToAllProducts Boolean @default(false) // true => applies to all products in the store
+
+  // Scheduling & status
   startsAt  DateTime
   expiresAt DateTime
   isActive  Boolean  @default(true) // Can be manually toggled or automatically based on dates
+
+  // Composability & limits
+  combinable      Boolean @default(false) // Whether this discount can be combined with others
+  perUserLimit    Int? // How many times a single user may redeem this discount
+  totalUsageLimit Int? // Global usage cap for this discount
+  usedCount       Int     @default(0) // Cached counter of redemptions (optional optimization)
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -322,12 +336,40 @@ model Discount {
   // Many-to-many relationship with Product if discounts can apply to specific products
   products Product[] // Products that this discount applies to
 
+  // Track individual redemptions for auditing and enforcing limits
+  redemptions DiscountRedemption[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([storeId])
   @@index([code])
   @@index([expiresAt])
+}
+
+model DiscountRedemption {
+  id         String   @id @default(uuid())
+  discountId String
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  amountApplied Float
+
+  createdAt DateTime @default(now())
+
+  @@index([discountId])
+  @@index([userId])
+  @@index([orderId])
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
 }
 
 model Category {
@@ -378,12 +420,13 @@ model Order {
   shippedAt         DateTime? // NEW: When the order was shipped
   refundRequestedAt DateTime? // NEW: When the refund was requested
 
-  cancelledAt DateTime? // NEW: When the order was cancelled
-  buyerId     String
-  buyer       User        @relation("UserOrders", fields: [buyerId], references: [id])
-  items       OrderItem[]
-  addressId   String? // NEW: Link to the specific Address used for this order
-  address     Address?    @relation(fields: [addressId], references: [id])
+  cancelledAt         DateTime? // NEW: When the order was cancelled
+  buyerId             String
+  buyer               User                 @relation("UserOrders", fields: [buyerId], references: [id])
+  items               OrderItem[]
+  addressId           String? // NEW: Link to the specific Address used for this order
+  address             Address?             @relation(fields: [addressId], references: [id])
+  discountRedemptions DiscountRedemption[]
 
   @@index([buyerId])
 }

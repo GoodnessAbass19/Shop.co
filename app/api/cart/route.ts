@@ -26,6 +26,7 @@ export async function GET(request: Request) {
                     name: true,
                     images: true,
                     slug: true,
+                    store: true,
                     discounts: {
                       // Include discounts related to the product
                       where: {

@@ -16,6 +16,7 @@ import "swiper/css";
 import "swiper/css/scrollbar";
 import "swiper/css/free-mode";
 import "swiper/css/pagination";
+import WishlistButton from "./wishlistButton";
 
 const checkWishlistStatus = async (productId: string) => {
   const res = await fetch(`/api/wishlist/status?productId=${productId}`);
@@ -158,27 +159,12 @@ const ThumbnailGallery = ({
           />
 
           {/* Wishlist Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={isUpdating}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleWishlistToggle();
-            }}
-            className={cn(
-              "absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur-sm shadow-md",
-              isWishlisted ? "text-red-500" : "text-gray-600"
-            )}
-          >
-            {isUpdating ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Heart
-                className={cn("h-5 w-5", isWishlisted && "fill-red-500")}
-              />
-            )}
-          </Button>
+
+          <WishlistButton
+            name={name}
+            productId={id}
+            className="absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur-sm shadow-md w-7 h-7 justify-center items-center"
+          />
         </div>
       </div>
 

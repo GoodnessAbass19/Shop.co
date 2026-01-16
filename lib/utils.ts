@@ -681,3 +681,15 @@ export const COLOR_FAMILIES = [
 ] as const;
 
 export type ColorFamily = (typeof COLOR_FAMILIES)[number];
+
+export function resolveDeliveryCategory(
+  items: {
+    weightKg: number;
+  }[]
+) {
+  return items.some((i) => i.weightKg > 15)
+    ? "LARGE"
+    : items.some((i) => i.weightKg > 5)
+    ? "MEDIUM"
+    : "SMALL";
+}

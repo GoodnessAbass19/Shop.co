@@ -57,6 +57,8 @@ export function middleware(request: NextRequest) {
   // Read token (Edge-compatible)
   const token = request.cookies.get("token")?.value;
 
+  console.log("COOKIE:", request.cookies.get("token"));
+
   if (!token) {
     // API → return 401
     if (pathname.startsWith("/api")) {

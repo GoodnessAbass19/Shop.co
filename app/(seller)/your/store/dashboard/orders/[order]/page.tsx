@@ -2,12 +2,14 @@ import OrderDetailsPage from "@/components/seller/OrderDetails";
 import { Metadata } from "next";
 import React from "react";
 
-type Params = { order: string };
+interface Props {
+  params: Promise<{ order: string }>;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<{ order: string }>;
 }): Promise<Metadata> {
   const { order } = await params;
   return {
@@ -15,7 +17,11 @@ export async function generateMetadata({
   };
 }
 
-const OrderDetails = async ({ params }: { params: Params }) => {
+const OrderDetails = async ({
+  params,
+}: {
+  params: Promise<{ order: string }>;
+}) => {
   const { order } = await params;
   return (
     <div>

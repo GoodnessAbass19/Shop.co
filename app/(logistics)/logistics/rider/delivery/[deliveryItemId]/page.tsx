@@ -2,9 +2,9 @@ import RiderDeliveryMapPage from "@/components/rider/ActiveDelivery";
 import React from "react";
 
 type Props = {
-  params: {
+  params: Promise<{
     deliveryItemId: string;
-  };
+  }>;
 };
 
 const DeliveryTrackingPage = async ({ params }: Props) => {

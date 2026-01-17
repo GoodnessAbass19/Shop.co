@@ -2,12 +2,14 @@ import { EditProductForm } from "@/components/seller/EditProductForm";
 import { Metadata } from "next";
 import React from "react";
 
-type Params = { product: string };
+interface Props {
+  params: Promise<{ product: string }>;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<{ product: string }>;
 }): Promise<Metadata> {
   const { product } = await params;
   return {
@@ -15,7 +17,7 @@ export async function generateMetadata({
   };
 }
 
-const page = async ({ params }: { params: Params }) => {
+const page = async ({ params }: { params: Promise<{ product: string }> }) => {
   const { product } = await params;
 
   return <EditProductForm productId={product} />;

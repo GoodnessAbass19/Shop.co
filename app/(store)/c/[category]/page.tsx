@@ -2,12 +2,14 @@ import React from "react";
 import { Metadata } from "next";
 import Category from "@/components/category/Category";
 
-type Params = { category: string };
+interface Props {
+  params: Promise<{ category: string }>;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
   return {
@@ -15,7 +17,11 @@ export async function generateMetadata({
   };
 }
 
-const CategoryPage = async ({ params }: { params: Params }) => {
+const CategoryPage = async ({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}) => {
   const { category } = await params;
 
   return (

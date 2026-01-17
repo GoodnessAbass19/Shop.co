@@ -2,12 +2,14 @@ import SubSubCategory from "@/components/category/SubSubCategory";
 import { Metadata } from "next";
 import React from "react";
 
-type Params = { subsubcategory: string };
+interface Props {
+  params: Promise<{ subsubcategory: string }>;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<{ subsubcategory: string }>;
 }): Promise<Metadata> {
   const { subsubcategory } = await params;
   return {
@@ -15,7 +17,11 @@ export async function generateMetadata({
   };
 }
 
-const page = async ({ params }: { params: Params }) => {
+const page = async ({
+  params,
+}: {
+  params: Promise<{ subsubcategory: string }>;
+}) => {
   const { subsubcategory } = await params;
   return (
     <section className="max-w-screen-xl mx-auto mt-10">

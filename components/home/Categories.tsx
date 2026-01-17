@@ -68,6 +68,10 @@ const Categories = () => {
     );
   }
 
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
   return (
     <div className="max-w-screen-xl mx-auto py-5 px-2 space-y-5 mt-5">
       <h2 className="text-start text-xl md:text-2xl font-extrabold">

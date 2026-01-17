@@ -1,52 +1,70 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { match } from "path-to-regexp";
 
-export default clerkMiddleware();
+const publicRoutes = [
+  "/",
+  "/sign-in",
+  "/sign-up",
+  "/reset-password",
+  "/api/initial-auth",
+  "/api/verify-otp",
+  "/api/logout",
+  "/api/login",
+  "/api/products",
+  "/api/products/top-selling",
+  "/api/products/new-arrivals",
+  "/api/products/:slug",
+  "/api/search-products",
+  "/api/categories/:category",
+  "/api/categories/:category/products",
+  "/api/subcategories/:subcategory/products",
+  "/api/subsubcategories/:slug/products",
+  "/api/brands",
+  "/api/store/resendOtp",
+  "/api/me/password/forgot-password",
+];
+
+const publicMatchers = publicRoutes.map((route) =>
+  match(route, { decode: decodeURIComponent }),
+);
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Read token from request cookies
+  const token = request.cookies.get("token")?.value;
+
+  const isPublicRoute = publicMatchers.some((matcher) => matcher(pathname));
+
+  // Allow public routes
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // For protected routes, check if token exists
+  // Note: JWT verification is done server-side in route handlers, not in middleware
+  // because middleware runs on Edge Runtime which doesn't support crypto
+  if (!token) {
+    // If it's an API route, return 401
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // If it's a page route, redirect to sign-in
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+
+  // Token exists, allow the request to proceed
+  // Actual JWT verification will happen in route handlers
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };
-
-// middleware.ts
-// middleware.ts
-// import { NextResponse } from "next/server";
-// import { NextResponse, type NextRequest } from "next/server";
-// import { verifyToken } from "./lib/jwt";
-// import { match } from "path-to-regexp";
-// import { cookies } from "next/headers";
-
-// const publicRoutes = [
-//   "/",
-//   "/sign-in",
-//   "/sign-up",
-//   "/api/initial-auth",
-//   "/api/verify-otp", // ✅ corrected path
-//   "/api/logout",
-//   "/api/products",
-//   "/api/products/top-selling",
-//   "/api/products/new-arrivals",
-//   "/api/products/:slug",
-//   "/api/search-products",
-//   "/api/categories/:category",
-//   "/api/categories/:category/products",
-//   "/api/subcategories/:subcategory/products",
-//   "/api/subsubcategories/:slug/products",
-// ];
-
-// const publicMatchers = publicRoutes.map((route) =>
-//   match(route, { decode: decodeURIComponent })
-// );
-
-// export async function middleware(request: NextRequest) {
-//   const { pathname } = request.nextUrl;
-
-//   const cookieStore = cookies(); // ✅ no await
-//   // @ts-ignore
-//   const token = cookieStore.get("token")?.value;
 
 //   const isPublicRoute = publicMatchers.some((m) => m(pathname));
 

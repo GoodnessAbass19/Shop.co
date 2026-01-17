@@ -155,6 +155,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           otp: data.otp,
           redirect_url,
         }),
+        credentials: "include",
       });
 
       const result = await res.json();
@@ -385,7 +386,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                         variant="outline"
                         className={cn(
                           "w-full pl-3 text-left font-normal",
-                          !date && "text-muted-foreground"
+                          !date && "text-muted-foreground",
                         )}
                         type="button"
                         onClick={() => setOpen(true)}
@@ -413,7 +414,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                           setDate(date);
                           setValue(
                             "birthDate",
-                            date ? format(date, "yyyy-MM-dd") : ""
+                            date ? format(date, "yyyy-MM-dd") : "",
                           );
                           setOpen(false);
                         }}
@@ -689,8 +690,8 @@ export default function AuthForm({ type }: AuthFormProps) {
               {loading
                 ? renderLoadingSpinner()
                 : redirect
-                ? "Redirecting..."
-                : "Verify"}
+                  ? "Redirecting..."
+                  : "Verify"}
             </Button>
 
             <div className="text-center text-sm mt-4">

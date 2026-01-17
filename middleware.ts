@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Routes that don't require authentication
+/**
+ * Public page routes (exact matches)
+ */
 const PUBLIC_ROUTES = new Set(["/", "/sign-in", "/sign-up", "/reset-password"]);
 
-// API routes that don't require authentication
+/**
+ * Public API routes (prefix-safe)
+ */
 const PUBLIC_API_ROUTES = [
   "/api/initial-auth",
   "/api/verify-otp",
@@ -18,81 +22,65 @@ const PUBLIC_API_ROUTES = [
   "/api/me/password/forgot-password",
 ];
 
-/**
- * Check if a pathname matches a public API route
- * Handles both exact matches and prefix matches (e.g., /api/products/123)
- */
 function isPublicApiRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some((route) => {
-    if (pathname === route) return true;
-    if (pathname.startsWith(route + "/")) return true;
-    return false;
-  });
+  return PUBLIC_API_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 }
 
 function isStaticAsset(pathname: string): boolean {
-  // Static files
-  if (pathname.startsWith("/_next")) return true;
-  if (pathname.startsWith("/api/_next")) return true;
-  if (pathname === "/favicon.ico") return true;
-  if (pathname.startsWith("/public/")) return true;
-
-  // File extensions
-  if (
+  return (
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
     /\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|eot)$/i.test(
       pathname,
     )
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
+  // Skip static assets early
   if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
-  // Check if it's a public route
   const isPublicPage = PUBLIC_ROUTES.has(pathname);
   const isPublicApi = isPublicApiRoute(pathname);
 
-  // Allow public routes without token
+  // Allow public access
   if (isPublicPage || isPublicApi) {
     return NextResponse.next();
   }
 
-  // Get token from cookies
+  // Read token (Edge-compatible)
   const token = request.cookies.get("token")?.value;
 
-  // No token on protected route
   if (!token) {
-    // For API routes, return 401
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Unauthorized - No token provided" },
-        { status: 401 },
-      );
+    // API → return 401
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // For page routes, redirect to sign-in with return URL
+    // Pages → redirect to sign-in with full return URL
     const signInUrl = new URL("/sign-in", request.url);
-    signInUrl.searchParams.set("redirectUrl", pathname);
+    signInUrl.searchParams.set("redirectUrl", pathname + search);
+
     return NextResponse.redirect(signInUrl);
   }
 
-  // Token exists - allow the request to proceed
-  // Route handlers will perform full JWT verification via getCurrentUser()
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // Run middleware on all routes except static files
-    "/((?!_next/static|_next/image|favicon\\.ico|public).*)",
+    /**
+     * Run middleware on all routes except:
+     * - static files
+     * - Next.js internals
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };
 

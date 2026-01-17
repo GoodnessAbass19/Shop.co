@@ -30,23 +30,37 @@ function isPublicApiRoute(pathname: string): boolean {
   });
 }
 
+function isStaticAsset(pathname: string): boolean {
+  // Static files
+  if (pathname.startsWith("/_next")) return true;
+  if (pathname.startsWith("/api/_next")) return true;
+  if (pathname === "/favicon.ico") return true;
+  if (pathname.startsWith("/public/")) return true;
+
+  // File extensions
+  if (
+    /\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|eot)$/i.test(
+      pathname,
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow static files and Next.js internals
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/_next") ||
-    pathname === "/favicon.ico" ||
-    pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2)$/)
-  ) {
+  if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
-  // Check if it's a public route or API route
+  // Check if it's a public route
   const isPublicPage = PUBLIC_ROUTES.has(pathname);
   const isPublicApi = isPublicApiRoute(pathname);
 
+  // Allow public routes without token
   if (isPublicPage || isPublicApi) {
     return NextResponse.next();
   }
@@ -78,7 +92,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Run middleware on all routes except static files
-    "/((?!_next/static|_next/image|favicon\\.ico).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|public).*)",
   ],
 };
 

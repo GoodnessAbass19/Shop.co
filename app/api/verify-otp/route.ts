@@ -23,7 +23,7 @@ export async function POST(req: Request) {
           error:
             "Invalid or expired OTP. Please try again or request a new one.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       console.log(`User ${user.email} successfully verified.`);
     } else {
       console.log(
-        `User ${user.email} already verified. Proceeding with login.`
+        `User ${user.email} already verified. Proceeding with login.`,
       );
     }
 
@@ -70,9 +70,16 @@ export async function POST(req: Request) {
 
     // 6. Set HTTP-only cookie
     const cookieStore = await cookies();
+
+    const isProduction =
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production" ||
+      process.env.RAILWAY_ENVIRONMENT === "production" ||
+      !!process.env.NEXT_PUBLIC_BASE_URL?.includes("https://");
+
     cookieStore.set("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: isProduction, // Use secure cookies in production
       maxAge: 60 * 60 * 24 * 7, // 1 week
       sameSite: "lax",
       path: "/",
@@ -83,10 +90,10 @@ export async function POST(req: Request) {
       {
         success: true,
         message: "Account verified and logged in successfully!",
-        redirect_url: redirect_url || "/your/store/dashboard",
-        token: token,
+        // redirect_url: redirect_url || "/your/store/dashboard",
+        // token: token,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("OTP verification error:", error);
@@ -95,7 +102,7 @@ export async function POST(req: Request) {
         error:
           "Failed to verify OTP due to an internal server error. Please try again.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

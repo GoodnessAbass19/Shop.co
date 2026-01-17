@@ -242,8 +242,7 @@ export async function GET(request: Request) {
           productImage: variant.product.images?.[0] || null, // Access the first image URL
           totalSoldQuantity: totalSoldQuantity,
           variantName:
-            `${variant.size ? `Size: ${variant.size}` : ""}${
-              variant.color ? ` Color: ${variant.color}` : ""
+            `${variant.size ? `Size: ${variant.size}` : ""}: ""
             }`.trim() || "Default",
         };
       })

@@ -1,5 +1,4 @@
 import Form from "@/components/store/create-store-form";
-import { MultiStepStoreCreationForm } from "@/components/store/multi-step-form";
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";

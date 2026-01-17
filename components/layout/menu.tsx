@@ -11,7 +11,6 @@ import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
 import UserButton from "./user-button";
-import useSWR, { preload } from "swr";
 import { Cart, CartItem } from "@prisma/client";
 import CategoryMenu from "./category-menu";
 import { useQuery } from "@tanstack/react-query";

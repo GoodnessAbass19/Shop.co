@@ -101,7 +101,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -110,7 +110,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params; // Address ID from the URL
+    const { id } = await params; // Address ID from the URL
 
     // 1. Find the address to ensure it exists and belongs to the user
     const addressToDelete = await prisma.address.findUnique({

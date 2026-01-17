@@ -3,13 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
-import { createCartItem } from "@/lib/actions";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import { useCartStore } from "@/store/cart-store";
-import { CartProduct } from "@/types";
-import { useUser } from "@clerk/nextjs";
 import { Loader2, ShoppingCart } from "lucide-react";
-import Link from "next/link";
 
 interface AddToCartButtonProps {
   productName: string; // Renamed 'name' to 'productName' for clarity

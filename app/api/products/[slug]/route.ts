@@ -111,10 +111,10 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const productId = params.id;
+    const { slug } = await params;
     const body = await req.json();
     const {
       name,
@@ -131,7 +131,7 @@ export async function PATCH(
     let updateData: any = {};
     if (name) {
       // --- NEW: Generate unique slug when name is updated ---
-      updateData.slug = await generateUniqueSlug("Product", name, productId);
+      updateData.slug = await generateUniqueSlug("Product", name, slug);
       updateData.name = name;
     }
     if (description) updateData.description = description;
@@ -145,7 +145,7 @@ export async function PATCH(
     if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
 
     const updatedProduct = await prisma.product.update({
-      where: { id: productId },
+      where: { id: slug },
       data: updateData,
     });
 

@@ -66,7 +66,7 @@ export async function GET(
 // --- PATCH: Update Discount ---
 export async function PATCH(
   request: Request,
-  { params }: { params: { discountId: string } }
+  { params }: { params: Promise<{ discountId: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -74,7 +74,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { discountId } = params;
+    const { discountId } = await params;
     if (!discountId) {
       return NextResponse.json(
         { error: "Discount ID is required." },
@@ -231,7 +231,7 @@ export async function PATCH(
 // --- DELETE: Delete Discount ---
 export async function DELETE(
   request: Request,
-  { params }: { params: { discountId: string } }
+  { params }: { params: Promise<{ discountId: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -239,7 +239,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { discountId } = params;
+    const { discountId } = await params;
     if (!discountId) {
       return NextResponse.json(
         { error: "Discount ID is required." },

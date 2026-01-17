@@ -319,7 +319,11 @@ export function SalesAnalytics() {
                 />
 
                 <Tooltip
-                  formatter={(value: number, name: string) => {
+                  formatter={(
+                    value: number | undefined,
+                    name: string | undefined
+                  ) => {
+                    if (value === undefined) return value;
                     if (name === "revenue")
                       return [`$${value.toFixed(2)}`, "Revenue"];
                     if (name === "orders") return [value, "Orders"];

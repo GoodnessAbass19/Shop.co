@@ -74,7 +74,7 @@ export async function PATCH(
 // --- NEW: DELETE method for removing cart items ---
 export async function DELETE(
   request: Request, // NextRequest is not necessary here, standard Request works
-  { params }: { params: { id: string } } // Access dynamic id parameter
+  { params }: { params: Promise<{ id: string }> } // Access dynamic id parameter
 ) {
   try {
     const user = await getCurrentUser(); // Authenticate the user
@@ -83,7 +83,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = params.id; // Get the cart item ID from the URL parameters
+    const { id } = await params; // Get the cart item ID from the URL parameters
 
     // Find the cart item to ensure it exists and belongs to the current user
     const cartItem = await prisma.cartItem.findUnique({

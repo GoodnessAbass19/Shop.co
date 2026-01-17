@@ -117,15 +117,13 @@ export async function GET() {
     const productsInWishlist = wishlistItems.map((item) => {
       const product = item.product;
       const lowestPrice =
-        product.variants.length > 0
-          ? product.variants[0].price
-          : product.price || 0;
+        product.variants.length > 0 ? product.variants[0].price : 0;
 
       let discountedPrice: number | null = null;
       if (product.discounts && product.discounts.length > 0) {
         const bestDiscountPercentage = product.discounts[0].percentage;
-        if (bestDiscountPercentage > 0) {
-          discountedPrice = lowestPrice * (1 - bestDiscountPercentage / 100);
+        if (bestDiscountPercentage! > 0) {
+          discountedPrice = lowestPrice * (1 - bestDiscountPercentage! / 100);
         }
       }
 

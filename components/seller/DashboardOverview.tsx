@@ -8,8 +8,6 @@ import {
   Package,
   TrendingUp,
   TrendingDown,
-  ArrowUp,
-  ArrowDown,
   Eye,
   LineChartIcon,
   BarChart2,
@@ -28,10 +26,9 @@ import {
   TableRow,
 } from "../ui/table";
 import { Badge } from "../ui/badge";
-import Link from "next/link";
 import { Button } from "../ui/button";
 import { OrderStatus } from "@prisma/client";
-import { FILTER_OPTIONS, SalesAnalyticsData } from "./SalesAnalytics";
+import { SalesAnalyticsData } from "./SalesAnalytics";
 import Image from "next/image";
 import {
   ResponsiveContainer,
@@ -434,7 +431,11 @@ export function DashboardOverview() {
                       border: "1px solid #ccc",
                       color: "black",
                     }}
-                    formatter={(value: number, name: string) => {
+                    formatter={(
+                      value: number | undefined,
+                      name: string | undefined
+                    ) => {
+                      if (value === undefined) return value;
                       if (name === "revenue")
                         return [`$${value.toFixed(2)}`, "Revenue"];
                       if (name === "orders") return [value, "Orders"];

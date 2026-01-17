@@ -182,7 +182,7 @@ export async function PATCH(
 // --- DELETE: Delete Product ---
 export async function DELETE(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ product: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -190,8 +190,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { productId } = params;
-    if (!productId) {
+    const { product } = await params;
+    if (!product) {
       return NextResponse.json(
         { error: "Product ID is required." },
         { status: 400 }
@@ -200,7 +200,7 @@ export async function DELETE(
 
     // Verify product exists and belongs to the seller's store
     const existingProduct = await prisma.product.findUnique({
-      where: { id: productId },
+      where: { id: product },
       select: {
         store: {
           select: { userId: true },
@@ -223,7 +223,7 @@ export async function DELETE(
 
     // Delete the product (Prisma's onDelete: Cascade will handle related variants, order items, etc.)
     const deletedProduct = await prisma.product.delete({
-      where: { id: productId },
+      where: { id: product },
     });
 
     return NextResponse.json(
@@ -241,7 +241,7 @@ export async function DELETE(
 
 export async function GET(
   request: Request,
-  { params }: { params: { product: string } }
+  { params }: { params: Promise<{ product: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -249,7 +249,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { product } = params;
+    const { product } = await params;
     if (!product) {
       return NextResponse.json(
         { error: "Product ID is required." },

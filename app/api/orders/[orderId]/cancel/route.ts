@@ -7,6 +7,7 @@ import Stripe from "stripe"; // Import Stripe library
 
 // Initialize Stripe outside the handler
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  // @ts-ignore
   apiVersion: "2025-05-28.basil", // Ensure this matches the version in other Stripe routes
 });
 

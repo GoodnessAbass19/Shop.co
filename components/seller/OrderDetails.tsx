@@ -396,11 +396,11 @@ export default function OrderDetailsPage({ params }: { params: string }) {
                   <TableCell>
                     {item.productVariant.size &&
                       `Size: ${item.productVariant.size}`}
-                    {item.productVariant.color &&
+                    {/* {item.productVariant.color &&
                       ` Color: ${item.productVariant.color}`}
                     {!item.productVariant.size &&
                       !item.productVariant.color &&
-                      "N/A"}
+                      "N/A"} */}
                   </TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell className="text-right">

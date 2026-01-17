@@ -47,21 +47,23 @@ export async function sendOtp(email: string) {
       !process.env.EMAIL_USER ||
       !process.env.GOOGLE_CLIENT_ID ||
       !process.env.GOOGLE_CLIENT_SECRET ||
-      !process.env.GOOGLE_REFRESH_TOKEN
+      !process.env.GOOGLE_REFRESH_TOKEN ||
+      !process.env.EMAIL_PASSWORD
     ) {
       throw new Error(
-        "Missing required environment variables for Gmail OAuth2 in production mode."
+        "Missing required environment variables for Gmail OAuth2 in production mode.",
       );
     }
 
     transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        type: "OAuth2",
+        // type: "OAuth2",
         user: process.env.EMAIL_USER,
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        pass: process.env.EMAIL_PASSWORD,
+        // clientId: process.env.GOOGLE_CLIENT_ID,
+        // clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        // refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
       },
     });
     fromAddress = process.env.EMAIL_FROM ?? process.env.EMAIL_USER ?? undefined;
@@ -76,10 +78,10 @@ export async function sendOtp(email: string) {
     } catch (err) {
       console.error(
         "Failed to create Ethereal test account. Check network or nodemailer setup.",
-        err
+        err,
       );
       throw new Error(
-        "Could not create Ethereal test account for development email."
+        "Could not create Ethereal test account for development email.",
       );
     }
 
@@ -101,7 +103,9 @@ export async function sendOtp(email: string) {
       from:
         fromAddress ??
         process.env.EMAIL_FROM ??
-        (process.env.EMAIL_USER ? process.env.EMAIL_USER : 'no-reply@yourstore.com'),
+        (process.env.EMAIL_USER
+          ? process.env.EMAIL_USER
+          : "no-reply@yourstore.com"),
       to: email,
       subject: "Your OTP Code",
       html: `<p>Your OTP is: <strong>${otp}</strong></p>
@@ -123,7 +127,7 @@ export async function sendOtp(email: string) {
     throw new Error(
       `Failed to send OTP email: ${
         mailError instanceof Error ? mailError.message : String(mailError)
-      }`
+      }`,
     );
   }
 }
@@ -141,7 +145,7 @@ export async function verifyOtp(email: string, token: string) {
 
   if (!otpRecord) {
     throw new Error(
-      "Invalid or expired OTP. Please try again or request a new one."
+      "Invalid or expired OTP. Please try again or request a new one.",
     );
   }
 

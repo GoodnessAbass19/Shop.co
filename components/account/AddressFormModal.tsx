@@ -18,9 +18,6 @@ import type { Address } from "@prisma/client";
 import { Loader2 } from "lucide-react"; // Loader icon
 import { useToast } from "@/hooks/use-toast";
 
-// Placeholder API functions - replace with your actual API calls
-// These should ideally be defined in a separate `lib/address-api.ts` or similar
-// and accept data directly (e.g., via JSON.stringify in fetch)
 async function createAddressApi(
   data: Omit<
     Address,

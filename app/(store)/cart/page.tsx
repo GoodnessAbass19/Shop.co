@@ -1,7 +1,7 @@
 // app/cart/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import {
   Cart,
@@ -19,7 +19,6 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { formatCurrencyValue } from "@/utils/format-currency-value";
-import { useUser } from "@/hooks/user-context";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,6 +30,7 @@ import {
 import Link from "next/link";
 import { isSaleActive } from "@/lib/utils";
 import WishlistButton from "@/components/ui/wishlistButton";
+import { useUser } from "@/hooks/user-context";
 
 // --- Extended Types to match API response ---
 type ProductWithDiscounts = Product & { discounts: Discount[]; store: Store };

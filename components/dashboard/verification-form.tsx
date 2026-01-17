@@ -144,6 +144,7 @@ const VerificationForm = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: contactEmail, otp: otpValue }),
+        credentials: "include",
       });
 
       // Attempt to parse JSON safely

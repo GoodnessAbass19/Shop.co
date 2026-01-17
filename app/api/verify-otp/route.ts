@@ -71,15 +71,9 @@ export async function POST(req: Request) {
     // 6. Set HTTP-only cookie
     const cookieStore = await cookies();
 
-    const isProduction =
-      process.env.NODE_ENV === "production" ||
-      process.env.VERCEL_ENV === "production" ||
-      process.env.RAILWAY_ENVIRONMENT === "production" ||
-      !!process.env.NEXT_PUBLIC_BASE_URL?.includes("https://");
-
     cookieStore.set("token", token, {
       httpOnly: true,
-      secure: isProduction, // Use secure cookies in production
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge: 60 * 60 * 24 * 7, // 1 week
       sameSite: "lax",
       path: "/",

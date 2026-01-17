@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { Loader2, ShoppingCart } from "lucide-react";
 

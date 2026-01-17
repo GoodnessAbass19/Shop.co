@@ -6,7 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, FreeMode } from "swiper/modules";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
-import useSwiperRef from "@/hooks/useSwiperRef";
+import useSwiperRef from "@/Hooks/useSwiperRef";
 
 const RecentlyViewed = () => {
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);

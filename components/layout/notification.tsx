@@ -8,7 +8,7 @@ import axios from "axios"; // Keep axios for the fetch function
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/hooks/user-context";
+import { useUser } from "@/Hooks/user-context";
 
 // // Function to fetch the unread notifications count for the seller
 // const fetchUnreadNotificationsCount = async (): Promise<{ count: number }> => {

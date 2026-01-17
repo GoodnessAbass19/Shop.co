@@ -25,7 +25,7 @@ import {
   CircleUser,
   CalendarIcon,
 } from "lucide-react"; // Icons
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import {

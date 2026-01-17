@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"; // Assuming shadcn/ui Input
 import { Label } from "@/components/ui/label"; // Assuming shadcn/ui Label
 import { Loader2, User, Phone, Image as ImageIcon } from "lucide-react"; // Icons
 import { ToastAction } from "@/components/ui/toast"; // ToastAction component
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 
 // Define a type for your user object for better type safety
 interface UserProfile {

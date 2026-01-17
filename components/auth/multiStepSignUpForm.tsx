@@ -11,7 +11,7 @@ import { EmailPasswordStep } from "./EmailPasswordStep";
 import { PersonalDetailsStep } from "./PersonalDetails";
 import { ContactInfoStep } from "./ContactInfo";
 import { OtpVerificationStep } from "./Otp";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 
 // Define the overall shape of the form data for sign-up
 interface SignUpFormData {

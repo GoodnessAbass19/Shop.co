@@ -1,6 +1,6 @@
 "use client";
 
-import { useSellerStore } from "@/hooks/use-store-context";
+import { useSellerStore } from "@/Hooks/use-store-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
   CircleEllipsis,

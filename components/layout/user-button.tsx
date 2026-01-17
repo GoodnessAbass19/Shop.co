@@ -29,7 +29,7 @@ import LogoutButton from "./logout-button";
 import { ClipLoader } from "react-spinners";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import UserNotificationBell from "./notification";
-import { useUser } from "@/hooks/user-context";
+import { useUser } from "@/Hooks/user-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";

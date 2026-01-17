@@ -42,7 +42,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge"; // Assuming you have shadcn/ui Badge
-import { useSellerStore } from "@/hooks/use-store-context";
+import { useSellerStore } from "@/Hooks/use-store-context";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { formatCurrencyValue } from "../../utils/format-currency-value";
 

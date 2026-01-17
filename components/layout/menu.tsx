@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import CartIcon from "../Icons/cartIcon";
-import { useBoolean } from "@/hooks/useBoolean";
+import { useBoolean } from "@/Hooks/useBoolean";
 import MobileNav from "./mobileNav";
 import { SearchIcon, Store } from "lucide-react";
 import { Input } from "../ui/input";
@@ -16,7 +16,7 @@ import CategoryMenu from "./category-menu";
 import { useQuery } from "@tanstack/react-query";
 import MobileMenu from "./mobileMenu";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
-import { useUser } from "@/hooks/user-context";
+import { useUser } from "@/Hooks/user-context";
 
 const fetchSearchedProducts = async (search: string) => {
   if (!search) return { products: [] };

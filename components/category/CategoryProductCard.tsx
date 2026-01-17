@@ -11,7 +11,7 @@ import {
 } from "@/lib/utils";
 import { Product, ProductReview, ProductVariant } from "@prisma/client";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 
 const checkWishlistStatus = async (
   productId: string

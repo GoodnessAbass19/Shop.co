@@ -31,8 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useSellerStore } from "@/hooks/use-store-context";
+import { useToast } from "@/Hooks/use-toast";
+import { useSellerStore } from "@/Hooks/use-store-context";
 import { cn } from "@/lib/utils";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { formatCurrencyValue } from "@/utils/format-currency-value";

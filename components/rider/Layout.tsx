@@ -1,7 +1,7 @@
 "use client";
 
-import { RiderProvider } from "@/hooks/use-rider-context";
-import { useUserRole } from "@/hooks/use-user-role";
+import { RiderProvider } from "@/Hooks/use-rider-context";
+import { useUserRole } from "@/Hooks/use-user-role";
 import { Rider, User } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import RiderNavbar from "../dashboard/rider-navbar";

@@ -12,7 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 import {
   ArrowRight,
   Loader2,

@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/Hooks/use-toast";
 import { Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSellerStore } from "@/hooks/use-store-context";
+import { useSellerStore } from "@/Hooks/use-store-context";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BusinessInfoSchema } from "@/lib/form-schema";

@@ -30,7 +30,7 @@ import {
 import Link from "next/link";
 import { isSaleActive } from "@/lib/utils";
 import WishlistButton from "@/components/ui/wishlistButton";
-import { useUser } from "@/hooks/user-context";
+import { useUser } from "@/Hooks/user-context";
 
 // --- Extended Types to match API response ---
 type ProductWithDiscounts = Product & { discounts: Discount[]; store: Store };

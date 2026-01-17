@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import React, { useState, useEffect } from "react";
 import { Mail, Loader2, Hourglass } from "lucide-react"; // Icons
 import { useMutation } from "@tanstack/react-query"; // For resending OTP
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/Hooks/use-toast";
 
 interface StepProps {
   formData: any;

@@ -60,7 +60,7 @@ import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon";
 import { LinkIcon } from "@/components/tiptap-icons/link-icon";
 
 // --- Hooks ---
-import { useWindowSize } from "@/hooks/use-window-size";
+import { useWindowSize } from "@/Hooks/use-window-size";
 
 // --- Components ---
 import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
@@ -72,8 +72,8 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import content from "@/components/tiptap-templates/simple/data/content.json";
-import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
-import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
+import { useIsBreakpoint } from "@/Hooks/use-is-breakpoint";
+import { useCursorVisibility } from "@/Hooks/use-cursor-visibility";
 
 const MainToolbarContent = ({
   onHighlighterClick,

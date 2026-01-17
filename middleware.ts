@@ -1,78 +1,86 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { match } from "path-to-regexp";
 
-const publicRoutes = [
-  "/",
-  "/sign-in",
-  "/sign-up",
-  "/reset-password",
+// Routes that don't require authentication
+const PUBLIC_ROUTES = new Set(["/", "/sign-in", "/sign-up", "/reset-password"]);
+
+// API routes that don't require authentication
+const PUBLIC_API_ROUTES = [
   "/api/initial-auth",
   "/api/verify-otp",
   "/api/logout",
   "/api/login",
   "/api/products",
-  "/api/products/top-selling",
-  "/api/products/new-arrivals",
-  "/api/products/:slug",
-  "/api/search-products",
-  "/api/categories/:category",
-  "/api/categories/:category/products",
-  "/api/subcategories/:subcategory/products",
-  "/api/subsubcategories/:slug/products",
+  "/api/categories",
   "/api/brands",
+  "/api/search-products",
   "/api/store/resendOtp",
   "/api/me/password/forgot-password",
 ];
 
-const publicMatchers = publicRoutes.map((route) =>
-  match(route, { decode: decodeURIComponent }),
-);
+/**
+ * Check if a pathname matches a public API route
+ * Handles both exact matches and prefix matches (e.g., /api/products/123)
+ */
+function isPublicApiRoute(pathname: string): boolean {
+  return PUBLIC_API_ROUTES.some((route) => {
+    if (pathname === route) return true;
+    if (pathname.startsWith(route + "/")) return true;
+    return false;
+  });
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Read token from request cookies
-  const token = request.cookies.get("token")?.value;
-
-  const isPublicRoute = publicMatchers.some((matcher) => matcher(pathname));
-
-  // Allow public routes
-  if (isPublicRoute) {
+  // Allow static files and Next.js internals
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/_next") ||
+    pathname === "/favicon.ico" ||
+    pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2)$/)
+  ) {
     return NextResponse.next();
   }
 
-  // For protected routes, check if token exists
-  // Note: JWT verification is done server-side in route handlers, not in middleware
-  // because middleware runs on Edge Runtime which doesn't support crypto
-  if (!token) {
-    // If it's an API route, return 401
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    // If it's a page route, redirect to sign-in
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+  // Check if it's a public route or API route
+  const isPublicPage = PUBLIC_ROUTES.has(pathname);
+  const isPublicApi = isPublicApiRoute(pathname);
+
+  if (isPublicPage || isPublicApi) {
+    return NextResponse.next();
   }
 
-  // Token exists, allow the request to proceed
-  // Actual JWT verification will happen in route handlers
+  // Get token from cookies
+  const token = request.cookies.get("token")?.value;
+
+  // No token on protected route
+  if (!token) {
+    // For API routes, return 401
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Unauthorized - No token provided" },
+        { status: 401 },
+      );
+    }
+
+    // For page routes, redirect to sign-in with return URL
+    const signInUrl = new URL("/sign-in", request.url);
+    signInUrl.searchParams.set("redirectUrl", pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // Token exists - allow the request to proceed
+  // Route handlers will perform full JWT verification via getCurrentUser()
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    // Run middleware on all routes except static files
+    "/((?!_next/static|_next/image|favicon\\.ico).*)",
   ],
 };
-
-//   const isPublicRoute = publicMatchers.some((m) => m(pathname));
-
-//   console.log("Middleware:", { pathname, isPublicRoute, token });
-
-//   if (isPublicRoute) {
-//     return NextResponse.next();
-//   }
 
 //   if (!token) {
 //     const url = request.nextUrl.clone();

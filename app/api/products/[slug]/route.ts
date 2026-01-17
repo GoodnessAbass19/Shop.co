@@ -5,7 +5,7 @@ import { generateUniqueSlug } from "@/utils/generate-slug";
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } } // Access dynamic slug parameter
+  { params }: { params: Promise<{ slug: string }> } // Access dynamic slug parameter
 ) {
   try {
     const { slug } = await params;

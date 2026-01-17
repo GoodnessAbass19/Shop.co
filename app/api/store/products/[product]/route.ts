@@ -7,7 +7,7 @@ import { generateUniqueSlug } from "@/utils/generate-slug";
 // --- PATCH: Update Product ---
 export async function PATCH(
   request: Request,
-  { params }: { params: { product: string } }
+  { params }: { params: Promise<{ product: string }> }
 ) {
   try {
     const user = await getCurrentUser();

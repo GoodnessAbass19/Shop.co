@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth"; // Your custom auth function
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const { orderId } = await params;

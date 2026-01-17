@@ -7,7 +7,7 @@ import { getCurrentRider, getCurrentUser } from "@/lib/auth";
 
 export async function POST(
   req: Request,
-  { params }: { params: { deliveryItemId: string } }
+  { params }: { params: Promise<{ deliveryItemId: string }> }
 ) {
   const { deliveryItemId } = await params;
   const user = await getCurrentUser();
@@ -62,8 +62,7 @@ export async function POST(
        * 💰 Compute Rider Earning
        * You can later customize this logic dynamically (distance, bonuses, etc.)
        */
-      const itemPrice =
-        assignment.orderItem.productVariant?.product?.price || 0;
+      const itemPrice = assignment.orderItem.productVariant?.price || 0;
       const basePay = 1000; // NGN
       const bonus = 100; // NGN
       const percentOfPrice = 0.05 * itemPrice; // 5% of item price

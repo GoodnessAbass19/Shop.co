@@ -4,8 +4,9 @@ import { ITEM_PER_PAGE } from "@/lib/settings";
 
 export async function GET(
   req: Request,
-  { params }: { params: { subcategory: string } }
+  { params }: { params: Promise<{ subcategory: string }> }
 ) {
+  const { subcategory } = await params;
   try {
     const { searchParams } = new URL(req.url);
     const sort = searchParams.get("sort") || "recent";
@@ -22,7 +23,7 @@ export async function GET(
     const total = await prisma.product.count({
       where: {
         subCategory: {
-          slug: params.subcategory,
+          slug: subcategory,
         },
         status: "ACTIVE", // Only count active products
         store: {
@@ -38,7 +39,7 @@ export async function GET(
       const allProducts = await prisma.product.findMany({
         where: {
           subCategory: {
-            slug: params.subcategory,
+            slug: subcategory,
           },
           store: {
             isActive: true,
@@ -82,7 +83,7 @@ export async function GET(
       products = await prisma.product.findMany({
         where: {
           subCategory: {
-            slug: params.subcategory,
+            slug: subcategory,
           },
           store: {
             isActive: true,

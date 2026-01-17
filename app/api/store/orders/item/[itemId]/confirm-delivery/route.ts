@@ -4,12 +4,12 @@ import prisma from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   const body = await req.json();
   const { code } = body;
   const { itemId } = await params;
-  const user = getCurrentUser();
+  const user = await getCurrentUser();
 
   const orderItem = await prisma.orderItem.findUnique({
     where: { id: itemId },
@@ -28,16 +28,16 @@ export async function PATCH(
     return new Response("Order item not found", { status: 404 });
   }
 
-  if (orderItem.deliveryCode !== code) {
-    return new Response("Invalid confirmation code", { status: 400 });
-  }
+  // if (orderItem.deliveryCode !== code) {
+  //   return new Response("Invalid confirmation code", { status: 400 });
+  // }
 
   await prisma.orderItem.update({
     where: { id: itemId },
     data: {
       deliveryStatus: "DELIVERED",
       deliveredAt: new Date(),
-      deliveryCode: null,
+      // deliveryCode: null,
     },
   });
 

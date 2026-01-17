@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -39,7 +39,7 @@ export async function PATCH(
             productVariant: {
               select: {
                 id: true,
-                stock: true,
+                quantity: true,
                 productId: true,
               },
             },
@@ -84,35 +84,32 @@ export async function PATCH(
     let refundError: string | null = null;
 
     // 4. If the order was COMPLETED (paid), attempt a Stripe refund
-    if (order.status === OrderStatus.PAID && order.stripePaymentIntentId) {
+    if (order.status === OrderStatus.PAID && order.paystackReference) {
       refundAttempted = true;
       try {
         const refund = await stripe.refunds.create({
-          payment_intent: order.stripePaymentIntentId,
+          payment_intent: order.paystackReference,
           amount: Math.round(order.total * 100), // Refund the full order total in cents
           reason: "requested_by_customer", // Optional: specify the reason for the refund
         });
         refundSuccess = true;
         refundId = refund.id;
         console.log(
-          `Stripe refund initiated for PaymentIntent ${order.stripePaymentIntentId}. Refund ID: ${refund.id}`
+          `Stripe refund initiated for PaymentIntent ${order.paystackReference}. Refund ID: ${refund.id}`
         );
       } catch (refundErr: any) {
         refundError = refundErr.message;
         console.error(
-          `Stripe refund failed for PaymentIntent ${order.stripePaymentIntentId}:`,
+          `Stripe refund failed for PaymentIntent ${order.paystackReference}:`,
           refundErr.message
         );
         // You might decide to return an error here and not cancel the order in your DB,
         // or proceed with cancellation but mark it as needing manual refund.
         // For simplicity, we'll proceed with cancelling the order but include refund status in response.
       }
-    } else if (
-      order.status === OrderStatus.PAID &&
-      !order.stripePaymentIntentId
-    ) {
+    } else if (order.status === OrderStatus.PAID && !order.paystackReference) {
       console.warn(
-        `Order ${order.id} was COMPLETED but is missing stripePaymentIntentId. Manual refund required.`
+        `Order ${order.id} was COMPLETED but is missing paystackReference. Manual refund required.`
       );
       refundError =
         "Order was paid but missing Stripe Payment Intent ID. Manual refund needed.";
@@ -144,19 +141,16 @@ export async function PATCH(
       await prisma.productVariant.update({
         where: { id: item.productVariant.id },
         data: {
-          stock: {
+          quantity: {
             increment: item.quantity,
           },
         },
       });
 
-      // Decrement the main Product's soldCount and increment its overall stock.
+      // Decrement the main Product's soldCount and increment its overall quantity.
       await prisma.product.update({
         where: { id: item.productVariant.productId },
         data: {
-          stock: {
-            increment: item.quantity,
-          },
           soldCount: {
             decrement: item.quantity,
           },

@@ -16,14 +16,14 @@ import {
 
 export async function POST(
   req: Request,
-  { params }: { params: { deliveryItemId: string } }
+  { params }: { params: Promise<{ deliveryItemId: string }> }
 ) {
   const body = await req.json();
   const { pickupCode } = body;
 
   // FIX 1: Retrieve deliveryItemId directly from params.
   // The original line `const { deliveryItemId } = await params;` was incorrect.
-  const { deliveryItemId } = params;
+  const { deliveryItemId } = await params;
 
   const user = await getCurrentUser();
 

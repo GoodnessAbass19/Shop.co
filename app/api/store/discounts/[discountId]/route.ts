@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 // --- GET: Fetch Single Discount ---
 export async function GET(
   request: Request,
-  { params }: { params: { discountId: string } }
+  { params }: { params: Promise<{ discountId: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { discountId } = params;
+    const { discountId } = await params;
     if (!discountId) {
       return NextResponse.json(
         { error: "Discount ID is required." },

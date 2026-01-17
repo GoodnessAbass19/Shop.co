@@ -4,7 +4,7 @@ import { getCurrentRider, getCurrentUser } from "@/lib/auth";
 
 export async function GET(
   req: Request,
-  { params }: { params: { deliveryItemId: string } }
+  { params }: { params: Promise<{ deliveryItemId: string }> }
 ) {
   try {
     const user = await getCurrentUser();

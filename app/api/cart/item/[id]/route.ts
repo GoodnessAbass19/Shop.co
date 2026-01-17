@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -12,7 +12,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const cartItemId = params.id;
+    const { id } = await params;
     const { quantity } = await request.json();
 
     if (typeof quantity !== "number" || quantity < 1) {
@@ -24,7 +24,7 @@ export async function PATCH(
 
     // Find the cart item and its associated product variant to check stock
     const existingCartItem = await prisma.cartItem.findUnique({
-      where: { id: cartItemId },
+      where: { id: id },
       include: {
         cart: true, // Include cart to check ownership
         productVariant: true,
@@ -57,7 +57,7 @@ export async function PATCH(
     }
 
     const updatedCartItem = await prisma.cartItem.update({
-      where: { id: cartItemId },
+      where: { id: id },
       data: { quantity },
     });
 
@@ -83,11 +83,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const cartItemId = params.id; // Get the cart item ID from the URL parameters
+    const id = params.id; // Get the cart item ID from the URL parameters
 
     // Find the cart item to ensure it exists and belongs to the current user
     const cartItem = await prisma.cartItem.findUnique({
-      where: { id: cartItemId },
+      where: { id: id },
       include: {
         cart: {
           // Include the cart to check its userId
@@ -113,10 +113,10 @@ export async function DELETE(
 
     // Delete the cart item
     await prisma.cartItem.delete({
-      where: { id: cartItemId },
+      where: { id: id },
     });
 
-    console.log(`Cart item ${cartItemId} deleted by user ${user.id}`);
+    console.log(`Cart item ${id} deleted by user ${user.id}`);
     return NextResponse.json(
       { success: true, message: "Cart item deleted successfully." },
       { status: 200 }

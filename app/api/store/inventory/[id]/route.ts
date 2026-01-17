@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } } // This 'id' can be Product ID or ProductVariant ID
+  { params }: { params: Promise<{ id: string }> } // This 'id' can be Product ID or ProductVariant ID
 ) {
   try {
     const user = await getCurrentUser();
@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params; // The ID of the product or product variant
+    const { id } = await params; // The ID of the product or product variant
     if (!id) {
       return NextResponse.json({ error: "ID is required." }, { status: 400 });
     }

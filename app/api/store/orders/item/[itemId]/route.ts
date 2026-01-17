@@ -6,7 +6,7 @@ import { NotificationType, Role, OrderStatus } from "@prisma/client"; // Import 
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   function generateOTP(length = 6) {
     return Math.floor(Math.random() * Math.pow(10, length))
@@ -15,7 +15,7 @@ export async function PATCH(
   }
 
   try {
-    const { itemId } = params; // Correctly destructure params
+    const { itemId } = await params; // Correctly destructure params
     const body = await req.json();
     const confirmationCode = generateOTP();
 
@@ -38,10 +38,10 @@ export async function PATCH(
         // For this code, we'll assume they are temporary for notification.
         // riderName: riderName,
         // riderPhone: riderPhone,
-        trackingUrl: trackingUrl || null,
+        // trackingUrl: trackingUrl || null,
         deliveryStatus: "OUT_FOR_DELIVERY", // Assuming OrderItem has a deliveryStatus field
         assignedAt: new Date(),
-        deliveryCode: confirmationCode, // Store the generated code on the order item
+        // deliveryCode: confirmationCode, // Store the generated code on the order item
       },
       include: {
         order: {

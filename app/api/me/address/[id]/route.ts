@@ -8,13 +8,13 @@ const MAPBOX_GEOCODING_BASE_URL =
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getCurrentUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
 
   const existingAddress = await prisma.address.findUnique({

@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: { orderitem: string } }
+  { params }: { params: Promise<{ orderitem: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -16,7 +16,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { orderitem } = params;
+    const { orderitem } = await params;
     if (!orderitem || typeof orderitem !== "string") {
       return NextResponse.json(
         { error: "Invalid or missing order item ID." },
@@ -116,7 +116,7 @@ export async function POST(
     });
 
     // Rider earnings logic
-    const itemPrice = updatedItem.productVariant?.product?.price || 0;
+    const itemPrice = updatedItem.productVariant?.price || 0;
     const basePay = 1000;
     const bonus = 100;
     const riderEarnings = basePay + bonus + itemPrice * 0.05;

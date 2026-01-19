@@ -218,7 +218,7 @@ const UserButton = () => {
         //   <UserRound className="w-6 h-6 text-black" />
         <Button
           variant={"outline"}
-          className="hidden md:block rounded-full hover:bg-gray-200 p-1"
+          className="block rounded-full hover:bg-gray-200 p-1"
         >
           <HoverPrefetchLink
             href="/sign-in"

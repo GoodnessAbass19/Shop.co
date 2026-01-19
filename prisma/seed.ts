@@ -69,48 +69,48 @@ async function main() {
 
   console.log("Categories created");
 
-  await prisma.specificationDefinition.createMany({
-    data: [
-      // Electronics
-      {
-        name: "Battery Capacity",
-        unit: "mAh",
-        inputType: SpecInputType.NUMBER,
-        categoryId: electronics.id,
-      },
-      {
-        name: "Connectivity",
-        inputType: SpecInputType.SELECT,
-        categoryId: electronics.id,
-      },
-      {
-        name: "Warranty",
-        unit: "years",
-        inputType: SpecInputType.SELECT,
-        categoryId: electronics.id,
-      },
+  // await prisma.specificationDefinition.createMany({
+  //   data: [
+  //     // Electronics
+  //     {
+  //       name: "Battery Capacity",
+  //       unit: "mAh",
+  //       inputType: SpecInputType.NUMBER,
+  //       categoryId: electronics.id,
+  //     },
+  //     {
+  //       name: "Connectivity",
+  //       inputType: SpecInputType.SELECT,
+  //       categoryId: electronics.id,
+  //     },
+  //     {
+  //       name: "Warranty",
+  //       unit: "years",
+  //       inputType: SpecInputType.SELECT,
+  //       categoryId: electronics.id,
+  //     },
 
-      // Fashion
-      {
-        name: "Material",
-        inputType: SpecInputType.TEXT,
-        categoryId: fashion.id,
-      },
-      {
-        name: "Fit Type",
-        inputType: SpecInputType.SELECT,
-        categoryId: fashion.id,
-      },
-      {
-        name: "Care Instructions",
-        inputType: SpecInputType.RICHTEXT,
-        categoryId: fashion.id,
-      },
-    ],
-  });
+  //     // Fashion
+  //     {
+  //       name: "Material",
+  //       inputType: SpecInputType.TEXT,
+  //       categoryId: fashion.id,
+  //     },
+  //     {
+  //       name: "Fit Type",
+  //       inputType: SpecInputType.SELECT,
+  //       categoryId: fashion.id,
+  //     },
+  //     {
+  //       name: "Care Instructions",
+  //       inputType: SpecInputType.RICHTEXT,
+  //       categoryId: fashion.id,
+  //     },
+  //   ],
+  // });
 
-  const specs = await prisma.specificationDefinition.findMany();
-  const specMap = Object.fromEntries(specs.map((s) => [s.name, s.id]));
+  // const specs = await prisma.specificationDefinition.findMany();
+  // const specMap = Object.fromEntries(specs.map((s) => [s.name, s.id]));
 
   console.log("🌴Seeding complete.");
 }

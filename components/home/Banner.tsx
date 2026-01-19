@@ -1,15 +1,7 @@
 import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
-import Marquee from "react-fast-marquee";
-
-const images = [
-  "/images/versace.png",
-  "/images/gucci.png",
-  "/images/prada.png",
-  "/images/calvin.png",
-  "/images/zara.png",
-];
+import BannerImg from "@/public/Images/hero.png";
 
 const Banner = () => {
   return (
@@ -56,7 +48,7 @@ const Banner = () => {
 
           <div>
             <Image
-              src={"/images/hero.png"}
+              src={BannerImg}
               alt="banner"
               width={500}
               height={500}

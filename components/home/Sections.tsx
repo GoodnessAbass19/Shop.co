@@ -97,7 +97,7 @@ const Sections = ({
         </button>
 
         <Swiper
-          className="w-full h-full"
+          className="w-full"
           breakpoints={{
             0: {
               slidesPerView: 1.5,
@@ -122,6 +122,7 @@ const Sections = ({
             prevEl,
             nextEl,
           }}
+          direction="horizontal"
         >
           {products?.map((product, index) => (
             <SwiperSlide key={index}>

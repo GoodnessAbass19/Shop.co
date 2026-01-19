@@ -110,6 +110,19 @@ body {
   background-color: #f1f1f1;
 }
 
+.swiper-container {
+  width: 100%;
+  height: auto; /* Or a fixed height if needed */
+}
+.swiper-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+.swiper-slide {
+  width: 100%;
+}
+
 /* .input-phone {
   @apply mt-2 h-12 rounded-md px-3 text-sm border bg-gray-200 placeholder:text-gray-200 border-gray-300 !important;
 } */

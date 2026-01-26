@@ -1,4 +1,4 @@
-import VerificationForm from "@/components/dashboard/verification-form";
+import VerificationForm from "@/components/auth/verification-form";
 import { cookies } from "next/headers";
 import React from "react";
 

@@ -1,15 +1,6 @@
-import {
-  BarChart,
-  Moon,
-  Package,
-  Percent,
-  Settings,
-  ShoppingBag,
-  StoreIcon,
-  Sun,
-  Warehouse,
-} from "lucide-react";
-
+import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
+import React from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,46 +14,73 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
-} from "@/components/ui/sidebar";
-
-import { HoverPrefetchLink } from "@/lib/HoverLink";
-
-import { usePathname } from "next/navigation";
+} from "../ui/sidebar";
+import {
+  Banknote,
+  Bike,
+  Blocks,
+  ChartNoAxesCombined,
+  Grid2X2,
+  House,
+  Moon,
+  Store,
+  StoreIcon,
+  Sun,
+  UsersRound,
+  Wallet,
+} from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Switch } from "../ui/switch";
-import { useTheme } from "next-themes";
-import { NavUser } from "./nav-user";
-import NotificationBell from "../seller/NotificationBell";
+import {
+  BuildingStorefrontIcon,
+  Cog8ToothIcon,
+} from "@heroicons/react/24/solid";
+import { NavUser } from "../dashboard/nav-user";
 
-const navItems = [
-  {
-    name: "Dashboard",
-    icon: StoreIcon,
-    href: "/your/store/dashboard",
-  }, // Using StoreIcon for general dashboard
-  { name: "Products", icon: Package, href: "/your/store/dashboard/products" },
-  { name: "Orders", icon: ShoppingBag, href: "/your/store/dashboard/orders" },
-  {
-    name: "Sales & Analytics",
-    icon: BarChart,
-    href: "/your/store/dashboard/sales-analytics",
-  },
-  {
-    name: "Inventory",
-    icon: Warehouse,
-    href: "/your/store/dashboard/inventory",
-  },
-  { name: "Discounts", icon: Percent, href: "/your/store/dashboard/discounts" },
-];
+const navItems = {
+  management: [
+    {
+      name: "Dashboard",
+      icon: Grid2X2,
+      href: "/admin/dashboard",
+    }, // Using StoreIcon for general dashboard
+    {
+      name: "Stores",
+      icon: BuildingStorefrontIcon,
+      href: "/admin/dashboard/store-management",
+    },
+
+    // {
+    //   name: "Sellers",
+    //   icon: UsersRound,
+    //   href: "/admin/dashboard/seller-management",
+    // },
+    { name: "Riders", icon: Bike, href: "/admin/dashboard/rider-management" },
+    {
+      name: "Catalog & Products",
+      icon: Blocks,
+      href: "/admin/dashboard/catalog-products",
+    },
+  ],
+
+  financials: [
+    {
+      name: "Commissions",
+      icon: Banknote,
+      href: "/admin/dashboard/commissions",
+    },
+    { name: "Payouts", icon: Wallet, href: "/admin/dashboard/payouts" },
+  ],
+};
 
 interface SidebarProps {
-  storeName: string;
+  name: string;
   email: string;
-  logo: string;
   props?: React.ComponentProps<typeof Sidebar>;
 }
 
-export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
+const AdminSidebar = ({ name, email, ...props }: SidebarProps) => {
   const pathname = usePathname();
   // const [isOpen, setIsOpen] = useState(false);
   const { setTheme, theme } = useTheme();
@@ -72,7 +90,7 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
   const { open } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -83,23 +101,26 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
               <div className="flex aspect-square size-8 items-center justify-start rounded-lg">
                 <StoreIcon className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-extrabold capitalize">Seller Hub</h2>
+              <h2 className="text-xl font-extrabold capitalize">
+                Shop co Admin
+              </h2>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarSeparator />
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="uppercase font-medium">
-            marketing
+            management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {navItems.management.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton asChild>
-                    <HoverPrefetchLink
+                    <Link
                       href={item.href}
                       className={cn(
                         "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
@@ -109,13 +130,57 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
                           : "",
                       )}
                     >
-                      <item.icon className="w-5 h-5" />
+                      <item.icon className="w-7 h-7" />
                       {item.name}
-                    </HoverPrefetchLink>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              <NotificationBell />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel className="uppercase font-medium">
+            financials
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.financials.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
+                        // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
+                        pathname === item.href
+                          ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                          : "",
+                      )}
+                    >
+                      <item.icon className="w-7 h-7" />
+                      {item.name}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href={"/admin/dashboard/analytics"}
+                    className={cn(
+                      "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
+                      // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
+                      pathname === "/admin/dashboard/analytics"
+                        ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                        : "",
+                    )}
+                  >
+                    <ChartNoAxesCombined className="w-7 h-7" />
+                    Analytics
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -125,23 +190,6 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <HoverPrefetchLink
-                    href={"/your/store/dashboard/settings"}
-                    className={cn(
-                      "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200 capitalize",
-                      // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
-                      pathname === "/your/store/dashboard/settings"
-                        ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
-                        : "",
-                    )}
-                  >
-                    <Settings className="w-5 h-5" />
-                    settings
-                  </HoverPrefetchLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   {open ? (
@@ -205,13 +253,33 @@ export function AppSidebar({ storeName, email, logo, ...props }: SidebarProps) {
                   )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href={"/admin/dashboard/settings"}
+                    className={cn(
+                      "w-full flex justify-start items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors duration-200",
+                      // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
+                      pathname === "/admin/dashboard/settings"
+                        ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                        : "",
+                    )}
+                  >
+                    <Cog8ToothIcon className="w-7 h-7" />
+                    Settings
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser name={storeName} avatar={logo} email={email} />
+        <NavUser name={name} avatar="" email={email} />
       </SidebarFooter>
     </Sidebar>
   );
-}
+};
+
+export default AdminSidebar;

@@ -4,6 +4,18 @@ import { SpecInputType, VariantType } from "@prisma/client";
 
 async function main() {
   // await prisma.category;
+  await prisma.user.upsert({
+    where: { email: "" },
+    update: {},
+    create: {
+      name: "Admin User",
+      email: "",
+      role: "ADMIN",
+      password: "securepassword",
+    },
+  });
+
+  console.log("😂 Admin Created");
 
   const electronics = await prisma.category.upsert({
     where: { slug: "electronics" },

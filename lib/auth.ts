@@ -50,6 +50,31 @@ export async function getCurrentUser() {
   }
 }
 
+export async function getCurrentAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin-token")?.value;
+
+  if (!token) return null;
+
+  try {
+    const decoded = await verifyToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId, role: "ADMIN" },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    return user;
+  } catch (error) {
+    console.error("Failed to get current user:", error);
+    return null;
+  }
+}
+
 export async function getCurrentRider() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -96,7 +121,7 @@ const MAX_DISTANCE = 3000;
 export async function getNearbyRiders(
   lat: number,
   lng: number,
-  sellerGeohash: string
+  sellerGeohash: string,
 ) {
   // Get active riders with location
   const riders = await prisma.rider.findMany({
@@ -111,7 +136,7 @@ export async function getNearbyRiders(
   return riders.filter((r) => {
     const distance = geolib.getDistance(
       { latitude: lat, longitude: lng },
-      { latitude: r.latitude!, longitude: r.longitude! }
+      { latitude: r.latitude!, longitude: r.longitude! },
     );
     return distance >= MIN_DISTANCE && distance <= MAX_DISTANCE;
   });

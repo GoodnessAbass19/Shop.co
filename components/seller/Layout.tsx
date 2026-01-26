@@ -26,7 +26,6 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../dashboard/NewSidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserRole } from "@/Hooks/use-user-role";
-import { useEffect } from "react";
 
 // Define the structure of the SellerStore data expected from the API
 interface SellerStoreData {
@@ -117,7 +116,7 @@ export default function SellerDashboardLayout({
   if (pathname === "/your/store/create" && !sellerStore) {
     router.prefetch(`/sign-in`);
     router.push(
-      `/sign-in?redirectUrl=${encodeURIComponent("/your/store/create")}`
+      `/sign-in?redirectUrl=${encodeURIComponent("/your/store/create")}`,
     );
     return null;
   }
@@ -125,7 +124,7 @@ export default function SellerDashboardLayout({
   // verify seller status and store data security
   if (isSeller === false || !storeToken) {
     router.push(
-      `/your/store/login?redirectUrl=${encodeURIComponent(pathname)}`
+      `/your/store/login?redirectUrl=${encodeURIComponent(pathname)}`,
     );
     return null;
   }
@@ -149,19 +148,6 @@ export default function SellerDashboardLayout({
       </div>
     );
   }
-
-  // if (!sellerStore.isactive) {
-  //   router.push("/your/store/dashboard/profile");
-  //   return null;
-  // }
-
-  // useEffect(() => {
-  //   if (isSeller !== true || !storeToken) {
-  //     router.push(
-  //       `/your/store/login?redirectUrl=${encodeURIComponent(pathname)}`
-  //     );
-  //   }
-  // }, [isSeller, storeToken, pathname, router]);
 
   return (
     <SellerStoreProvider store={sellerStore}>

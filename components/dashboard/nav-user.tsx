@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  DoorOpen,
-  LogOut,
-  Sparkles,
-  User,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,6 +21,7 @@ import {
 import { cn, getInitials } from "@/lib/utils";
 import { HoverPrefetchLink } from "@/lib/HoverLink";
 import { usePathname, useRouter } from "next/navigation";
+import { useUserRole } from "@/Hooks/use-user-role";
 
 export function NavUser({
   name,
@@ -46,13 +38,11 @@ export function NavUser({
   const router = useRouter();
 
   const handleLogout = async () => {
-    // await fetch("/api/logout", { method: "GET" });
-    // Refresh the page to update the UI
-    // localStorage.removeItem("token"); // Clear token from local storage if used
     router.prefetch("/");
     router.push("/"); // Redirect to login or home
-    // router.refresh();
   };
+
+  const user = useUserRole();
 
   return (
     <SidebarMenu>
@@ -108,13 +98,17 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <HoverPrefetchLink
-                  href={"/your/store/dashboard/profile"}
+                  href={
+                    user.isSeller
+                      ? "/your/store/dashboard/profile"
+                      : "/admin/dashboard/profile"
+                  }
                   className={cn(
                     "w-full flex justify-start items-center gap-2 transition-colors duration-200",
                     // Highlight active HoverPrefetchLink based on pathname.startsWith for nested routes
                     pathname === ""
                       ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
-                      : ""
+                      : "",
                   )}
                 >
                   <User />
@@ -123,20 +117,15 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            {/* <DropdownMenuItem
-              onClick={handleLogout}
-              className="hover:text-red-600 "
-            >
-              <DoorOpen />
-              Exit Store
-            </DropdownMenuItem> */}
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="hover:text-red-600 "
-            >
-              <LogOut />
-              Exit Store
-            </DropdownMenuItem>
+            {user.isSeller && (
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="hover:text-red-600 "
+              >
+                <LogOut />
+                Exit Store
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

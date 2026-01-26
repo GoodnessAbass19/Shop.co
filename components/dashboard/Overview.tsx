@@ -12,7 +12,6 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import { useEffect, useState } from "react";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
 export async function fetchDashboardStats(storeId: string | null) {

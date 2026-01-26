@@ -36,7 +36,7 @@ import {
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 
 type AuthFormProps = {
@@ -102,7 +102,7 @@ export default function AuthForm({ type }: AuthFormProps) {
         }),
       };
 
-      const res = await fetch("/api/initial-auth", {
+      const res = await fetch("/api/auth/initial-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -209,7 +209,7 @@ export default function AuthForm({ type }: AuthFormProps) {
     }
 
     try {
-      const res = await fetch("/api/initial-auth", {
+      const res = await fetch("/api/auth/initial-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -33,6 +33,7 @@ import { useUser } from "@/Hooks/user-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const UserButton = () => {
   const { user, isLoading } = useUser();
@@ -60,9 +61,13 @@ const UserButton = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <HoverPrefetchLink href={"/your/store/dashboard"}>
+              <Link
+                href={"/your/store/dashboard"}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Store />
-              </HoverPrefetchLink>
+              </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p className="capitalize">shop manager</p>
@@ -75,14 +80,18 @@ const UserButton = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <HoverPrefetchLink href={"/logistics/rider/dashboard"}>
+              <Link
+                href={"/logistics/rider/dashboard"}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Image
                   src={"/images/motorsports.svg"}
                   alt="rider"
                   width={30}
                   height={30}
                 />
-              </HoverPrefetchLink>
+              </Link>
             </TooltipTrigger>
             <TooltipContent>
               <p className="capitalize">Switch to rider mode</p>
@@ -218,7 +227,7 @@ const UserButton = () => {
         //   <UserRound className="w-6 h-6 text-black" />
         <Button
           variant={"outline"}
-          className="block rounded-full hover:bg-gray-200 p-1"
+          className="block rounded-lg hover:bg-gray-200 p-1.5 border-black border"
         >
           <HoverPrefetchLink
             href="/sign-in"
